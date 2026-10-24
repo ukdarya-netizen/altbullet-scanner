@@ -1,0 +1,15 @@
+kind = "api"
+  title = "Archetype Detector"
+  version = "1.0.0"
+  id = "artifacts/archetype-detector"
+
+  [[services]]
+  localPort = 8001
+  name = "Archetype Detector"
+
+  [services.development]
+  run = "cd artifacts/archetype-detector && uvicorn api:app --host 0.0.0.0 --port 8001 --timeout-graceful-shutdown 3 --log-level info"
+
+  [services.development.health.startup]
+  path = "/healthz"
+  

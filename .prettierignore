@@ -1,0 +1,24 @@
+# Build outputs
+dist/
+out-tsc/
+tmp/
+
+# Dependencies
+node_modules/
+
+# Generated files
+**/generated/**
+**/.tsbuildinfo
+
+# Agent memory and local agent files
+.agents/
+.local/
+
+# Python service
+artifacts/archetype-detector/
+
+# Mockup sandbox (design tool, not hand-written code)
+artifacts/mockup-sandbox/
+
+# Lock files
+pnpm-lock.yaml

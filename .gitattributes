@@ -1,0 +1,4 @@
+bingx-alpha-scanner.zip filter=lfs diff=lfs merge=lfs -text
+bingx-altbullet-latest.tar.gz filter=lfs diff=lfs merge=lfs -text
+altbullet_code.zip filter=lfs diff=lfs merge=lfs -text
+artifacts/archetype-detector/crypto_data.duckdb filter=lfs diff=lfs merge=lfs -text

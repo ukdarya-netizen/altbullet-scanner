@@ -1,0 +1,743 @@
+{
+  "id": "48c862e6-2cb8-4edb-bfe7-4b27c14c49fa",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.oi_baselines": {
+      "name": "oi_baselines",
+      "schema": "",
+      "columns": {
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "oi": {
+          "name": "oi",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taken_at": {
+          "name": "taken_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.oi_daily_snapshots": {
+      "name": "oi_daily_snapshots",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "oi_usd": {
+          "name": "oi_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_change_24h": {
+          "name": "oi_change_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_usd": {
+          "name": "price_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "volume_24h": {
+          "name": "volume_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taken_at": {
+          "name": "taken_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.oi_watch": {
+      "name": "oi_watch",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trigger_tf": {
+          "name": "trigger_tf",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "oi_change": {
+          "name": "oi_change",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_at_entry": {
+          "name": "price_at_entry",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "volume_multiplier": {
+          "name": "volume_multiplier",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sentiment_key": {
+          "name": "sentiment_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "oi_watch_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'watching'"
+        },
+        "added_at": {
+          "name": "added_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fired_at": {
+          "name": "fired_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avg_volume": {
+          "name": "avg_volume",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_vol_confirmed": {
+          "name": "is_vol_confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "signal_payload": {
+          "name": "signal_payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "oi_watch_symbol_status_idx": {
+          "name": "oi_watch_symbol_status_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "oi_watch_status_idx": {
+          "name": "oi_watch_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.settings": {
+      "name": "settings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "volume_multiplier": {
+          "name": "volume_multiplier",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 2
+        },
+        "oi_change_percent": {
+          "name": "oi_change_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 5
+        },
+        "funding_rate_threshold": {
+          "name": "funding_rate_threshold",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.0005
+        },
+        "scan_interval_ms": {
+          "name": "scan_interval_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1800000
+        },
+        "telegram_enabled": {
+          "name": "telegram_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "max_symbols": {
+          "name": "max_symbols",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
+        },
+        "channel_id": {
+          "name": "channel_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "watchlist": {
+          "name": "watchlist",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_daily_report_at": {
+          "name": "last_daily_report_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_weekly_digest_at": {
+          "name": "last_weekly_digest_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_monthly_digest_at": {
+          "name": "last_monthly_digest_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.signals": {
+      "name": "signals",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "signal_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "threshold": {
+          "name": "threshold",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price": {
+          "name": "price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_change_percent": {
+          "name": "price_change_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "volume_24h": {
+          "name": "volume_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avg_volume": {
+          "name": "avg_volume",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "open_interest": {
+          "name": "open_interest",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_change_percent": {
+          "name": "oi_change_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "funding_rate": {
+          "name": "funding_rate",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "trading_view_url": {
+          "name": "trading_view_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cmc_rank": {
+          "name": "cmc_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cmc_source": {
+          "name": "cmc_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidations_usd": {
+          "name": "liquidations_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidations_multiple": {
+          "name": "liquidations_multiple",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sentiment": {
+          "name": "sentiment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sentiment_key": {
+          "name": "sentiment_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alpha_score": {
+          "name": "alpha_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_continuing": {
+          "name": "is_continuing",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "cumulative_oi_change": {
+          "name": "cumulative_oi_change",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "detected_at": {
+          "name": "detected_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tracked_signals": {
+      "name": "tracked_signals",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signal_id": {
+          "name": "signal_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "signal_type": {
+          "name": "signal_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sentiment": {
+          "name": "sentiment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sentiment_key": {
+          "name": "sentiment_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alpha_score": {
+          "name": "alpha_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_short": {
+          "name": "is_short",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "entry_price": {
+          "name": "entry_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entry_oi": {
+          "name": "entry_oi",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "exit_price": {
+          "name": "exit_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pnl_percent": {
+          "name": "pnl_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "peak_price": {
+          "name": "peak_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "trailing_stop_level": {
+          "name": "trailing_stop_level",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_milestone": {
+          "name": "last_milestone",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "tracked_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "re_entry_count": {
+          "name": "re_entry_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "detected_at": {
+          "name": "detected_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tracked_signals_signal_id_signals_id_fk": {
+          "name": "tracked_signals_signal_id_signals_id_fk",
+          "tableFrom": "tracked_signals",
+          "tableTo": "signals",
+          "columnsFrom": ["signal_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.subscribers": {
+      "name": "subscribers",
+      "schema": "",
+      "columns": {
+        "chat_id": {
+          "name": "chat_id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "subscribed_at": {
+          "name": "subscribed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "unsubscribed_at": {
+          "name": "unsubscribed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.oi_watch_status": {
+      "name": "oi_watch_status",
+      "schema": "public",
+      "values": ["watching", "fired", "expired", "confirming"]
+    },
+    "public.signal_type": {
+      "name": "signal_type",
+      "schema": "public",
+      "values": [
+        "volume_spike",
+        "oi_increase",
+        "funding_rate",
+        "strict_alpha",
+        "alpha",
+        "super_alpha",
+        "short_sniper",
+        "bingx_volume",
+        "mexc_pump"
+      ]
+    },
+    "public.tracked_status": {
+      "name": "tracked_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "in_run",
+        "profit",
+        "stop_loss",
+        "accumulation",
+        "breakeven",
+        "re_entry",
+        "cancelled"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

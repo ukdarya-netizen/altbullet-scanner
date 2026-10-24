@@ -1,0 +1,10 @@
+---
+name: Subscription expiry send boundary
+description: Immediate Telegram cutoff when a paid subscription reaches its end time.
+---
+
+Personal Telegram recipients must be revalidated against the authoritative subscription state immediately before every proactive broadcast dispatch, including both durable outbox rows and legacy direct-send paths. Bot command authorization must also evaluate the exact expiry timestamp, never only the asynchronously materialized `active` flag. The exact end instant is inactive. A queued or retrying row that outlives the subscription is suppressed without contacting Telegram; a recipient-state database outage defers the row rather than sending from stale data. Passive expiry must not send a personal notice after crossing the boundary, but an explicit administrator deactivation is a deliberate account event and must retain its dedicated deactivation notice. Channels and the operational owner remain outside the paid-subscription gate. Interactive bot replies needed to inspect or restore access remain allowed.
+
+**Why:** Filtering recipients only when an event enters the outbox leaves a race where delayed or retried messages can reach a user after their subscription expires. A legacy expiry notice also bypassed the outbox after first marking the recipient expired, so delivery audits incorrectly showed zero post-expiry sends; removing the explicit-admin deactivation notice would break a separate intended workflow.
+
+**How to apply:** Any new proactive Telegram delivery path for paid users must use the dispatch-time eligibility gate, even when it does not use the durable outbox. When a Dashboard account and bot subscriber share a Chat ID, both records must be active and current; any disagreement fails closed until they are synchronized. Subscription-date mutations must update both records atomically, clear Dashboard presence, and a past date must end access immediately rather than waiting for reconciliation. Reconciliation must also clear stale presence for already-expired rows. Keep expiry reconciliation frequent enough to materialize status promptly, but never rely on its cadence as the send or access cutoff.

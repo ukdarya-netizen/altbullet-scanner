@@ -1,0 +1,174 @@
+- [Whale Futures retired](whale-futures-retired.md) — whale_watch снят с live-скана; история, закрытие открытых позиций и подписи старых сделок сохранены.
+- [ТОЛЬКО агрегированные данные — и в анализе](aggregated-data-only-rule.md) — владелица повторяла несколько раз: объём/OI/ликвидации только агрегированные (CoinGlass), никаких BingX-расчётов.
+- [Bullish Accumulation decommissioned](bullish-accumulation-decommissioned.md) — BA не active и не dead-cleanup: новые сигналы запрещены, история и закрытие уже открытых позиций сохранены.
+- [Balanced Grind retirement](balanced-grind-retirement.md) — BG не создаёт новые сделки; три согласованных нейтральных закрытия относятся только к дашборду, не к Bybit/PnL.
+- [Neon Support trading approval](neon-support-trading-approval.md) — Neon больше не эксперимент: relay разрешён, но реальный внешний Bybit receiver требует отдельного обновления и проверки.
+- [AltBullet observational analytics](altbullet-observational-analytics.md) — ABNeon теперь только S/R + связи сохранённых индикаторов с исходами; score и новые TP-гипотезы остановлены.
+- [ABNeon range provenance](abneon-range-provenance.md) — диапазоны 1H/4H считаются независимо от Pine и только по закрытым свечам; не выдавать их за исходный Auto Range.
+- [Auto Range timeframe policy](auto-range-1h-rollout-decision.md) — только 4H Range с двумя 1H закрепами; Resistance/1H не дают новых сделок, история и объёмные метрики сохранены.
+- [AltBullet snapshot retry boundary](altbullet-snapshot-retry-boundary.md) — retry-policy проверяется до market fetch и перед записью ready; retry-schema обязательна при старте в dev и prod.
+- [Technical Stealth Breakout](technical-stealth-breakout.md) — SB: 4H структура/quiet-zone → закрытый 1H пробой → 30m защита от позднего или сломанного входа.
+- [signal_trajectory_log](signal-trajectory-log.md) — траектория каждого сигнала: 15m/30m/1h/2h/4h/8h/24h/48h/72h + 'close' снапшоты; ON CONFLICT DO NOTHING; exhaustive startup reconciliation для gap-fill.
+- [Active-pattern analytics whitelist](analytics-active-pattern-whitelist.md) — пользовательские агрегации whitelist’ят действующие паттерны; legacy-история остаётся только для аудита.
+- [Health events schema](signal-health-events-deployment.md) — owner-аналитика исходов имеет обязательный schema gate в dev и prod; accuracy SQL + цели ≥55% описаны.
+- [Health & outcomes delivery atomicity](health-outcomes-delivery-atomicity.md) — события поддержки и отмены коммитятся с claim+Telegram outbox, не отдельным fire-and-forget INSERT.
+- [Health advice evidence policy](health-advice-evidence-policy.md) — «Рассмотри выход» требует два независимых плохих сигнала и приоритетнее «Держи»; неизвестные метрики не считаются.
+- [Scanner transport governance](scanner-transport-governance.md) — all scanner-reachable market clients must share cancellation and request governance, not only the primary endpoint.
+- [Range scan universe boundary](range-scan-universe-boundary.md) — прогрев истории не равен проверке arm; bounded Range-only обход не расширяет другие live-паттерны.
+- [Dashboard auth design](dashboard-auth-design.md) — email+password auth, pending→approved flow, admin PIN for /users; /users NOT behind ProtectedRoute (owner self-approve on first setup).
+- [Dashboard API access boundary](dashboard-api-access-boundary.md) — API middleware cannot protect static public files; route-level heartbeat checks must bypass no public allowlist.
+- [Scanner member visibility boundary](scanner-member-visibility-boundary.md) — six member columns; per-token status history is an approved exception, owner diagnostics remain gated.
+- [Breakout audit tab removed](breakout-audit-member-access.md) — Тех Аудит Пробоев удалён полностью; Range Breakout в сканере виден всем (без причин отказа).
+- [Password-reset schema startup](password-reset-schema-startup.md) — reset codes and Telegram account links require the mandatory startup schema gate, not optional maintenance.
+- [Dashboard presence semantics](dashboard-presence-semantics.md) — “online” means activity in a visible dashboard session, not unavailable Telegram presence.
+- [Telegram bootstrap command resilience](telegram-bootstrap-command-resilience.md) — ID/setup commands must respond before any subscription or database lookup.
+- [Prescan trajectory retention](prescan-snapshots-pipeline.md) — missed movers own durable prescan paths; rolling cleanup must not erase them.
+- [LC score clamp warning — 5 штрафов при clamp=2](lc-score-clamp-warning.md) — score=2 не различает 2 vs 5 проблем; следующий штраф требует пересмотра схемы.
+- [liq-stop floor — STOP_LOSS (10%) нижняя граница](liq-stop-floor-rule.md) — лик-кластер мельче 10% теперь поднимается до STOP_LOSS; startup migration фиксит активные сигналы при деплое; pat-max < 10 (SVA/demark/PLM) не затрагивается.
+- [SpotFootprint API params](spotfootprint-api-params.md) — CoinGlass footprint-history requires exchange="Binance" AND symbol="BTCUSDT" (cgBase + "USDT"), NOT just "BTC"; both params missing = code 400 on every call.
+- [Environment and deployment rules](environment-deployment-rules.md) — build, schema, dev/prod and publishing caveats live in one topic index.
+- [LIMIT N without ORDER BY starves old rows](limit-without-orderby-starvation.md) — backfill queries need ORDER BY <age> ASC + completeness filter in SQL; without it, old rows past the LIMIT are permanently unreachable.
+- [BingX openInterest is already USD](bingx-oi-usd-unit-bug.md) — don't multiply by price again; unit bug + ticker-collision fail-open together let corrupted OI pass.
+- [CoinGlass Large OB API — field names + whitelist](coinglass-large-ob-api.md) — field is `price` not `limit_price`; all 10 whitelisted endpoints with params and symbol format.
+- [CoinGlass ticker-collision cross-validation](coinglass-ticker-collision.md) — short/generic tickers can match wrong CoinGlass instrument (OI off 80-100x); fixed via BingX-price cross-check, not per-token alias.
+- [Telegram delivery rules](telegram-delivery-rules.md) — event identity, retry, audience, expiry and message-format policies in one topic index.
+- [OI Watch terminal-reason races](oi-watch-terminal-reason-races.md) — diagnostic status writes must not overwrite a terminal OI Watch rejection chosen by another worker.
+- [Shared dbReadWithRetry helper](db-read-retry-helper.md) — systemic fix for Neon pool-timeout cycle skips; new cycle-start DB reads should use this helper.
+- [Fast-fail helper for non-critical DB writes](db-write-fast-helper.md) — dbWriteBestEffort (dbWriteFast.ts): short per-attempt timeout, ≤2 attempts, never throws.
+- [New pattern checklist — all places to update](new-pattern-checklist.md) — adding ANY new pattern requires simultaneous updates in 6 places; also noOiNoVol bypass list.
+- [OI24h Accum burst-on-deploy fix](oi24h-burst-throttle.md) — independent fast-cycle trackers need per-invocation fire caps; verify replit.md-documented gates are actually wired in code.
+- [signals FK delete guard](signals-fk-delete-guard.md) — DELETE from signals must exclude ids referenced by tracked_signals.signal_id, or the whole delete rolls back on FK violation.
+- [Ambiguous multi-TF fields: signals.value](ambiguous-multi-tf-fields.md) — signals.value timeframe varies by pattern/trigger; label as "(триггер)" not a fixed TF.
+- [PDB cycle identity](pdb-cycle-identity.md) — PDB uses globally allocated durable cycle numbers; active patterns terminalize every check and persist zero-pass cycles immediately.
+- [PDB filter attribution](pdb-filter-attribution.md) — a frequent first-fail reason is not proof that one gate alone blocked a strong signal; validate isolated, priced decisions and forward paths.
+- [OI24 deleted, OI2д kept](oi24-deletion-decision.md) — oi24h_accumulation removed; first-touch EV is the honest metric, peak-based flatters volatility filters.
+- [Whale Index — no predictive value](whale-index-no-predictive-value.md) — 135 signals backtested; raw WI↔peak% corr is a time confound (partial r≈-0.07); informational only, never into alphaScore.
+- [WI/OB BTC timeline retired](wi-ob-btc-forward-comparison.md) — отдельный WI/OB timeline и сравнение WI/OB→будущее BTC не восстанавливать; общая телеметрия стратегий и SNF вне этого решения.
+- [Fear and Greed index retired](fear-greed-retirement.md) — не возвращать индекс страха и жадности или его отдельный сбор в BTC-анализ; BTC.D, цена BTC и SNF сохраняются.
+- [spot_vol patterns — cold-start, NOT plan-gated](spot-vol-cold-start.md) — no_spot_mult means spotVolCycles<2 (cold start), not a plan block. Verify live before assuming plan issues.
+- [liqExhausted null/false semantics](liq-cascade-liq-exhausted-semantics.md) — null=CG timeout (fail-open), false=confirmed no-liq or still-running; was conflated pre-2026-07-19.
+- [Liquidation Cascade calibration](liq-cascade-calibration-aug2026.md) — пересмотреть широкую коррекционную волну 2026-09-23/24 после закрытия позиций; защищать сильные исходы, а не вводить лимит сигналов.
+- [LC sweep-reversal audit](lc-sweep-reversal-audit.md) — подтверждённый bullish sweep до входа слишком редок для фильтра; послевходовое 15m подтверждение наблюдать отдельно.
+- [PONS-style rapid liquidation rebounds](pons-rapid-liquidation-rebounds.md) — искать раннюю закрытую 5m реакцию по всему LC-watch, не приписывать свечу ликвидациям без доказательств и не смешивать её с поздним LC-входом.
+- [LC order-block audit boundary](lc-orderblock-audit-boundary.md) — OB-only ожидание 1%/2% отдельно от смешанной CoinGlass-тени; replay не доказан без Pine и forward-исходов.
+- [LC live OB wait mode](lc-ob-wait-mode.md) — OB-ожидание отключено 2026-10-03; вместо него фильтр: нижний фитиль 15m ≥1% за 24ч. Старые waits доживают сами.
+- [LC liquidity shelf evidence](lc-liquidity-shelf-evidence.md) — bid-стакан и агрегированная карта ликвидаций независимы; сохранять старую историю read-only, новые heatmap captures выключены.
+- [liquidation_cascade pool-confirmation](liq-cascade-pool-confirmation.md) — fast events can't be caught by slow-scan one-snapshot gates; redesigned to Layer 10 pool + liqExhausted fail-closed (2026-07-15).
+- [SpotCVD circuit breaker](spotcvd-circuit-breaker.md) — per-symbol CoinGlass call paths in the main scan loop each need their own circuit breaker, not just OI's.
+- [price_led_momentum pattern design](price-led-momentum.md) — Archetype C; live gates are p24h 5–15%, p3h 1.5–4%, frozen Spot Volume ≥1.1x, positive SNF, and ≥2 CVD; derivatives/cycle count remain telemetry.
+- [Exit metrics snapshots](exit-metrics-snapshots.md) — every final-status closure path must call _writeExitMetrics; full metric parity required across growth_leader_log/overheat_log/signal history.
+- [BW/SpBW/SW/SpSW retired](bw-columns-scope.md) — колонки и запросы удалены 2026-10-22; DB-история остаётся, не возвращать.
+- [Полный вход вместо split-entry](split-entry-model.md) — новые позиции используют single_entry_v1 без лимитки −5%; legacy split-позиции завершаются по сохранённой политике.
+- [p24h единый источник (KOMA-фикс)](p24h-single-source.md) — сырой BingX p24h=0 при ресете окна ломал все гейты; kline-first fallback chain обязателен для любого нового p24h-чтения.
+- [First-target milestone dedup](first-target-milestone-dedup.md) — an active→in_run transition must atomically record its first target as the last milestone.
+- [Bullish accumulation milestone policy](bullish-accumulation-milestones.md) — +5/+8 always notify without B.U.; B.U. begins only with the +10% first target.
+- [Fresh cancellation cohort method](fresh-cancellation-cohort-method.md) — cancellation spikes require a fresh-cohort matrix plus replay, not only the metrics named in the latest question.
+- [Balanced grind p24h gate cost](bg-p24-risk-band-gate-cost.md) — +5…+10% p24h has 0 full-profit but hard-blocking it removes 34.8% of B/U outcomes.
+- [Missed mover trajectory linkage](missed-mover-trajectory-link.md) — missed movers need a durable parent-child link to their full prescan trajectory, not only an exit snapshot plus an unrelated symbol/time join.
+- [Dedicated cancellation policy](dedicated-cancellation-policy.md) — BA has no auto-cancel; stale is off; LC smart-CVD paused while 120h max-age stays; other paths remain independent.
+- [API watcher unit-test boundary](api-watcher-unit-test-boundary.md) — Node tests cannot import watcher through the workspace DB source entrypoint; test pure, injected helpers instead.
+- [Outbox integration test isolation](telegram-outbox-integration-testing.md) — DB concurrency tests require explicit opt-in, a per-run schema, and a real PostgreSQL worker rendezvous.
+- [Telemetry retry idempotency](telemetry-retry-idempotency.md) — retryable prescan analytics writes need locked pre-scanner schema setup plus immutable unique keys.
+- [Scheduler lease semantics](scheduler-lease-semantics.md) — market-cycle is best-effort serialization; strict no-overlap needs job-level fencing or cancellation.
+- [Post-close hourly follow-up](bu-stop-hourly-followup.md) — all terminal outcomes share one 72-hour path; legacy B.U. rows stay in place and are never double-counted.
+- [Balanced Grind decision snapshots](balanced-grind-decision-snapshots.md) — calibrate BG gates only from immutable values evaluated at fire, not later prescan enrichment.
+- [Balanced Grind p24h upper cap](balanced-grind-p24h-upper-cap.md) — keep 20% until same-gate shadow candidates have forward outcomes; old pre-gate winners cannot justify reversal.
+- [Personal trade calculator policy](personal-trade-calculator-policy.md) — per-user percentage-of-deposit model; closed months use Asia/Dubai and cancelled no-entry signals stay outside PnL.
+- [Strategy performance reporting](strategy-performance-reporting.md) — Telegram and dashboard-statistics archives use raw closed-trade PnL, not the personal model calculator.
+- [Calculator month-boundary snapshots](calculator-month-boundary-snapshots.md) — closed monthly calculator archives must freeze the prior rolling row, never re-read live settings on retry.
+- [Monthly outcome calendar](monthly-outcome-close-month.md) — завершённая позиция относится к Dubai-месяцу закрытия, даже если вход был в предыдущем месяце.
+- [Trade exit policies](trade-exit-policies.md) — protected exits, trailing, expiry, runner and trade-outcome rules in one topic index.
+- [Scanner lease recovery](scanner-lease-recovery.md) — DB release failure leaves a market lease until TTL; scanner must retry promptly and watchdog must treat a shared lease as activity.
+- [Scanner status schema gate](scanner-status-schema-gate.md) — fields read by scanner settings/status belong in a mandatory startup schema gate, never optional maintenance.
+- [Scanner status timestamps](scanner-status-timestamps.md) — scanStartedAt and lastScanAt are different events; dashboard must never infer one from the other.
+- [Stealth Breakout ARMED replay](stealth-breakout-armed-replay.md) — strict frozen-level ARMED logic is required, but the first full replay retained 0/54 legacy signals; keep live firing paused.
+- [Stealth false-breakout reclassification](stealth-false-breakout-reclassification.md) — confirmed false entries leave outcome statistics through exact neutral reclassification while source history stays auditable.
+- [Breakeven closure context](breakeven-closure-context.md) — любое закрытие в БУ показывает пик позиции и достигнутый тейк либо явно сообщает, что тейка не было.
+- [B.U. close-time evidence](bu-stop-pnl-floor.md) — только атомарный pre-close снимок подтверждает защиту +5%; исторические пики не являются доказательством исполнения.
+- [Short trading decommissioned](short-trading-decommissioned.md) — dedicated short calculations, UI, API, telemetry, and archives are retired; shared direction-compatible fields remain inert.
+- [CoinGlass global request governance](coinglass-global-request-governance.md) — all CoinGlass traffic shares paced priority admission, stable cooldown on HTTP/API 429, safe dedup, and bounded starvation.
+- [CoinGlass heatmap retention](coinglass-heatmap-retention.md) — retain historical JSONB maps read-only; periodic and manual snapshot collection/writers stay off without owner re-approval.
+- [Daily profitability BTC context](daily-profitability-btc-context.md) — close-day archive uses entry-time BTC 24h honestly labeled until a dedicated close-time BTC snapshot exists.
+- [Open positions must fail honestly](open-positions-api-truth.md) — open positions use a dedicated status query; API errors must never render as a truthful zero.
+- [Bullish Accumulation OI routes](bullish-accumulation-oi-routes.md) — BA separates bounded fresh OI30m from cool-30m multi-TF accumulation; OI Watch retains on incomplete route data.
+- [Layer 10 watch-to-signal identity](layer10-watch-signal-identity.md) — LC watches link only to same-window LC signals; claim the exact watch row atomically across workers.
+- [Impulse Buy finalized policy](impulse-buy-shadow-readiness.md) — финальный active-паттерн без experimental-маркеров; Spot Volume ≤2x, missing telemetry остаётся fail-open.
+- [Impulse Buy forward calibration](impulse-buy-forward-calibration.md) — live-гейты не менять по несовместимым fired/rejected cohorts; сравнивать только одинаковые immutable decision metrics.
+- [Impulse Buy cancellation policy](impulse-buy-cancellation-policy.md) — IB не использует generic stale: только отдельный smart-cancel после 6ч и max-age 72ч; причины имеют impulse-префикс.
+- [Real signal overview identity](real-signal-overview-identity.md) — обзор и счётчики считают только tracker-linked сигналы; Telegram delivery показывается отдельно, pre-track rejects не остаются сигналами.
+- [PLM OI30m shadow](plm-oi30m-shadow.md) — OI30m <2/≥2/unavailable фиксируется при fire; live-gate возможен только отдельным изменением после 20 high-OI завершений.
+- [PLM Futures Taker shadow](plm-futures-taker-shadow.md) — порог 20% измеряется immutable-классом на fire; unavailable отдельно, legacy не пересчитывается, live-гейты не меняются до forward-когорты.
+- [Tracked open-status contract](tracked-open-status-contract.md) — позиции имеют только active/in_run; accumulation и re-entry допустимы как Telegram-события, но не как статусы.
+- [ABNeon TP shadow evidence](abneon-tp-shadow-evidence.md) — новых TP-shadow целей нет; архивное TP-before-terminal требует подтверждённого live-hit, отсутствие sampled hit остаётся ambiguous.
+- [Excluded trading symbols](excluded-trading-symbol-policy.md) — block centrally; neutral-reclassify only open rows so exclusions never manufacture PnL or outcomes.
+- [Universal pattern backfill](universal-pattern-backfill.md) — calibrate every pattern from immutable decision snapshots plus post-decision 15m OHLC; legacy missing values are never reconstructed.
+- [Pattern trajectory fair scheduling](pattern-trajectory-fair-scheduling.md) — active pattern keys receive per-pattern fair priority so large legacy OHLC backlogs cannot starve current calibration.
+- [Strict generated request bodies](strict-generated-request-bodies.md) — OpenAPI additionalProperties:false may strip unknown keys in generated Zod; privacy boundaries need explicit rejection.
+- [Position health advice calibration](position-health-advice-calibration.md) — FOLLOW/HOLD/EXIT и accumulation scout остаются вне Telegram: production-выборка не показала actionable value.
+- [Re-entry shadow policy](reentry-shadow-policy.md) — re-entry не меняет позицию и не отправляется; решение возможно только по direction-aware outcome от предложенной цены.
+- [Monthly pattern calibration baseline](monthly-pattern-calibration-baseline.md) — перед финальной доработкой любого паттерна сравнивать текущий полный месяц с предыдущим; BG проверять на падение частоты отдельно.
+- [Stealth and Neon Support split](stealth-detection-methods.md) — Quiet Zone и continuation shelf принадлежат Stealth; Support Bounce остаётся отдельным экспериментальным live-паттерном.
+- [Statistic drill-down cohort parity](statistic-drilldown-cohort-parity.md) — расшифровка метрики обязана использовать тот же cohort, date basis, Dubai-период и archive visibility, что и агрегат.
+- [Archive visibility policy](archive-visibility-policy.md) — июль 2026 открыт активным обычным пользователям; прежние защищённые месяцы и общий контроль доступа сохраняются.
+- [Orval security upgrades](orval-security-upgrades.md) — безопасный Orval должен быть совместим с Zod 3; pin major output и нормализуй generated EOF одинаково в codegen и drift.
+- [Stealth continuation shelves](stealth-continuation-shelves.md) — post-impulse 1H shelves are independent from legacy 4H quiet-zone setups and keep append-only lifecycle evidence.
+- [BG/LC September attribution](bg-lc-september-attribution.md) — BG frequency collapse is mostly OI30m regime; LC weakness is smaller winners; reject backfill is not yet decision-grade.
+- [BTC dominance outcome observations](btc-dominance-outcome-observations.md) — entry/close and daily provider observations retain times and sources; historical gaps stay unknown.
+- [BTC price/dominance crossing policy](btc-dominance-crossover-policy.md) — immutable common % baseline for alerts; independent price chart survives sparse BTC.D, and missing-day spans are not alerts.
+- [Recharts axes inside fragments](recharts-axis-fragments.md) — оси составного графика должны быть прямыми дочерними элементами; Fragment может вызвать production invariant и обрушить вкладку.
+- [BTC.D historical coverage](btc-dominance-history-coverage.md) — fallback может дать только текущий замер; график обязан показывать реальные даты и пропуски, не выдумывать 30 дней.
+- [BTC SNF retired](btc-snf-retirement.md) — BTC-specific SNF и корреляции не собирать и не показывать; цена BTC и отдельный SNF токенов остаются.
+- [BTC Forward retired](btc-forward-retirement.md) — не вычислять и не показывать BTC Forward; ценовые наблюдения BTC для истории и дневного контекста сохранить.
+- [External Bybit trade sizing intent](external-bybit-trade-sizing.md) — $10 is initial isolated margin, not a risk cap; automatic top-ups may use remaining futures balance. Never equate it with a $10 maximum loss.
+- [External trade exit contract](external-trade-exit-contract.md) — Bullet milestones are not fixed full-position TP orders; receiver queue acknowledgement does not prove it applies embedded exit rules.
+- [Concurrent position quality target](no-active-signal-capacity-limits.md) — goal ≤30 open via quality, not a hard cap; favor realized >10%.
+- [Calibration objective uses peaks](calibration-high-profit-objective.md) — качество входов оценивается по пикам; PnL выхода отдельно, окна до закрытия и forward не смешивать.
+- [Offline audit retry boundary](audit-snapshot-retry-boundary.md) — freeze один cohort для параллельных разборов; ошибка отчёта не должна повторять market fetch.
+- [LC stop exactly 10%](lc-stop-exact-8.md) — с 2026-10-10 LC стоп ровно 10% (был 8%), закрытие фиксируется на −10.0.
+- [Imbalance (IMB/FVG) vs OB](imbalance-fvg-tracking.md) — IMB не ОБ; не засчитывать касание IMB как OB; влияние IMB владелица хочет наблюдать по всем паттернам.
+- [Experimental patterns never auto-cancel](experimental-patterns-no-cancel.md) — экспериментальные паттерны не отменяются автоматически; новому экспериментальному нужна политика без отмен.
+- [LC liquidation-end wait removed](lc-liq-wait-removed.md) — LC входит сразу после детекции; оценивать 20–30 новых сделок отдельно от старых (все прежние — после ожидания).
+- [Stealth breakout impulse gate](stealth-breakout-impulse-gate.md) — fire needs breakout candle vol ≥5× and body ≥3% (CoinGlass); thresholds from 6 winners, unproven.
+- [PLM aggregated futures taker](plm-aggregated-fut-taker-required.md) — PLM не выдаёт сигнал без агрегированного futures taker (7 бирж); старый fallback удалён.
+- [Auto Range Pine parity](auto-range-pine-parity.md) — порт совпадает с Pine только при percentile rank p·N+0.5 и percentrank по предыдущим 500; сверять по Binance spot 1H.
+- [Rejection reasons for all patterns](rejection-reason-logging.md) — каждый skip/hold обязан писать причину в scan_reject_log; метрика объёма гейта — CoinGlass aggregated.
+- [CoinGlass OI collision false positives](coinglass-oi-collision-false-positive.md) — ratio>30 check drops legit CG OI; Impulse Buy falls back to Coinalyze aggregate, not BingX.
+- [Aggregated data only](aggregated-data-only-rule.md) — все паттерны только на агрегированных данных, без запасных BingX/одной биржи; один ключ CoinGlassAPI; LC-фитиль = одна свеча детекции.
+- [Range 1H/4H independent](range-1h-4h-independent.md) — 1H и 4H пробой — два независимых сигнала; 4H держит 1H, 1H держит 30m; перекрывает старую политику «только 4H».
+- [Stealth Range fire path](stealth-range-fire-path.md) — qualified arms re-offered from stored decision; on-demand OI/spot; suspect CVD breaker/negative cache on data-unavailable.
+- [Stealth BingX-only exception](stealth-bingx-only-exception.md) — Stealth-only exception to aggregated rule; needs confirmed exclusivity + Telegram 'BingX only'; MIRANETWORK is an alias of MIRA.
+- [LC speed candle gate](lc-speed-candle-gate.md) — LC входит только при detection-15m свече range≥10%; цель скорость, не поток.
+- [Stealth frozen-level breakout](stealth-frozen-level-breakout.md) — breakout from frozen level; replay path-dependent; recheck blocks only on contradicting range.
+- [ICT removed](ict-removed.md) — ICT OB-детектор и панель удалены; per-signal Smart Money/LuxAlgo наблюдение ВОССТАНОВЛЕНО по требованию владелицы (обязательно для всех сигналов).
+- [Stealth Range re-arm / missed breakouts](stealth-range-rearm-and-missed-breakouts.md) — one arm per Pine range blocked later breakouts; re-arm ':rN' added; impulse gate not loosened.
+- [Collect everything](collect-everything-policy.md) — владелица требует писать ВСЕ метрики и бэкфиллить ВСЕ отклонённые, без выборки; известные пробелы внутри.
+- [Broadcast-window self-conflict](broadcast-window-self-conflict.md) — конфликт ключа окна сбрасывал реальные Stealth-сигналы; adopt orphan; маркеры пробелов причин.
+- [Stealth range recheck non-blocking](stealth-recheck-nonblocking.md) — replay-mismatch больше не блокирует fire (BATON/AIOT); пост-стоп/БУ данные в bu_stop_followup_snapshots.
+- [Stealth B.U. at +8](stealth-bu-at-8.md) — БУ у Stealth только после +8% (решение владелицы), пересмотреть на 20+ сделках.
+- [No absolute thresholds](no-absolute-thresholds.md) — пороги оборота/объёма/ликвидаций только % капитализации; история Auto Range не зависит от возраста на BingX.
+- [Neon DUSK delayed delivery](neon-dusk-delayed-delivery.md) — сигнал ждал 457 мин из-за data-гейтов; вернуться после закрытия сделки, лимит ожидания пока не вводить.
+- [BingX volume fully removed](bingx-volume-fully-removed.md) — запрет любых BingX-фоллбэков объёма/OI/стакана; свечной объём аналитики через агрегат, старые строки БД не пересчитаны.
+- [Stealth no retry window / unconfirmed volume](stealth-breakout-no-window-unconfirmed-volume.md) — qualified Range arms never expire; missing volume data fires with a note (owner 2026-10-17).
+- [Range replay window / exhaustedPump bypass](range-replay-window-anchoring.md) — weekly-anchored replay start stabilises levels; arm symbols skip the exhaustedPump exit (Oct 2026).
+- [Impulse core = own trade in stats](impulse-core-separate-trade-stats.md) — ядро Impulse считается отдельной закрытой сделкой сразу; перекрывает старое «только телеметрия»; не все отчёты подключены.
+- [ABNeon support zone algorithm](abneon-support-zone-algorithm.md) — server detector и Pine используют одни TF-независимые зоны, допуск касания ±1%; старый pivot-алгоритм удалён.
+- [Stealth stale qualified arms / filter simulation](stealth-qualified-stale-arms.md) — qualified arms never expire after 6h gate; raw-event sim shows no PnL edge from dist/body filter.
+- [All-exchange volume aggregate](all-exchange-volume-aggregate.md) — FS/spot-pool/1%-mcap gates on all-exchange aggregate; threshold 1.64% keeps old cut share.
+- [No-fallback aggregates Oct 2026](no-fallback-aggregates-2026-10.md) — no aggregate ⇒ reject code; MCap CoinGecko-only; 28/10 exchange lists; list of unconverted fail-opens.
+- [Unlock endpoint outage](unlock-endpoint-no-failopen.md) — старый путь unlock-list давал 404; no-fail-open гейт отсёк все паттерны на ~10ч. Проверять unlock_data_unavailable первым.
+- [CoinGlass OI request order](coinglass-oi-schedule.md) — live-arm symbols first, then prescan, then rest; arm symbols wait out the breaker instead of breaker_skip; plan limit not provided by owner.
+- [Stealth live volume legs](stealth-live-volume-legs.md) — live gate needs both aggregated legs measured; 5x rule is LC, not Stealth; 10x fast path not recalibrated.
+- [Auto Range history persistence](auto-range-history-persistence.md) — 1H/4H cache stored in DB and restored at start; CoinGlass governor stats per cycle in coinglass_cycle_metrics.
+- [Stealth live conditions & grid](stealth-live-conditions-oct2026.md) — quality filter (dist≥1%, body≥1ATR) drives edge; volume gate 0.8; Neon volume is aggregated futures; ready4h=0 by design.
+- [Stealth arm evaluation latency](stealth-arm-eval-latency.md) — arms qualified 40-49 min after candle close (loop position); restart blank unlock cycle; stale-range arms by 17.10 rule.
+- [CoinGlass response memo](coinglass-response-memo.md) — memo в governor до границы бара; live-вызовы через runWithoutMemo; OI-коллизия по всем mcap; трассировка arm с qualified.
+- [OI phase snapshot vs history path](oi-phase-snapshot-and-history-path.md) — arms+prescan always use history path (~400 req); Phase-0 ≤100 s impossible at 240 req/min; snapshot must be critical + unmemoised.
+- [Neon wait-trigger backtest](neon-wait-trigger-backtest.md) — price-only triggers on zone touches/springs had no edge in 30d universe test; wait-mode not built.
+- [Range-return hold 2h for 1H](range-return-hold-replay-oct2026.md) — 1H Range отмена после 2ч (3 закрытия) по реплею 241; повторный вход не внедрён; BingX klines лимит 1000, новые вперёд.
+- [Neon missed-bounce audit](neon-example-audit-oct2026.md) — примеры лоев не имели зоны бота / арм истёк; price-only правила не держатся out-of-sample; не внедрено.
+- [Post-publish cycle figures](post-publish-cycle-figures-oct2026.md) — 552 symbols/cycle, 1019–1210 s, bounded caches in first hour after 2026-10-21 publish.
+- [Score audit stage 2](score-audit-stage2.md) — только LC допускает новый скор (AUC 0.64 на fired); PLM/IB/Stealth — нет; лимиты привязки метрик к снимкам.
+- [Stealth no cancellations](stealth-no-cancel-final.md) — range-return отмена удалена 2026-10-22; Stealth закрывается только обычными выходами.
+- [Neon simple bounce rule](neon-simple-bounce-rule.md) — Neon = отскок от поддержки + объём; без фильтров цены/формы входа и приоритета Stealth; 15m-подтверждение.
+- [LC candle gate unclosed](lc-detection-candle-unclosed.md) — LC drop since 10.10: gate checks the still-open 15m candle → 'unavailable'; fix = wait for close; implemented 2026-10-23, range>=6%.
+- [Smart Money observation removed](smart-money-removed.md) — воркер, DLIQ и таблица удалены по решению владелицы; не восстанавливать (перекрывает ict-removed).

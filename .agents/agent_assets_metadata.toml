@@ -1,0 +1,114 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "CdNw47GU80mZGM7_Yh-er"
+uri = "file://PATTERNS_REFERENCE.md"
+type = "text"
+title = "Справочник паттернов (PATTERNS_REFERENCE.md)"
+logical_id = "716f7207-52c6-4504-ba9f-02a32c2a3258"
+
+[[outputs]]
+id = "YWdQdKskuklbGDNrGD7PI"
+uri = "file://altbullet-source.zip"
+type = "unspecified"
+title = "altbullet-source.zip"
+logical_id = "92168f6d-29de-4676-b9a2-639b58cf8cef"
+
+[[outputs]]
+id = "FcYPZc5FFBqxPfiI85Czm"
+uri = "file://docs/bullet-exit-rules-for-receiver.md"
+type = "text"
+title = "Памятка: выходы Crypto Alt Bullet"
+description = "Правила по четырём паттернам для передачи второму боту; без включения реальных ордеров."
+logical_id = "7e70a0b5-1404-400a-a933-8689ee26bc26"
+content_hash = "sha256:552693481cf64182742f4403c4b955515039364ddf385782fb18e6ed3746112a"
+size = 4909
+mtime_ms = 1790227804295
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/7e70a0b5-1404-400a-a933-8689ee26bc26/36030670-1219-41ce-82fe-364dd3a8763a"
+storage_version_token = "1790227816469539"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "7MZP_ltqgriJv1SOQcaGf"
+uri = "file://reports/liquidation-cascade-audit-2026-08-09.csv"
+type = "table"
+title = "Каскад ликвидаций — все сделки августа–сентября 2026"
+description = "298 сигналов: исход, ликвидации, доступность OI/spot-данных и проверка ценового пути 72 часа после зрелых стопов."
+logical_id = "464e1fd0-6c97-4d74-b3a9-0371a9c7c783"
+content_hash = "sha256:59a6785411ae64dcff94d69eee109c1657e18e991d5b9304c1132b7f1e3e01ce"
+size = 66696
+mtime_ms = 1790679308682
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/464e1fd0-6c97-4d74-b3a9-0371a9c7c783/69a47d6e-8890-4a57-9175-17eeed011c96"
+storage_version_token = "1790679318587832"
+content_type = "text/csv"
+
+[[outputs]]
+id = "tPVeNDpgbM-2DX1w4UyzG"
+uri = "file://generated-artifacts/ranges.html"
+type = "html"
+title = "Рэйнжи, как их видел бот"
+description = "HANA, ARIA, A, XNY: рамка диапазона бота и уровень пробоя на 1H свечах BingX"
+logical_id = "3e96c0e6-1efa-493e-ac1f-6b1cda8c6700"
+content_hash = "sha256:1ff0aa875f7a2f5b709c442fd22510af2c2e6f31970e012d7f9087661df6fd1a"
+size = 86254
+mtime_ms = 1792214917937
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/3e96c0e6-1efa-493e-ac1f-6b1cda8c6700/fee1cb28-5036-4ea2-b3fa-9eaa38cc6cf4"
+storage_version_token = "1792214921230296"
+content_type = "text/html"
+
+[[outputs]]
+id = "3vZVHcvxkkC6GxfSkEwsX"
+uri = "file://attached_assets/Pasted--version-6-Alt-1787465709445_1787465709447.txt"
+type = "text"
+title = "AltBullet Neon v6 (Pine 6)"
+description = "Исходный код индикатора, загруженный 23 августа"
+logical_id = "1a8359b7-a564-44ab-9de2-5b2e6745143d"
+content_hash = "sha256:8f08cf0cdeca1dd055b0ac5edfa20b879dcdf48f92dfc5850f76a3d94eae92cf"
+size = 47389
+mtime_ms = 1787465709853
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/1a8359b7-a564-44ab-9de2-5b2e6745143d/110f4e9c-020d-4f60-9c31-18a3ca79db42"
+storage_version_token = "1792310333867031"
+content_type = "text/plain"
+
+[[outputs]]
+id = "dKMcMULQc0W56UAnXHARG"
+uri = "file://attached_assets/ABNeon_no_TP.pine"
+type = "unspecified"
+title = "AltBullet Neon v6 без тейков"
+description = "Pine 6: убраны TP1/TP2 (линии, подписи, строки дашборда, алерты, R:R). Entry и SL остались."
+logical_id = "c8d8c5b4-aa73-4b61-82f7-379468dd3378"
+content_hash = "sha256:5908d867e9022a721f0c6db23d36049bba1340da867e1788516d5ad6390eb4a9"
+size = 44283
+mtime_ms = 1792310945219
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/c8d8c5b4-aa73-4b61-82f7-379468dd3378/5d9ab4bd-f895-4692-85a6-b4515b243666"
+storage_version_token = "1792310951753249"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "gp1sjTKP1yMO7kT8H1tjM"
+uri = "file://attached_assets/ABNeon_SR_tf_independent.pine"
+type = "unspecified"
+title = "AltBullet Neon v6: уровни без разрастания зон (исправлено)"
+description = "Кластер зоны ограничен лучшей корзиной ±1 соседняя, подавление соседей по 1.2 ATR сохранено."
+logical_id = "e3c971c8-c4f9-46be-a94e-1c0af66c5f7f"
+content_hash = "sha256:a00991151c1782f06f874ea9e226b4b22ff753a5b51f10d23e235ab4ad909876"
+size = 44337
+mtime_ms = 1792311500691
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/e3c971c8-c4f9-46be-a94e-1c0af66c5f7f/02a7b792-8984-41fd-9fc0-874727e230ba"
+storage_version_token = "1792311501773725"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "5AbjQ8HhpL4oiPeVB8g5F"
+uri = "file://generated-artifacts/stealth-breakout-full-code.txt"
+type = "text"
+title = "Stealth Breakout — полный код"
+description = "Ядро паттерна и блок сканера (11.6 тыс. строк)"
+logical_id = "eba8b05f-af68-436b-8a2d-e9a63609a9f5"
+content_hash = "sha256:d1b98c0e0e83794a87bc8149ba70598ceba8f933b16b83be8bc4e13f73986f4a"
+size = 473490
+mtime_ms = 1792321841847
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/eba8b05f-af68-436b-8a2d-e9a63609a9f5/9daa2c84-3fd9-4ad6-83d8-dfe376538b5f"
+storage_version_token = "1792321846184842"
+content_type = "text/plain"

@@ -1,0 +1,21 @@
+.brand-preview-current {
+  --background: 0 0% 4%;
+  --card: 0 0% 7%;
+  --border: 0 0% 15%;
+  --primary: 210 100% 60%;
+  --foreground: 0 0% 90%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 60%;
+  font-family: "Space Mono", ui-monospace, monospace;
+}
+
+.brand-preview-refined {
+  --background: 230 27% 5%;
+  --card: 231 23% 8%;
+  --border: 235 18% 19%;
+  --primary: 189 77% 59%;
+  --foreground: 216 27% 92%;
+  --muted: 232 18% 13%;
+  --muted-foreground: 220 12% 65%;
+  font-family: "Space Mono", ui-monospace, monospace;
+}

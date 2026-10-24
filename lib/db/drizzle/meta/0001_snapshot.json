@@ -1,0 +1,3624 @@
+{
+  "id": "e2f8544f-27f9-4d52-8115-eba133ab2e91",
+  "prevId": "48c862e6-2cb8-4edb-bfe7-4b27c14c49fa",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.bid_wall_pool": {
+      "name": "bid_wall_pool",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'watching'"
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'heatmap'"
+        },
+        "detected_at": {
+          "name": "detected_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entry_price": {
+          "name": "entry_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "wall_bid_usd": {
+          "name": "wall_bid_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "wall_ask_usd": {
+          "name": "wall_ask_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bid_ask_ratio": {
+          "name": "bid_ask_ratio",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "largest_bid_usd": {
+          "name": "largest_bid_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "largest_bid_price": {
+          "name": "largest_bid_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nearest_wall_pct": {
+          "name": "nearest_wall_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mcap_usd": {
+          "name": "mcap_usd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "thresh_usd": {
+          "name": "thresh_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "large_order_confirmed": {
+          "name": "large_order_confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "large_order_bid_usd": {
+          "name": "large_order_bid_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_price": {
+          "name": "current_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_change_pct": {
+          "name": "price_change_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_30m": {
+          "name": "oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_1h": {
+          "name": "oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_4h": {
+          "name": "oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_24h": {
+          "name": "oi_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_1h": {
+          "name": "spot_vol_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_4h": {
+          "name": "spot_vol_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_24h": {
+          "name": "spot_vol_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mult": {
+          "name": "spot_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mcap_pct": {
+          "name": "spot_vol_mcap_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_30m": {
+          "name": "cvd_30m",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_1h": {
+          "name": "cvd_1h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_4h": {
+          "name": "cvd_4h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cycle_count": {
+          "name": "cycle_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "last_cycle_at": {
+          "name": "last_cycle_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "bid_wall_pool_symbol_status_idx": {
+          "name": "bid_wall_pool_symbol_status_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bid_wall_pool_detected_at_idx": {
+          "name": "bid_wall_pool_detected_at_idx",
+          "columns": [
+            {
+              "expression": "detected_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.bid_wall_watch_log": {
+      "name": "bid_wall_watch_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "pool_id": {
+          "name": "pool_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ts": {
+          "name": "ts",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "price": {
+          "name": "price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_30m": {
+          "name": "oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_1h": {
+          "name": "oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_4h": {
+          "name": "oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_24h": {
+          "name": "oi_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_1h": {
+          "name": "spot_vol_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_4h": {
+          "name": "spot_vol_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_24h": {
+          "name": "spot_vol_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mult": {
+          "name": "spot_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mcap_pct": {
+          "name": "spot_vol_mcap_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_30m": {
+          "name": "cvd_30m",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_1h": {
+          "name": "cvd_1h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_4h": {
+          "name": "cvd_4h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "bid_wall_log_symbol_ts_idx": {
+          "name": "bid_wall_log_symbol_ts_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "ts",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bid_wall_log_pool_id_idx": {
+          "name": "bid_wall_log_pool_id_idx",
+          "columns": [
+            {
+              "expression": "pool_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.growth_leader_log": {
+      "name": "growth_leader_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "logged_at": {
+          "name": "logged_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rank": {
+          "name": "rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price": {
+          "name": "price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_24h": {
+          "name": "price_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_1h": {
+          "name": "price_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "growth_from_entry": {
+          "name": "growth_from_entry",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cycle_count": {
+          "name": "cycle_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_seen_at": {
+          "name": "first_seen_at",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "layers": {
+          "name": "layers",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_30m": {
+          "name": "oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_1h": {
+          "name": "oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_4h": {
+          "name": "oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_1h": {
+          "name": "cvd_1h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_30m": {
+          "name": "cvd_30m",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mult": {
+          "name": "spot_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vol_mult": {
+          "name": "vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'scan'"
+        },
+        "entry_price": {
+          "name": "entry_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_price_24h": {
+          "name": "entry_price_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_oi_30m": {
+          "name": "entry_oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_oi_1h": {
+          "name": "entry_oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_oi_4h": {
+          "name": "entry_oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "net_buy_pct": {
+          "name": "net_buy_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_taker_buy_usd": {
+          "name": "spot_taker_buy_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_taker_sell_usd": {
+          "name": "spot_taker_sell_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_fp_buy_pct": {
+          "name": "spot_fp_buy_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_3h": {
+          "name": "price_3h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_4h": {
+          "name": "price_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "funding_rate": {
+          "name": "funding_rate",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_usd_abs": {
+          "name": "oi_usd_abs",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fut_vol_usd_24h": {
+          "name": "fut_vol_usd_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "retro": {
+          "name": "retro",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "prev_oi_30m": {
+          "name": "prev_oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prev_oi_1h": {
+          "name": "prev_oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prev_oi_4h": {
+          "name": "prev_oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_24h_d1": {
+          "name": "oi_24h_d1",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_24h_d2": {
+          "name": "oi_24h_d2",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_cvd_4h": {
+          "name": "spot_cvd_4h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_strength_1h": {
+          "name": "cvd_strength_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_delta_4h": {
+          "name": "cvd_delta_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_taker_net_buy_pct": {
+          "name": "spot_taker_net_buy_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prev_spot_vol_mult": {
+          "name": "prev_spot_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prev_price_30m": {
+          "name": "prev_price_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cg_oi_available": {
+          "name": "cg_oi_available",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "growth_leader_log_logged_at_idx": {
+          "name": "growth_leader_log_logged_at_idx",
+          "columns": [
+            {
+              "expression": "logged_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "growth_leader_log_symbol_idx": {
+          "name": "growth_leader_log_symbol_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.liq_cascade_watch": {
+      "name": "liq_cascade_watch",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'watching'"
+        },
+        "detected_at": {
+          "name": "detected_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_at_detect": {
+          "name": "price_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price24h_at_detect": {
+          "name": "price24h_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price1h_at_detect": {
+          "name": "price1h_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi30m_at_detect": {
+          "name": "oi30m_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi1h_at_detect": {
+          "name": "oi1h_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi4h_at_detect": {
+          "name": "oi4h_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol24h_at_detect": {
+          "name": "spot_vol24h_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mult_at_detect": {
+          "name": "spot_vol_mult_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mcap_pct": {
+          "name": "spot_vol_mcap_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd30m_at_detect": {
+          "name": "cvd30m_at_detect",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd1h_at_detect": {
+          "name": "cvd1h_at_detect",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd4h_at_detect": {
+          "name": "cvd4h_at_detect",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_price": {
+          "name": "current_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_pct_change": {
+          "name": "current_pct_change",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_check_at": {
+          "name": "last_check_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "signal_id": {
+          "name": "signal_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "miss_reason": {
+          "name": "miss_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "long_liq1h_at_detect": {
+          "name": "long_liq1h_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "long_liq4h_at_detect": {
+          "name": "long_liq4h_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "long_liq24h_at_detect": {
+          "name": "long_liq24h_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_long_liq1h": {
+          "name": "current_long_liq1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liq_exhausted": {
+          "name": "liq_exhausted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "global_long_pct": {
+          "name": "global_long_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "large_bid_usd": {
+          "name": "large_bid_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_reason": {
+          "name": "entry_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'dump_filter'"
+        },
+        "liq_orders_count_at_detect": {
+          "name": "liq_orders_count_at_detect",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liq_orders_usd_at_detect": {
+          "name": "liq_orders_usd_at_detect",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "liq_cascade_watch_symbol_status_idx": {
+          "name": "liq_cascade_watch_symbol_status_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "liq_cascade_watch_detected_at_idx": {
+          "name": "liq_cascade_watch_detected_at_idx",
+          "columns": [
+            {
+              "expression": "detected_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.market_cap_cache": {
+      "name": "market_cap_cache",
+      "schema": "",
+      "columns": {
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "mcap_usd": {
+          "name": "mcap_usd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.oi_baselines": {
+      "name": "oi_baselines",
+      "schema": "",
+      "columns": {
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "oi": {
+          "name": "oi",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taken_at": {
+          "name": "taken_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.oi_daily_snapshots": {
+      "name": "oi_daily_snapshots",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "oi_usd": {
+          "name": "oi_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_change_24h": {
+          "name": "oi_change_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_usd": {
+          "name": "price_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "volume_24h": {
+          "name": "volume_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taken_at": {
+          "name": "taken_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.oi_watch": {
+      "name": "oi_watch",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trigger_tf": {
+          "name": "trigger_tf",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "oi_change": {
+          "name": "oi_change",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_at_entry": {
+          "name": "price_at_entry",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "volume_multiplier": {
+          "name": "volume_multiplier",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sentiment_key": {
+          "name": "sentiment_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_30m": {
+          "name": "oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_1h": {
+          "name": "oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_24h": {
+          "name": "oi_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_1h_change": {
+          "name": "price_1h_change",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_24h_change": {
+          "name": "price_24h_change",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_vol_mult": {
+          "name": "current_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vol_status_reason": {
+          "name": "vol_status_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_vol_mult": {
+          "name": "entry_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_cg_turnover": {
+          "name": "entry_cg_turnover",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_oi_check": {
+          "name": "last_oi_check",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prev_oi_check": {
+          "name": "prev_oi_check",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prev_oi_check2": {
+          "name": "prev_oi_check2",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "oi_watch_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'watching'"
+        },
+        "added_at": {
+          "name": "added_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fired_at": {
+          "name": "fired_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avg_volume": {
+          "name": "avg_volume",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_vol_confirmed": {
+          "name": "is_vol_confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "signal_payload": {
+          "name": "signal_payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "oi_watch_symbol_status_idx": {
+          "name": "oi_watch_symbol_status_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "oi_watch_status_idx": {
+          "name": "oi_watch_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pattern_debug_log": {
+      "name": "pattern_debug_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "pattern": {
+          "name": "pattern",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cycle_number": {
+          "name": "cycle_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "checked": {
+          "name": "checked",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "passed": {
+          "name": "passed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rejected_at": {
+          "name": "rejected_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_diag": {
+          "name": "cvd_diag",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "logged_at": {
+          "name": "logged_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "pattern_debug_pattern_idx": {
+          "name": "pattern_debug_pattern_idx",
+          "columns": [
+            {
+              "expression": "pattern",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "pattern_debug_logged_at_idx": {
+          "name": "pattern_debug_logged_at_idx",
+          "columns": [
+            {
+              "expression": "logged_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "pattern_debug_symbol_idx": {
+          "name": "pattern_debug_symbol_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.prescan_history": {
+      "name": "prescan_history",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ts": {
+          "name": "ts",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "cycle_count": {
+          "name": "cycle_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rank": {
+          "name": "rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "score": {
+          "name": "score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_24h": {
+          "name": "price_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_1h": {
+          "name": "price_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_30m": {
+          "name": "oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_1h": {
+          "name": "oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_4h": {
+          "name": "oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_24h": {
+          "name": "oi_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vol_mult": {
+          "name": "vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_30m": {
+          "name": "cvd_30m",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_1h": {
+          "name": "cvd_1h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "prescan_history_symbol_ts_idx": {
+          "name": "prescan_history_symbol_ts_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "ts",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "prescan_history_ts_idx": {
+          "name": "prescan_history_ts_idx",
+          "columns": [
+            {
+              "expression": "ts",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.prescan_tracker": {
+      "name": "prescan_tracker",
+      "schema": "",
+      "columns": {
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cycle_count": {
+          "name": "cycle_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "first_seen_at": {
+          "name": "first_seen_at",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "best_rank": {
+          "name": "best_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "first_price": {
+          "name": "first_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "first_price_24h": {
+          "name": "first_price_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "first_score": {
+          "name": "first_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_fired_at": {
+          "name": "last_fired_at",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "last_price": {
+          "name": "last_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_oi_30m": {
+          "name": "last_oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_oi_1h": {
+          "name": "last_oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_oi_4h": {
+          "name": "last_oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_oi_24h": {
+          "name": "last_oi_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prev_oi_30m": {
+          "name": "prev_oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prev_oi_4h": {
+          "name": "prev_oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_price_1h": {
+          "name": "last_price_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_cg_timed_out": {
+          "name": "last_cg_timed_out",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_positive_cycles": {
+          "name": "cvd_positive_cycles",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taker_positive_cycles": {
+          "name": "taker_positive_cycles",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_accel_30m": {
+          "name": "oi_accel_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_4h_consec_growth": {
+          "name": "oi_4h_consec_growth",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_spot_vol_1h": {
+          "name": "last_spot_vol_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prev_spot_vol_1h": {
+          "name": "prev_spot_vol_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_spot_vol_4h": {
+          "name": "last_spot_vol_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_spot_net_buy_1h": {
+          "name": "last_spot_net_buy_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_avg_1h": {
+          "name": "spot_vol_avg_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_cycles": {
+          "name": "spot_vol_cycles",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "layers": {
+          "name": "layers",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "first_oi_30m": {
+          "name": "first_oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_oi_1h": {
+          "name": "first_oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_oi_4h": {
+          "name": "first_oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.scan_reject_log": {
+      "name": "scan_reject_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cycle_at": {
+          "name": "cycle_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pattern": {
+          "name": "pattern",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "oi30m": {
+          "name": "oi30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vol_mult": {
+          "name": "vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price24h": {
+          "name": "price24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prescan_cycles": {
+          "name": "prescan_cycles",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "scan_reject_log_sym_idx": {
+          "name": "scan_reject_log_sym_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "cycle_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "scan_reject_log_cycle_idx": {
+          "name": "scan_reject_log_cycle_idx",
+          "columns": [
+            {
+              "expression": "cycle_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.settings": {
+      "name": "settings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "volume_multiplier": {
+          "name": "volume_multiplier",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 2
+        },
+        "oi_change_percent": {
+          "name": "oi_change_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 5
+        },
+        "funding_rate_threshold": {
+          "name": "funding_rate_threshold",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.0005
+        },
+        "scan_interval_ms": {
+          "name": "scan_interval_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1800000
+        },
+        "telegram_enabled": {
+          "name": "telegram_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "max_symbols": {
+          "name": "max_symbols",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
+        },
+        "channel_id": {
+          "name": "channel_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "watchlist": {
+          "name": "watchlist",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "watchlist_added_at": {
+          "name": "watchlist_added_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{}'"
+        },
+        "whale_watch_stages_json": {
+          "name": "whale_watch_stages_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_daily_report_at": {
+          "name": "last_daily_report_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_weekly_digest_at": {
+          "name": "last_weekly_digest_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_monthly_digest_at": {
+          "name": "last_monthly_digest_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_restart_notified_at": {
+          "name": "last_restart_notified_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_positions_report_at": {
+          "name": "last_positions_report_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scanner_last_scan_at": {
+          "name": "scanner_last_scan_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scanner_scan_started_at": {
+          "name": "scanner_scan_started_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_coinalyze_batch_at": {
+          "name": "last_coinalyze_batch_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_coinalyze_30m_at": {
+          "name": "last_coinalyze_30m_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_coinglass_outage_at": {
+          "name": "last_coinglass_outage_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "retro_started_at": {
+          "name": "retro_started_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "coinalyze_batch_json": {
+          "name": "coinalyze_batch_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "smart_cancel_bid_wall_usd": {
+          "name": "smart_cancel_bid_wall_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 50000
+        },
+        "smart_cancel_oi_pct": {
+          "name": "smart_cancel_oi_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 5
+        },
+        "moonshot_vol_mult": {
+          "name": "moonshot_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 5
+        },
+        "moonshot_price_change": {
+          "name": "moonshot_price_change",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 15
+        },
+        "moonshot_oi_change": {
+          "name": "moonshot_oi_change",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 10
+        },
+        "moonshot_ask_wall_usd": {
+          "name": "moonshot_ask_wall_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 50000
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.signals": {
+      "name": "signals",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "signal_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "threshold": {
+          "name": "threshold",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price": {
+          "name": "price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_change_percent": {
+          "name": "price_change_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "volume_24h": {
+          "name": "volume_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avg_volume": {
+          "name": "avg_volume",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "open_interest": {
+          "name": "open_interest",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_change_percent": {
+          "name": "oi_change_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "funding_rate": {
+          "name": "funding_rate",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "trading_view_url": {
+          "name": "trading_view_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cmc_rank": {
+          "name": "cmc_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cmc_source": {
+          "name": "cmc_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidations_usd": {
+          "name": "liquidations_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidations_multiple": {
+          "name": "liquidations_multiple",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sentiment": {
+          "name": "sentiment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sentiment_key": {
+          "name": "sentiment_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alpha_score": {
+          "name": "alpha_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_continuing": {
+          "name": "is_continuing",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "cumulative_oi_change": {
+          "name": "cumulative_oi_change",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_cvd_30m": {
+          "name": "entry_cvd_30m",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_cvd_1h": {
+          "name": "entry_cvd_1h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_cvd_4h": {
+          "name": "entry_cvd_4h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "detected_at": {
+          "name": "detected_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tracked_signals": {
+      "name": "tracked_signals",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signal_id": {
+          "name": "signal_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "signal_type": {
+          "name": "signal_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sentiment": {
+          "name": "sentiment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sentiment_key": {
+          "name": "sentiment_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alpha_score": {
+          "name": "alpha_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_short": {
+          "name": "is_short",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "entry_price": {
+          "name": "entry_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entry_oi": {
+          "name": "entry_oi",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "exit_price": {
+          "name": "exit_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pnl_percent": {
+          "name": "pnl_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "peak_price": {
+          "name": "peak_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "trailing_stop_level": {
+          "name": "trailing_stop_level",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_milestone": {
+          "name": "last_milestone",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_hourly_at": {
+          "name": "last_hourly_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_periodic_update_at": {
+          "name": "last_periodic_update_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_vol_build_at": {
+          "name": "last_vol_build_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_oi_build_at": {
+          "name": "last_oi_build_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_smart_cancel_check_at": {
+          "name": "last_smart_cancel_check_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "original_entry_price": {
+          "name": "original_entry_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dip_buy_count": {
+          "name": "dip_buy_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "price_24h_at_fire": {
+          "name": "price_24h_at_fire",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prescan_cycles": {
+          "name": "prescan_cycles",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_watch_entry_price": {
+          "name": "oi_watch_entry_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancel_reason": {
+          "name": "cancel_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_cvd_30m": {
+          "name": "entry_cvd_30m",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_cvd_1h": {
+          "name": "entry_cvd_1h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_cvd_4h": {
+          "name": "entry_cvd_4h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "market_cap_usd": {
+          "name": "market_cap_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_oi_30m": {
+          "name": "entry_oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_oi_1h": {
+          "name": "entry_oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_oi_4h": {
+          "name": "entry_oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_spot_vol_mult": {
+          "name": "entry_spot_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_fut_vol_mult": {
+          "name": "entry_fut_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_spot_vol_24h": {
+          "name": "entry_spot_vol_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_spot_mcap_pct": {
+          "name": "entry_spot_mcap_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_spot_taker_net_buy": {
+          "name": "entry_spot_taker_net_buy",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_spot_net_buy_1h": {
+          "name": "entry_spot_net_buy_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_source": {
+          "name": "entry_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_rsi_1h": {
+          "name": "entry_rsi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_funding_rate": {
+          "name": "entry_funding_rate",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_btc_24h": {
+          "name": "entry_btc_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_whale_index": {
+          "name": "entry_whale_index",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stop_loss_price": {
+          "name": "stop_loss_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stop_loss_pct": {
+          "name": "stop_loss_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stop_source": {
+          "name": "stop_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "take_targets": {
+          "name": "take_targets",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "tracked_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "re_entry_count": {
+          "name": "re_entry_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "detected_at": {
+          "name": "detected_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tracked_signals_signal_id_signals_id_fk": {
+          "name": "tracked_signals_signal_id_signals_id_fk",
+          "tableFrom": "tracked_signals",
+          "tableTo": "signals",
+          "columnsFrom": ["signal_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whale_alert_pool": {
+      "name": "whale_alert_pool",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hl_symbol": {
+          "name": "hl_symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'watching'"
+        },
+        "detected_at": {
+          "name": "detected_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fired_at": {
+          "name": "fired_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "whale_address": {
+          "name": "whale_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position_value_usd": {
+          "name": "position_value_usd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position_size_tokens": {
+          "name": "position_size_tokens",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "whale_entry_price": {
+          "name": "whale_entry_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liq_price": {
+          "name": "liq_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alert_time": {
+          "name": "alert_time",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "whale_count": {
+          "name": "whale_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "total_whale_usd": {
+          "name": "total_whale_usd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entry_price": {
+          "name": "entry_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fut_large_order_confirmed": {
+          "name": "fut_large_order_confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fut_large_order_bid_usd": {
+          "name": "fut_large_order_bid_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_large_order_confirmed": {
+          "name": "spot_large_order_confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_large_order_bid_usd": {
+          "name": "spot_large_order_bid_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_price": {
+          "name": "current_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_change_pct": {
+          "name": "price_change_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_30m": {
+          "name": "oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_1h": {
+          "name": "oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_4h": {
+          "name": "oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_24h": {
+          "name": "oi_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_1h": {
+          "name": "spot_vol_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_4h": {
+          "name": "spot_vol_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_24h": {
+          "name": "spot_vol_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mult": {
+          "name": "spot_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mcap_pct": {
+          "name": "spot_vol_mcap_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_30m": {
+          "name": "cvd_30m",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_1h": {
+          "name": "cvd_1h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_4h": {
+          "name": "cvd_4h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cycle_count": {
+          "name": "cycle_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "last_cycle_at": {
+          "name": "last_cycle_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "whale_alert_pool_symbol_status_idx": {
+          "name": "whale_alert_pool_symbol_status_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whale_alert_pool_detected_at_idx": {
+          "name": "whale_alert_pool_detected_at_idx",
+          "columns": [
+            {
+              "expression": "detected_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whale_alert_pool_symbol_watching_uq": {
+          "name": "whale_alert_pool_symbol_watching_uq",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "status = 'watching'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whale_alert_seen": {
+      "name": "whale_alert_seen",
+      "schema": "",
+      "columns": {
+        "seen_key": {
+          "name": "seen_key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ts": {
+          "name": "ts",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whale_alert_watch_log": {
+      "name": "whale_alert_watch_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "pool_id": {
+          "name": "pool_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ts": {
+          "name": "ts",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "price": {
+          "name": "price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_30m": {
+          "name": "oi_30m",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_1h": {
+          "name": "oi_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_4h": {
+          "name": "oi_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_24h": {
+          "name": "oi_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_1h": {
+          "name": "spot_vol_1h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_4h": {
+          "name": "spot_vol_4h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_24h": {
+          "name": "spot_vol_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mult": {
+          "name": "spot_vol_mult",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_mcap_pct": {
+          "name": "spot_vol_mcap_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_30m": {
+          "name": "cvd_30m",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_1h": {
+          "name": "cvd_1h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_4h": {
+          "name": "cvd_4h",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "whale_alert_log_symbol_ts_idx": {
+          "name": "whale_alert_log_symbol_ts_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "ts",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whale_alert_log_pool_id_idx": {
+          "name": "whale_alert_log_pool_id_idx",
+          "columns": [
+            {
+              "expression": "pool_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whale_futures_watchlist": {
+      "name": "whale_futures_watchlist",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "detected_at": {
+          "name": "detected_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_at_detection": {
+          "name": "price_at_detection",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "oi_30m_at_detection": {
+          "name": "oi_30m_at_detection",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oi_1h_at_detection": {
+          "name": "oi_1h_at_detection",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'watching'"
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'futures'"
+        },
+        "fired_at": {
+          "name": "fired_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_checked_at": {
+          "name": "last_checked_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "check_count": {
+          "name": "check_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "price_24h_pct": {
+          "name": "price_24h_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_48h_pct": {
+          "name": "price_48h_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_7d_max_pct": {
+          "name": "price_7d_max_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_24h": {
+          "name": "spot_vol_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "market_cap_usd": {
+          "name": "market_cap_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_7d_baseline": {
+          "name": "spot_vol_7d_baseline",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spot_vol_7d_cycles": {
+          "name": "spot_vol_7d_cycles",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "last_spot_vol_24h": {
+          "name": "last_spot_vol_24h",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accum_days": {
+          "name": "accum_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "accum_confirmed_at": {
+          "name": "accum_confirmed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_cvd_positive_at": {
+          "name": "last_cvd_positive_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cvd_positive_count": {
+          "name": "cvd_positive_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "cvd_total_checks": {
+          "name": "cvd_total_checks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "wf_symbol_status_idx": {
+          "name": "wf_symbol_status_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whale_onchain_pool": {
+      "name": "whale_onchain_pool",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "coin_symbol": {
+          "name": "coin_symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "direction": {
+          "name": "direction",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usd_amount": {
+          "name": "usd_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'watching'"
+        },
+        "transfer_ts": {
+          "name": "transfer_ts",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "detected_at": {
+          "name": "detected_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "whale_onchain_pool_symbol_status_idx": {
+          "name": "whale_onchain_pool_symbol_status_idx",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whale_onchain_pool_detected_at_idx": {
+          "name": "whale_onchain_pool_detected_at_idx",
+          "columns": [
+            {
+              "expression": "detected_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whale_onchain_pool_symbol_dir_watching_uq": {
+          "name": "whale_onchain_pool_symbol_dir_watching_uq",
+          "columns": [
+            {
+              "expression": "symbol",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "direction",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "status = 'watching'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whale_watchlist": {
+      "name": "whale_watchlist",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "first_seen_at": {
+          "name": "first_seen_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "accumulated_cvd_usd": {
+          "name": "accumulated_cvd_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "accum_periods": {
+          "name": "accum_periods",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "avg_buy_price": {
+          "name": "avg_buy_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "market_cap_usd": {
+          "name": "market_cap_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vol24h_usd": {
+          "name": "vol24h_usd",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_at_entry": {
+          "name": "price_at_entry",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_price": {
+          "name": "last_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alerted_at": {
+          "name": "alerted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "breakout_fired_at": {
+          "name": "breakout_fired_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'watching'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "whale_watchlist_symbol_unique": {
+          "name": "whale_watchlist_symbol_unique",
+          "nullsNotDistinct": false,
+          "columns": ["symbol"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.subscribers": {
+      "name": "subscribers",
+      "schema": "",
+      "columns": {
+        "chat_id": {
+          "name": "chat_id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "subscribed_at": {
+          "name": "subscribed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "unsubscribed_at": {
+          "name": "unsubscribed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.oi_watch_status": {
+      "name": "oi_watch_status",
+      "schema": "public",
+      "values": ["watching", "fired", "expired", "confirming"]
+    },
+    "public.signal_type": {
+      "name": "signal_type",
+      "schema": "public",
+      "values": [
+        "volume_spike",
+        "oi_increase",
+        "funding_rate",
+        "strict_alpha",
+        "alpha",
+        "super_alpha",
+        "short_sniper",
+        "bingx_volume",
+        "mexc_pump",
+        "whale_watch"
+      ]
+    },
+    "public.tracked_status": {
+      "name": "tracked_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "in_run",
+        "profit",
+        "stop_loss",
+        "bu_stop",
+        "accumulation",
+        "breakeven",
+        "re_entry",
+        "cancelled"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

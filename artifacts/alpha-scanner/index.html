@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1"
+    />
+    <title>Crypto Alt Bullet</title>
+    <meta name="app-version" content="__ALT_APP_VERSION__" />
+    <meta
+      name="description"
+      content="Real-time BingX futures signal scanner — detects pre-pump accumulation patterns across 500+ USDT perpetual pairs with Telegram alerts."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      #bootstrap-fallback {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        box-sizing: border-box;
+        color: #e5e7eb;
+        background: #090909;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+      #bootstrap-fallback-card {
+        width: min(420px, 100%);
+        padding: 24px;
+        border: 1px solid #262626;
+        border-radius: 10px;
+        background: #121212;
+        text-align: center;
+      }
+      #bootstrap-fallback h1 {
+        margin: 0 0 8px;
+        font-size: 22px;
+      }
+      #bootstrap-fallback p {
+        margin: 8px 0;
+        color: #a3a3a3;
+        line-height: 1.5;
+      }
+      #bootstrap-recovery {
+        display: none;
+        margin-top: 18px;
+      }
+      #bootstrap-fallback[data-state="failed"] #bootstrap-loading {
+        display: none;
+      }
+      #bootstrap-fallback[data-state="failed"] #bootstrap-recovery {
+        display: block;
+      }
+      .bootstrap-button {
+        width: 100%;
+        margin-top: 10px;
+        padding: 11px 14px;
+        border: 1px solid #3b82f6;
+        border-radius: 6px;
+        color: #fff;
+        background: #2563eb;
+        font: inherit;
+        cursor: pointer;
+      }
+      .bootstrap-button-secondary {
+        border-color: #404040;
+        background: #1f1f1f;
+      }
+      #bootstrap-error-code {
+        font-size: 12px;
+        color: #737373;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div id="bootstrap-fallback" role="status" aria-live="polite">
+        <div id="bootstrap-fallback-card">
+          <h1>Crypto Alt Bullet</h1>
+          <p id="bootstrap-loading">Загрузка панели управления…</p>
+          <div id="bootstrap-recovery">
+            <p><strong>Не удалось открыть панель</strong></p>
+            <p id="bootstrap-error-message">
+              Приложение не загрузилось. Обновите страницу или сбросьте
+              сохранённый вход.
+            </p>
+            <p id="bootstrap-error-code"></p>
+            <button id="bootstrap-retry" class="bootstrap-button" type="button">
+              Обновить страницу
+            </button>
+            <button
+              id="bootstrap-reset-session"
+              class="bootstrap-button bootstrap-button-secondary"
+              type="button"
+            >
+              Сбросить сохранённый вход
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var fallback = document.getElementById("bootstrap-fallback");
+        var timeoutId;
+        var reportSent = false;
+        var detectBrowser = function () {
+          var ua = window.navigator.userAgent || "";
+          var match =
+            ua.match(/SamsungBrowser\/([\d.]+)/i) ||
+            ua.match(/Edg\/([\d.]+)/i) ||
+            ua.match(/OPR\/([\d.]+)/i) ||
+            ua.match(/Firefox\/([\d.]+)/i) ||
+            ua.match(/Chrome\/([\d.]+)/i) ||
+            ua.match(/Version\/([\d.]+).*Safari/i);
+          var family = /SamsungBrowser/i.test(ua)
+            ? "Samsung Internet"
+            : /Edg\//i.test(ua)
+              ? "Edge"
+              : /OPR\//i.test(ua)
+                ? "Opera"
+                : /Firefox\//i.test(ua)
+                  ? "Firefox"
+                  : /Chrome\//i.test(ua)
+                    ? "Chrome"
+                    : /Safari\//i.test(ua)
+                      ? "Safari"
+                      : "Other";
+          return { family: family, version: match ? match[1] : "unknown" };
+        };
+        var reportFailure = function (code, appVersion) {
+          if (reportSent || !window.fetch) return;
+          reportSent = true;
+          var browser = detectBrowser();
+          var route = window.location.pathname.slice(0, 160) || "/";
+          var versionElement = document.querySelector(
+            'meta[name="app-version"]',
+          );
+          var version =
+            appVersion ||
+            (versionElement && versionElement.getAttribute("content")) ||
+            "unknown";
+          try {
+            window
+              .fetch("/api/bootstrap-errors", {
+                method: "POST",
+                credentials: "omit",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  code: code,
+                  route: route,
+                  appVersion: version.slice(0, 80),
+                  browserFamily: browser.family,
+                  browserVersion: browser.version.slice(0, 24),
+                }),
+                keepalive: true,
+              })
+              .catch(function () {});
+          } catch (_) {}
+        };
+        var showFailure = function (code, appVersion) {
+          if (!fallback || !fallback.isConnected) return;
+          if (fallback) fallback.setAttribute("data-state", "failed");
+          var codeElement = document.getElementById("bootstrap-error-code");
+          if (codeElement && code) codeElement.textContent = "Код: " + code;
+          reportFailure(code || "bootstrap_timeout", appVersion);
+        };
+        window.__showAltBulletBootstrapFailure = showFailure;
+        window.__markAltBulletBootstrapped = function () {
+          window.clearTimeout(timeoutId);
+        };
+        timeoutId = window.setTimeout(function () {
+          showFailure("bootstrap_timeout");
+        }, 12000);
+        document.getElementById("bootstrap-retry").onclick = function () {
+          window.location.reload();
+        };
+        document.getElementById("bootstrap-reset-session").onclick =
+          function () {
+            try {
+              window.localStorage.removeItem("authToken");
+              window.localStorage.removeItem("adminToken");
+            } catch (_) {}
+            window.location.assign("/login");
+          };
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

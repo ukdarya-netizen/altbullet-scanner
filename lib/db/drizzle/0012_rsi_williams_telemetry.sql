@@ -1,0 +1,11 @@
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_williams_r_21" real;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_williams_r_21_ema_13" real;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_rsi_5" real;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_rsi_5_divergence" text;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_rsi_5_regular_bullish" boolean;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_rsi_5_hidden_bullish" boolean;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_rsi_5_regular_bearish" boolean;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_rsi_5_hidden_bearish" boolean;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_indicator_timeframe" text;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_indicator_candle_close_at" timestamp;
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_indicator_source" text;
