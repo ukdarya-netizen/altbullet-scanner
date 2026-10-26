@@ -546,6 +546,12 @@ export function computePeakPnl(t: TrackedSignal): number {
   return ((t.peakPrice - t.entryPrice) / t.entryPrice) * 100;
 }
 
+function fmtPeakLine(t: TrackedSignal): string {
+  return t.peakPrice != null
+    ? `📈 Пик позиции: ${fmtPct(computePeakPnl(t))} (${fmtP(t.peakPrice)})`
+    : `📈 Пик позиции: нет данных`;
+}
+
 function fmtBreakevenContext(
   t: TrackedSignal,
   fallbackTake?: number,
@@ -844,6 +850,7 @@ export function msgStopLoss(
   return buildPositionClosed(t, {
     event: "🔴 STOP LOSS",
     price: `${fmtP(t.entryPrice)} → ${fmtP(currentPrice)} (${fmtPct(pnl)}) | ${dur.str}`,
+    context: [fmtPeakLine(t)],
     health,
     tags: lifecycleTags(t, "#stop_loss"),
   });
@@ -1155,6 +1162,7 @@ export function msgBreakevenAsStopLoss(
     event: `🔴 STOP LOSS (EXPIRED — ${getMaxWatchDays(t.sentimentKey)}д)`,
     price: `${fmtP(t.entryPrice)} → ${fmtP(currentPrice)} (${fmtPct(pnl)}) | ${dur.str}`,
     context: [
+      fmtPeakLine(t),
       "⚠️ Срок сопровождения истёк; цена ниже входа, поэтому исход засчитан как STOP LOSS.",
     ],
     health,

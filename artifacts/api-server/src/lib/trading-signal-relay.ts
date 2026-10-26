@@ -191,14 +191,14 @@ export async function ensureTradingSignalRelaySchema(): Promise<void> {
 export const CAPTURE_CONFIRMED_SIGNALS_SQL = `
     INSERT INTO trading_signal_deliveries
       (source_signal_id, signal_at, payload)
-    SELECT s.id, s.detected_at AT TIME ZONE 'UTC',
+    SELECT s.id, t.detected_at AT TIME ZONE 'UTC',
       jsonb_build_object(
         'sourceSignalId', 'cab-signal-' || s.id::text,
         'confirmationStatus', 'confirmed',
         'patternId', s.sentiment_key,
         'patternStatus', 'approved',
         'symbol', replace(upper(s.symbol), '-', ''),
-        'signalAt', to_char(s.detected_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+        'signalAt', to_char(t.detected_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
         'referencePrice', t.entry_price::numeric::text,
         'side', 'buy',
         'orderType', 'market',
@@ -246,9 +246,9 @@ export const CAPTURE_CONFIRMED_SIGNALS_SQL = `
       END AS pct
     ) stop_plan
     WHERE cfg.singleton = true
-      AND s.detected_at >= cfg.activated_at AT TIME ZONE 'UTC'
-      AND s.detected_at >= (now() AT TIME ZONE 'UTC') - interval '10 minutes'
-      AND s.detected_at <= now() AT TIME ZONE 'UTC'
+      AND t.detected_at >= cfg.activated_at AT TIME ZONE 'UTC'
+      AND t.detected_at >= (now() AT TIME ZONE 'UTC') - interval '10 minutes'
+      AND t.detected_at <= now() AT TIME ZONE 'UTC'
       AND ($2::integer IS NULL OR s.id = $2::integer)
       AND s.sentiment_key = ANY($1::text[])
       AND t.status IN ('active', 'in_run')
@@ -469,8 +469,17 @@ async function sendClaimedSignal(claim: ClaimedSignal, token: string) {
       redirect: "manual",
       signal: AbortSignal.timeout(8_000),
     });
+    const rawBody = await response.text().catch(() => "");
     const body =
-      response.status === 202 ? await response.json().catch(() => null) : null;
+      response.status === 202
+        ? (() => {
+            try {
+              return JSON.parse(rawBody) as unknown;
+            } catch {
+              return null;
+            }
+          })()
+        : null;
     const outcome = classifySignalReceipt(response.status, body);
     await finishSignal(
       claim,
@@ -480,7 +489,7 @@ async function sendClaimedSignal(claim: ClaimedSignal, token: string) {
         ? null
         : response.status === 202 && isAwaitingRulesReceipt(body)
           ? "receiver_awaiting_rules"
-          : `receiver_http_${response.status}`,
+          : `receiver_http_${response.status}: ${rawBody.slice(0, 300)}`,
     );
     if (outcome !== "delivered") {
       logger.warn(

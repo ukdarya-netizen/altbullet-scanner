@@ -213,7 +213,12 @@ export function getBuStopMilestone(
   }
   // Owner decision 2026-10-13: Stealth Breakout moves to B.U. only after +8%
   // (28-trade 15m replay: B.U. at +8 beat +5; not decision-grade, revisit).
-  if (sentimentKey === "stealth_breakout") {
+  // Owner decision 2026-10-25: Neon Support also moves to B.U. only after +8%
+  // (46-row no-wait replay: B.U. +8 -15.9 vs +5 -33.2; small sample, revisit).
+  if (
+    sentimentKey === "stealth_breakout" ||
+    sentimentKey === "neon_support_bounce"
+  ) {
     return 8;
   }
   return PARTIAL_TARGET;
@@ -225,6 +230,19 @@ export function getBuStopMilestone(
  * owner 2026-10-13.
  */
 export function hasNoProfitStopPromotion(
+  sentimentKey: string | null | undefined,
+): boolean {
+  return (
+    sentimentKey === "stealth_breakout" ||
+    sentimentKey === "neon_support_bounce"
+  );
+}
+
+/**
+ * Owner 2026-10-25: Stealth Breakout and Neon Support do not send the
+ * "+5% pre-target" message; their first notice is the B.U. move at +8%.
+ */
+export function suppressesPreTargetFivePctNotice(
   sentimentKey: string | null | undefined,
 ): boolean {
   return (

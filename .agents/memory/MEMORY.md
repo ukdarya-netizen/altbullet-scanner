@@ -172,3 +172,4 @@
 - [Neon simple bounce rule](neon-simple-bounce-rule.md) — Neon = отскок от поддержки + объём; без фильтров цены/формы входа и приоритета Stealth; 15m-подтверждение.
 - [LC candle gate unclosed](lc-detection-candle-unclosed.md) — LC drop since 10.10: gate checks the still-open 15m candle → 'unavailable'; fix = wait for close; implemented 2026-10-23, range>=6%.
 - [Smart Money observation removed](smart-money-removed.md) — воркер, DLIQ и таблица удалены по решению владелицы; не восстанавливать (перекрывает ict-removed).
+- [Neon no-wait entry policy](neon-no-wait-policy.md) — Neon входит при детекции или никогда; spot/mcap гейт снят; октябрьские строки пересчитаны миграцией, оригиналы в backup-таблице.

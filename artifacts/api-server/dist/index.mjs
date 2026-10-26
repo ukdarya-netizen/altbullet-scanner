@@ -62389,12 +62389,15 @@ function getBuStopMilestone(sentimentKey, symbol2) {
   if (sentimentKey === "bullish_accumulation") {
     return 10;
   }
-  if (sentimentKey === "stealth_breakout") {
+  if (sentimentKey === "stealth_breakout" || sentimentKey === "neon_support_bounce") {
     return 8;
   }
   return PARTIAL_TARGET;
 }
 function hasNoProfitStopPromotion(sentimentKey) {
+  return sentimentKey === "stealth_breakout" || sentimentKey === "neon_support_bounce";
+}
+function suppressesPreTargetFivePctNotice(sentimentKey) {
   return sentimentKey === "stealth_breakout" || sentimentKey === "neon_support_bounce";
 }
 function getBuStopProtectedProfitPct(_sentimentKey) {
@@ -62877,6 +62880,9 @@ function computePeakPnl(t) {
   if (!t.peakPrice) return 0;
   return (t.peakPrice - t.entryPrice) / t.entryPrice * 100;
 }
+function fmtPeakLine(t) {
+  return t.peakPrice != null ? `\u{1F4C8} \u041F\u0438\u043A \u043F\u043E\u0437\u0438\u0446\u0438\u0438: ${fmtPct(computePeakPnl(t))} (${fmtP(t.peakPrice)})` : `\u{1F4C8} \u041F\u0438\u043A \u043F\u043E\u0437\u0438\u0446\u0438\u0438: \u043D\u0435\u0442 \u0434\u0430\u043D\u043D\u044B\u0445`;
+}
 function fmtBreakevenContext(t, fallbackTake) {
   const peakLine = t.peakPrice != null ? `\u{1F4C8} \u041F\u0438\u043A \u043F\u043E\u0437\u0438\u0446\u0438\u0438: ${fmtPct(computePeakPnl(t))} (${fmtP(t.peakPrice)})` : `\u{1F4C8} \u041F\u0438\u043A \u043F\u043E\u0437\u0438\u0446\u0438\u0438: \u043D\u0435\u0442 \u0434\u0430\u043D\u043D\u044B\u0445`;
   const take = t.lastMilestone != null && t.lastMilestone > 0 ? t.lastMilestone : fallbackTake ?? null;
@@ -63036,6 +63042,7 @@ function msgStopLoss(t, currentPrice, pnl2, health) {
   return buildPositionClosed(t, {
     event: "\u{1F534} STOP LOSS",
     price: `${fmtP(t.entryPrice)} \u2192 ${fmtP(currentPrice)} (${fmtPct(pnl2)}) | ${dur.str}`,
+    context: [fmtPeakLine(t)],
     health,
     tags: lifecycleTags(t, "#stop_loss")
   });
@@ -63192,6 +63199,7 @@ function msgBreakevenAsStopLoss(t, currentPrice, pnl2, health) {
     event: `\u{1F534} STOP LOSS (EXPIRED \u2014 ${getMaxWatchDays(t.sentimentKey)}\u0434)`,
     price: `${fmtP(t.entryPrice)} \u2192 ${fmtP(currentPrice)} (${fmtPct(pnl2)}) | ${dur.str}`,
     context: [
+      fmtPeakLine(t),
       "\u26A0\uFE0F \u0421\u0440\u043E\u043A \u0441\u043E\u043F\u0440\u043E\u0432\u043E\u0436\u0434\u0435\u043D\u0438\u044F \u0438\u0441\u0442\u0451\u043A; \u0446\u0435\u043D\u0430 \u043D\u0438\u0436\u0435 \u0432\u0445\u043E\u0434\u0430, \u043F\u043E\u044D\u0442\u043E\u043C\u0443 \u0438\u0441\u0445\u043E\u0434 \u0437\u0430\u0441\u0447\u0438\u0442\u0430\u043D \u043A\u0430\u043A STOP LOSS."
     ],
     health,
@@ -81769,14 +81777,14 @@ async function ensureTradingSignalRelaySchema() {
 var CAPTURE_CONFIRMED_SIGNALS_SQL = `
     INSERT INTO trading_signal_deliveries
       (source_signal_id, signal_at, payload)
-    SELECT s.id, s.detected_at AT TIME ZONE 'UTC',
+    SELECT s.id, t.detected_at AT TIME ZONE 'UTC',
       jsonb_build_object(
         'sourceSignalId', 'cab-signal-' || s.id::text,
         'confirmationStatus', 'confirmed',
         'patternId', s.sentiment_key,
         'patternStatus', 'approved',
         'symbol', replace(upper(s.symbol), '-', ''),
-        'signalAt', to_char(s.detected_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+        'signalAt', to_char(t.detected_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
         'referencePrice', t.entry_price::numeric::text,
         'side', 'buy',
         'orderType', 'market',
@@ -81824,9 +81832,9 @@ var CAPTURE_CONFIRMED_SIGNALS_SQL = `
       END AS pct
     ) stop_plan
     WHERE cfg.singleton = true
-      AND s.detected_at >= cfg.activated_at AT TIME ZONE 'UTC'
-      AND s.detected_at >= (now() AT TIME ZONE 'UTC') - interval '10 minutes'
-      AND s.detected_at <= now() AT TIME ZONE 'UTC'
+      AND t.detected_at >= cfg.activated_at AT TIME ZONE 'UTC'
+      AND t.detected_at >= (now() AT TIME ZONE 'UTC') - interval '10 minutes'
+      AND t.detected_at <= now() AT TIME ZONE 'UTC'
       AND ($2::integer IS NULL OR s.id = $2::integer)
       AND s.sentiment_key = ANY($1::text[])
       AND t.status IN ('active', 'in_run')
@@ -81959,13 +81967,20 @@ async function sendClaimedSignal(claim, token) {
       redirect: "manual",
       signal: AbortSignal.timeout(8e3)
     });
-    const body = response.status === 202 ? await response.json().catch(() => null) : null;
+    const rawBody = await response.text().catch(() => "");
+    const body = response.status === 202 ? (() => {
+      try {
+        return JSON.parse(rawBody);
+      } catch {
+        return null;
+      }
+    })() : null;
     const outcome = classifySignalReceipt(response.status, body);
     await finishSignal(
       claim,
       outcome,
       response.status,
-      outcome === "delivered" ? null : response.status === 202 && isAwaitingRulesReceipt(body) ? "receiver_awaiting_rules" : `receiver_http_${response.status}`
+      outcome === "delivered" ? null : response.status === 202 && isAwaitingRulesReceipt(body) ? "receiver_awaiting_rules" : `receiver_http_${response.status}: ${rawBody.slice(0, 300)}`
     );
     if (outcome !== "delivered") {
       logger.warn(
@@ -100264,7 +100279,7 @@ ${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)}`;
         }
         continue;
       }
-      if (tracked.status === "active" && _buMilestone > 5 && pnl2 >= 5 && (tracked.lastMilestone ?? 0) < 5) {
+      if (tracked.status === "active" && _buMilestone > 5 && !suppressesPreTargetFivePctNotice(tracked.sentimentKey) && pnl2 >= 5 && (tracked.lastMilestone ?? 0) < 5) {
         const claimed5 = await dbWriteStrict(
           "trackedSignal/fast-pre-target-5pct",
           () => db.update(trackedSignalsTable).set({
@@ -111028,6 +111043,30 @@ async function terminalizeBrokenQualifiedNeonSupport(input) {
   if (result.rows.length > 0) activeCache = void 0;
   return result.rows.length > 0;
 }
+async function expireOfferedNeonSupportEvents(ids) {
+  if (ids.length === 0) return 0;
+  const result = await db.execute(sql`
+    UPDATE stealth_abneon_shadow_candidates
+    SET status = 'terminal',
+        terminal_reason = 'neon_not_entered_at_detection',
+        updated_at = now()
+    WHERE id IN (${sql.join(
+    ids.map((id) => sql`${id}`),
+    sql`, `
+  )})
+      AND detection_method = 'abneon_support_bounce'
+      AND (
+        status = 'qualified'
+        OR (
+          status = 'firing'
+          AND (fire_claim_expires_at IS NULL OR fire_claim_expires_at < now())
+        )
+      )
+    RETURNING id
+  `);
+  if (result.rows.length > 0) activeCache = void 0;
+  return result.rows.length;
+}
 async function terminalizeAbneonSupportBounceClaim(input) {
   const result = await db.execute(sql`
     UPDATE stealth_abneon_shadow_candidates
@@ -111396,6 +111435,7 @@ var cgVolumeCache = /* @__PURE__ */ new Map();
 var lastOiSnapshotDate = null;
 var prescanTracker = /* @__PURE__ */ new Map();
 var bingxFuturesSymbols = /* @__PURE__ */ new Set();
+var neonOfferedEventKeys = /* @__PURE__ */ new Set();
 var _latestFrMap = /* @__PURE__ */ new Map();
 var _latestFrMapUpdatedAt = 0;
 var FUNDING_RATE_MAX_AGE_MS = 20 * 6e4;
@@ -114590,8 +114630,19 @@ async function performScanBody(lease) {
   const persistedDeliveryTickers = [];
   let persistedNeonSupportEvents = /* @__PURE__ */ new Map();
   try {
+    const listedNeon = await listQualifiedAbneonSupportBounces(100);
+    const alreadyOffered = listedNeon.filter(
+      (row) => neonOfferedEventKeys.has(`${row.symbol}:${row.triggerCandleTime}`)
+    );
+    if (alreadyOffered.length > 0) {
+      await expireOfferedNeonSupportEvents(alreadyOffered.map((r) => r.id));
+      for (const row of alreadyOffered) {
+        neonOfferedEventKeys.delete(`${row.symbol}:${row.triggerCandleTime}`);
+      }
+    }
+    const offeredIds = new Set(alreadyOffered.map((row) => row.id));
     persistedNeonSupportEvents = routePersistedNeonSupportBounces(
-      await listQualifiedAbneonSupportBounces(100)
+      listedNeon.filter((row) => !offeredIds.has(row.id))
     );
     for (const symbol2 of persistedNeonSupportEvents.keys()) {
       const ticker = stealthTickerBySymbol.get(symbol2);
@@ -115290,6 +115341,9 @@ async function performScanBody(lease) {
     persistedNeonSupportEvents,
     newlyQualifiedNeonEvents
   );
+  for (const [symbol2, event] of persistedNeonSupportEvents) {
+    neonOfferedEventKeys.add(`${symbol2}:${event.triggerCandleTime}`);
+  }
   for (const symbol2 of newlyQualifiedNeonEvents.keys()) {
     const ticker = stealthTickerBySymbol.get(symbol2);
     if (ticker && !usdtTickers.some((item) => item.symbol === symbol2)) {
@@ -115924,9 +115978,10 @@ async function performScanBody(lease) {
                   );
                   return;
                 }
-              } else if (spotVol24h < marketCapUsd * ALPHA_MIN_SPOT_MCAP_PCT && !stealthConfirmed && // Owner 2026-10-24: Neon on BTC is exempt from the spot/mcap
-              // gate (BTC spot volume is structurally below the threshold).
-              !(res.sentimentKey === "neon_support_bounce" && res.symbol === "BTC-USDT")) {
+              } else if (spotVol24h < marketCapUsd * ALPHA_MIN_SPOT_MCAP_PCT && !stealthConfirmed && // Owner 2026-10-25: Neon has no spot/mcap minimum (TAG +30..60%
+              // was rejected by it at detection and entered late). BTC was
+              // exempt since 2026-10-24.
+              res.sentimentKey !== "neon_support_bounce") {
                 const pct4 = (spotVol24h / marketCapUsd * 100).toFixed(3);
                 logger.info(
                   { symbol: res.symbol, spotVol24h, marketCapUsd, pct: pct4 },
@@ -115940,7 +115995,16 @@ async function performScanBody(lease) {
                   res.globalOiChange ?? null,
                   res.volumeMultiplier ?? null,
                   res.price24hChange ?? null,
-                  prescanTracker.get(res.symbol)?.cycleCount ?? null
+                  prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                  "rejected",
+                  {
+                    confirmedFireGate: {
+                      spotVol24hUsd: spotVol24h,
+                      marketCapUsd,
+                      spotMcapPct: spotVol24h / marketCapUsd * 100,
+                      minPct: ALPHA_MIN_SPOT_MCAP_PCT * 100
+                    }
+                  }
                 );
                 return;
               }
@@ -115965,7 +116029,16 @@ async function performScanBody(lease) {
                   res.globalOiChange ?? null,
                   res.volumeMultiplier ?? null,
                   res.price24hChange ?? null,
-                  prescanTracker.get(res.symbol)?.cycleCount ?? null
+                  prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                  "rejected",
+                  {
+                    // The exact values this gate judged (calibration input).
+                    confirmedFireGate: {
+                      spotVol24hUsd: spotVol24h,
+                      marketCapUsd,
+                      spotMcapPct: _ibSpotMcapPct
+                    }
+                  }
                 );
                 return;
               }
@@ -115987,7 +116060,16 @@ async function performScanBody(lease) {
                   res.globalOiChange ?? null,
                   res.volumeMultiplier ?? null,
                   res.price24hChange ?? null,
-                  prescanTracker.get(res.symbol)?.cycleCount ?? null
+                  prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                  "rejected",
+                  {
+                    confirmedFireGate: {
+                      spotTakerNetBuyPct: cfSpotTf?.netBuyPct ?? null,
+                      spotTakerDominance: cfSpotTf?.dominance ?? null,
+                      spotVol24hUsd: spotVol24h,
+                      marketCapUsd
+                    }
+                  }
                 );
                 return;
               }
@@ -116009,7 +116091,16 @@ async function performScanBody(lease) {
                     res.globalOiChange ?? null,
                     res.volumeMultiplier ?? null,
                     res.price24hChange ?? null,
-                    prescanTracker.get(res.symbol)?.cycleCount ?? null
+                    prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                    "rejected",
+                    {
+                      confirmedFireGate: {
+                        spotTakerNetBuyPct: cfSpotTf.netBuyPct ?? null,
+                        spotTakerDominance: cfSpotTf.dominance ?? null,
+                        spotVol24hUsd: spotVol24h,
+                        marketCapUsd
+                      }
+                    }
                   );
                   return;
                 }
@@ -116029,7 +116120,16 @@ async function performScanBody(lease) {
                     res.globalOiChange ?? null,
                     res.volumeMultiplier ?? null,
                     res.price24hChange ?? null,
-                    prescanTracker.get(res.symbol)?.cycleCount ?? null
+                    prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                    "rejected",
+                    {
+                      confirmedFireGate: {
+                        spotTakerNetBuyPct: cfSpotTf.netBuyPct ?? null,
+                        spotTakerDominance: cfSpotTf.dominance ?? null,
+                        spotVol24hUsd: spotVol24h,
+                        marketCapUsd
+                      }
+                    }
                   );
                   return;
                 }
@@ -117486,10 +117586,13 @@ async function performScanBody(lease) {
                 price1h: Number.isFinite(price1hChange) ? price1hChange : null,
                 price3h: base3hClose > 0 ? price3h : null,
                 spotVolumeMultiplier: _impulseSpotVolMult,
-                cvd15m: _plmCvd15m,
-                cvd30m: _plmCvd30m,
-                cvd1h: _plmCvd1h,
-                cvd4h: _plmCvd4h,
+                // Exactly the values evaluateImpulseBuy judged (fresh
+                // aggregated CVD/taker when measured), not the prescan cache.
+                cvd15m: _impulseCvd15m,
+                cvd30m: _impulseCvd30m,
+                cvd1h: _impulseCvd1h,
+                cvd4h: _impulseCvd4h,
+                futTakerNetBuyPct: _impulseFutTakerNetBuyPct,
                 components: _impulseDecision.components
               }
             });
@@ -117515,8 +117618,8 @@ async function performScanBody(lease) {
                 liqRatioAbove015Shadow: _impulseLiqShadow.aboveShadowThreshold,
                 liqCacheStale: _impulseLiqAtDecision?.stale ?? null,
                 liqCacheAgeMs: _impulseLiqAtDecision?.cacheAgeMs ?? null,
-                cvd30m: _plmEntry?.lastCvd30m ?? null,
-                cvd1h: _plmEntry?.lastCvd1h ?? null,
+                cvd30m: _impulseCvd30m,
+                cvd1h: _impulseCvd1h,
                 candleBodyPct: _impulseDecision.candleBodyPct,
                 candleVolumeMult: _impulseDecision.volumeMultiplier,
                 candleCloseStrength: _impulseDecision.closeStrength,
@@ -131040,6 +131143,7 @@ var journalClosedPatternCondition = () => or(
     eq(trackedSignalsTable.status, "profit")
   )
 );
+var viaCoreSql = (column) => sql`${column}`.mapWith(column);
 var currentStatsCohortCondition = () => sql`
   NOT (
     ${trackedSignalsTable.sentimentKey} = 'impulse_buy'
@@ -131498,7 +131602,7 @@ router6.get("/tracker/journal", cacheJournalResponse, async (req, res) => {
     }
     const active2 = (byOpen["active"] ?? 0) + (byOpen["accumulation"] ?? 0) + (byOpen["in_run"] ?? 0) + (byOpen["re_entry"] ?? 0);
     const closedStatusRows = await db.select({
-      status: trackedSignalsTable.status,
+      status: viaCoreSql(trackedSignalsTable.status),
       count: sql`count(*)::int`,
       avgPnl: sql`round(avg(${normalizedTrackedPnlSql()})::numeric, 2)`,
       pnlSum: sql`coalesce(sum(${normalizedTrackedPnlSql()}), 0)`,
@@ -131614,9 +131718,9 @@ router6.get("/tracker/journal", cacheJournalResponse, async (req, res) => {
       ) * 100
     ) / 100;
     const bestRows = await db.select({
-      symbol: trackedSignalsTable.symbol,
-      pnl: trackedSignalsTable.pnlPercent,
-      sentimentKey: trackedSignalsTable.sentimentKey
+      symbol: viaCoreSql(trackedSignalsTable.symbol),
+      pnl: viaCoreSql(trackedSignalsTable.pnlPercent),
+      sentimentKey: viaCoreSql(trackedSignalsTable.sentimentKey)
     }).from(sql`${TRACKED_SIGNALS_WITH_CORE_SQL} AS tracked_signals`).where(
       and(
         eq(trackedSignalsTable.status, "profit"),
@@ -131625,9 +131729,9 @@ router6.get("/tracker/journal", cacheJournalResponse, async (req, res) => {
       )
     ).orderBy(desc(trackedSignalsTable.pnlPercent)).limit(1);
     const worstRows = await db.select({
-      symbol: trackedSignalsTable.symbol,
-      pnl: trackedSignalsTable.pnlPercent,
-      sentimentKey: trackedSignalsTable.sentimentKey
+      symbol: viaCoreSql(trackedSignalsTable.symbol),
+      pnl: viaCoreSql(trackedSignalsTable.pnlPercent),
+      sentimentKey: viaCoreSql(trackedSignalsTable.sentimentKey)
     }).from(sql`${TRACKED_SIGNALS_WITH_CORE_SQL} AS tracked_signals`).where(
       and(
         eq(trackedSignalsTable.status, "stop_loss"),
@@ -131637,8 +131741,8 @@ router6.get("/tracker/journal", cacheJournalResponse, async (req, res) => {
       )
     ).orderBy(trackedSignalsTable.pnlPercent).limit(1);
     const patternRows = await db.select({
-      sentimentKey: trackedSignalsTable.sentimentKey,
-      status: trackedSignalsTable.status,
+      sentimentKey: viaCoreSql(trackedSignalsTable.sentimentKey),
+      status: viaCoreSql(trackedSignalsTable.status),
       count: sql`count(*)::int`,
       sumPnl: sql`coalesce(sum(${normalizedTrackedPnlSql()}), 0)`,
       avgPnl: sql`round(avg(${normalizedTrackedPnlSql()})::numeric, 2)`,
@@ -141299,6 +141403,909 @@ async function restoreNeonRowsClosedByZoneRule() {
   return result.rowCount ?? 0;
 }
 
+// src/lib/neon-open-removal.ts
+init_src();
+
+// src/lib/neon-no-wait-recalc-data.ts
+var NEON_NO_WAIT_ROWS = [
+  {
+    id: 2526,
+    signalId: 18963,
+    symbol: "MARSCOIN-USDT",
+    oldDetectedAt: "2026-10-15T16:20:37.232Z",
+    oldEntryPrice: 0.08024,
+    oldStatus: "bu_stop",
+    entryPrice: 0.07973,
+    detectedAt: "2026-10-15T16:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 0.07973,
+    pnlPercent: 0,
+    peakPrice: 0.08631,
+    closedAt: "2026-10-16T14:00:00.000Z",
+    stopPct: 10,
+    lastMilestone: 8,
+    trailingArmedAt: null
+  },
+  {
+    id: 2745,
+    signalId: 19487,
+    symbol: "HUMA-USDT",
+    oldDetectedAt: "2026-10-22T07:40:50.071Z",
+    oldEntryPrice: 0.029023,
+    oldStatus: "stop_loss",
+    entryPrice: 0.029228,
+    detectedAt: "2026-10-21T03:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 0.029228,
+    pnlPercent: 0,
+    peakPrice: 0.031692,
+    closedAt: "2026-10-22T06:45:00.000Z",
+    stopPct: 10,
+    lastMilestone: 8,
+    trailingArmedAt: null
+  },
+  {
+    id: 2761,
+    signalId: 19523,
+    symbol: "AKE-USDT",
+    oldDetectedAt: "2026-10-22T19:27:06.813Z",
+    oldEntryPrice: 0.031017,
+    oldStatus: "bu_stop",
+    entryPrice: 0.027741,
+    detectedAt: "2026-10-22T10:00:00.000Z",
+    status: "profit",
+    exitPrice: 0.0293689,
+    pnlPercent: 5.8682,
+    peakPrice: 0.032143,
+    closedAt: "2026-10-22T16:15:00.000Z",
+    stopPct: 10,
+    lastMilestone: 15,
+    trailingArmedAt: "2026-10-22T15:30:00.000Z"
+  },
+  {
+    id: 2764,
+    signalId: 19529,
+    symbol: "DASH-USDT",
+    oldDetectedAt: "2026-10-22T19:27:07.566Z",
+    oldEntryPrice: 51.61,
+    oldStatus: "bu_stop",
+    entryPrice: 51.18,
+    detectedAt: "2026-10-21T12:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 51.18,
+    pnlPercent: 0,
+    peakPrice: 55.9,
+    closedAt: "2026-10-24T00:30:00.000Z",
+    stopPct: 10,
+    lastMilestone: 8,
+    trailingArmedAt: null
+  },
+  {
+    id: 2765,
+    signalId: 19521,
+    symbol: "VVV-USDT",
+    oldDetectedAt: "2026-10-22T19:27:07.974Z",
+    oldEntryPrice: 26.062,
+    oldStatus: "stop_loss",
+    entryPrice: 27.016,
+    detectedAt: "2026-10-21T15:00:00.000Z",
+    status: "stop_loss",
+    exitPrice: 24.3144,
+    pnlPercent: -10,
+    peakPrice: 28.326,
+    closedAt: "2026-10-24T00:45:00.000Z",
+    stopPct: 10,
+    lastMilestone: 0,
+    trailingArmedAt: null
+  },
+  {
+    id: 2767,
+    signalId: 19538,
+    symbol: "RIVER-USDT",
+    oldDetectedAt: "2026-10-22T19:27:27.655Z",
+    oldEntryPrice: 1.145,
+    oldStatus: "stop_loss",
+    entryPrice: 1.072,
+    detectedAt: "2026-10-20T14:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 1.072,
+    pnlPercent: 0,
+    peakPrice: 1.182,
+    closedAt: "2026-10-23T19:15:00.000Z",
+    stopPct: 10,
+    lastMilestone: 10,
+    trailingArmedAt: null
+  },
+  {
+    id: 2769,
+    signalId: 19541,
+    symbol: "KGEN-USDT",
+    oldDetectedAt: "2026-10-22T19:27:28.5Z",
+    oldEntryPrice: 0.1027,
+    oldStatus: "bu_stop",
+    entryPrice: 0.0964,
+    detectedAt: "2026-10-20T17:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 0.0964,
+    pnlPercent: 0,
+    peakPrice: 0.1106,
+    closedAt: "2026-10-22T06:30:00.000Z",
+    stopPct: 10,
+    lastMilestone: 10,
+    trailingArmedAt: null
+  },
+  {
+    id: 2770,
+    signalId: 19540,
+    symbol: "DYM-USDT",
+    oldDetectedAt: "2026-10-22T19:27:28.668Z",
+    oldEntryPrice: 0.01852,
+    oldStatus: "bu_stop",
+    entryPrice: 0.01944,
+    detectedAt: "2026-10-21T17:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 0.01944,
+    pnlPercent: 0,
+    peakPrice: 0.02107,
+    closedAt: "2026-10-22T01:15:00.000Z",
+    stopPct: 10,
+    lastMilestone: 8,
+    trailingArmedAt: null
+  },
+  {
+    id: 2775,
+    signalId: 19554,
+    symbol: "ARKM-USDT",
+    oldDetectedAt: "2026-10-22T20:07:59.44Z",
+    oldEntryPrice: 0.13,
+    oldStatus: "bu_stop",
+    entryPrice: 0.132,
+    detectedAt: "2026-10-22T05:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 0.132,
+    pnlPercent: 0,
+    peakPrice: 0.1436,
+    closedAt: "2026-10-22T06:45:00.000Z",
+    stopPct: 10,
+    lastMilestone: 8,
+    trailingArmedAt: null
+  },
+  {
+    id: 2776,
+    signalId: 19557,
+    symbol: "4STOCK-USDT",
+    oldDetectedAt: "2026-10-22T20:08:00.783Z",
+    oldEntryPrice: 369e-5,
+    oldStatus: "stop_loss",
+    entryPrice: 391e-5,
+    detectedAt: "2026-10-21T07:00:00.000Z",
+    status: "profit",
+    exitPrice: 4169e-6,
+    pnlPercent: 6.624,
+    peakPrice: 456e-5,
+    closedAt: "2026-10-21T23:45:00.000Z",
+    stopPct: 10,
+    lastMilestone: 15,
+    trailingArmedAt: "2026-10-21T20:00:00.000Z"
+  },
+  {
+    id: 2777,
+    signalId: 19564,
+    symbol: "BMT-USDT",
+    oldDetectedAt: "2026-10-22T20:38:56.707Z",
+    oldEntryPrice: 0.02706,
+    oldStatus: "bu_stop",
+    entryPrice: 0.02313,
+    detectedAt: "2026-10-21T10:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 0.02313,
+    pnlPercent: 0,
+    peakPrice: 0.02586,
+    closedAt: "2026-10-21T13:30:00.000Z",
+    stopPct: 10,
+    lastMilestone: 10,
+    trailingArmedAt: null
+  },
+  {
+    id: 2780,
+    signalId: 19566,
+    symbol: "REZ-USDT",
+    oldDetectedAt: "2026-10-22T21:08:35.091Z",
+    oldEntryPrice: 385e-5,
+    oldStatus: "bu_stop",
+    entryPrice: 3839e-6,
+    detectedAt: "2026-10-22T15:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 3839e-6,
+    pnlPercent: 0,
+    peakPrice: 4401e-6,
+    closedAt: "2026-10-23T19:15:00.000Z",
+    stopPct: 10,
+    lastMilestone: 10,
+    trailingArmedAt: null
+  },
+  {
+    id: 2779,
+    signalId: 19568,
+    symbol: "CNPY-USDT",
+    oldDetectedAt: "2026-10-22T21:08:35.342Z",
+    oldEntryPrice: 0.2263,
+    oldStatus: "bu_stop",
+    entryPrice: 0.2282,
+    detectedAt: "2026-10-21T15:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 0.2282,
+    pnlPercent: 0,
+    peakPrice: 0.252,
+    closedAt: "2026-10-22T20:30:00.000Z",
+    stopPct: 10,
+    lastMilestone: 10,
+    trailingArmedAt: null
+  },
+  {
+    id: 2784,
+    signalId: 19575,
+    symbol: "BAT-USDT",
+    oldDetectedAt: "2026-10-22T23:08:04.641Z",
+    oldEntryPrice: 0.17172,
+    oldStatus: "stop_loss",
+    entryPrice: 0.17297,
+    detectedAt: "2026-10-22T17:00:00.000Z",
+    status: "stop_loss",
+    exitPrice: 0.155673,
+    pnlPercent: -10,
+    peakPrice: 0.18057,
+    closedAt: "2026-10-24T16:45:00.000Z",
+    stopPct: 10,
+    lastMilestone: 0,
+    trailingArmedAt: null
+  },
+  {
+    id: 2787,
+    signalId: 19581,
+    symbol: "CP-USDT",
+    oldDetectedAt: "2026-10-23T00:08:00.876Z",
+    oldEntryPrice: 9723e-6,
+    oldStatus: "bu_stop",
+    entryPrice: 9677e-6,
+    detectedAt: "2026-10-22T03:00:00.000Z",
+    status: "profit",
+    exitPrice: 0.0101973,
+    pnlPercent: 5.3767,
+    peakPrice: 0.011165,
+    closedAt: "2026-10-24T06:30:00.000Z",
+    stopPct: 10,
+    lastMilestone: 15,
+    trailingArmedAt: "2026-10-24T03:15:00.000Z"
+  },
+  {
+    id: 2790,
+    signalId: 19585,
+    symbol: "1000BONK-USDT",
+    oldDetectedAt: "2026-10-23T01:08:29.875Z",
+    oldEntryPrice: 3059e-6,
+    oldStatus: "bu_stop",
+    entryPrice: 3106e-6,
+    detectedAt: "2026-10-21T08:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 3106e-6,
+    pnlPercent: 0,
+    peakPrice: 3364e-6,
+    closedAt: "2026-10-23T23:00:00.000Z",
+    stopPct: 10,
+    lastMilestone: 8,
+    trailingArmedAt: null
+  },
+  {
+    id: 2797,
+    signalId: 19600,
+    symbol: "WIF-USDT",
+    oldDetectedAt: "2026-10-23T05:38:36.464Z",
+    oldEntryPrice: 0.2014,
+    oldStatus: "stop_loss",
+    entryPrice: 0.2009,
+    detectedAt: "2026-10-23T03:15:00.000Z",
+    status: "stop_loss",
+    exitPrice: 0.184828,
+    pnlPercent: -8,
+    peakPrice: 0.2025,
+    closedAt: "2026-10-23T23:00:00.000Z",
+    stopPct: 8,
+    lastMilestone: 0,
+    trailingArmedAt: null
+  },
+  {
+    id: 2807,
+    signalId: 19653,
+    symbol: "DOT-USDT",
+    oldDetectedAt: "2026-10-23T13:38:49.111Z",
+    oldEntryPrice: 1.1373,
+    oldStatus: "stop_loss",
+    entryPrice: 1.1694,
+    detectedAt: "2026-10-21T13:00:00.000Z",
+    status: "stop_loss",
+    exitPrice: 1.05246,
+    pnlPercent: -10,
+    peakPrice: 1.2014,
+    closedAt: "2026-10-24T14:30:00.000Z",
+    stopPct: 10,
+    lastMilestone: 0,
+    trailingArmedAt: null
+  },
+  {
+    id: 2822,
+    signalId: 19708,
+    symbol: "CAP-USDT",
+    oldDetectedAt: "2026-10-23T22:38:21.402Z",
+    oldEntryPrice: 0.07123,
+    oldStatus: "profit",
+    entryPrice: 0.07029,
+    detectedAt: "2026-10-23T20:15:00.000Z",
+    status: "profit",
+    exitPrice: 0.079901,
+    pnlPercent: 13.6734,
+    peakPrice: 0.08693,
+    closedAt: "2026-10-25T03:30:00.000Z",
+    stopPct: 8,
+    lastMilestone: 20,
+    trailingArmedAt: "2026-10-24T22:00:00.000Z"
+  },
+  {
+    id: 2826,
+    signalId: 19716,
+    symbol: "ANIME-USDT",
+    oldDetectedAt: "2026-10-24T00:08:19.466Z",
+    oldEntryPrice: 2834e-6,
+    oldStatus: "profit",
+    entryPrice: 29e-4,
+    detectedAt: "2026-10-21T10:00:00.000Z",
+    status: "profit",
+    exitPrice: 3148e-6,
+    pnlPercent: 8.5517,
+    peakPrice: 3438e-6,
+    closedAt: "2026-10-24T15:30:00.000Z",
+    stopPct: 10,
+    lastMilestone: 15,
+    trailingArmedAt: "2026-10-24T15:00:00.000Z"
+  },
+  {
+    id: 2828,
+    signalId: 19722,
+    symbol: "BIRB-USDT",
+    oldDetectedAt: "2026-10-24T01:09:25.155Z",
+    oldEntryPrice: 0.19317,
+    oldStatus: "stop_loss",
+    entryPrice: 0.1705,
+    detectedAt: "2026-10-24T01:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 0.1705,
+    pnlPercent: 0,
+    peakPrice: 0.19423,
+    closedAt: "2026-10-24T01:30:00.000Z",
+    stopPct: 8,
+    lastMilestone: 10,
+    trailingArmedAt: null
+  },
+  {
+    id: 2841,
+    signalId: 19757,
+    symbol: "WET-USDT",
+    oldDetectedAt: "2026-10-24T10:25:05.194Z",
+    oldEntryPrice: 0.0694,
+    oldStatus: "bu_stop",
+    entryPrice: 0.07059,
+    detectedAt: "2026-10-24T09:45:00.000Z",
+    status: "stop_loss",
+    exitPrice: 0.0649428,
+    pnlPercent: -8,
+    peakPrice: 0.07603,
+    closedAt: "2026-10-24T11:00:00.000Z",
+    stopPct: 8,
+    lastMilestone: 5,
+    trailingArmedAt: null
+  },
+  {
+    id: 2844,
+    signalId: 19765,
+    symbol: "OFC-USDT",
+    oldDetectedAt: "2026-10-24T12:07:34.673Z",
+    oldEntryPrice: 7389e-6,
+    oldStatus: "stop_loss",
+    entryPrice: 6824e-6,
+    detectedAt: "2026-10-24T12:00:00.000Z",
+    status: "stop_loss",
+    exitPrice: 627808e-8,
+    pnlPercent: -8,
+    peakPrice: 6824e-6,
+    closedAt: "2026-10-24T12:15:00.000Z",
+    stopPct: 8,
+    lastMilestone: 0,
+    trailingArmedAt: null
+  },
+  {
+    id: 2861,
+    signalId: 19825,
+    symbol: "ARK-USDT",
+    oldDetectedAt: "2026-10-25T01:07:59.389Z",
+    oldEntryPrice: 0.1946,
+    oldStatus: "stop_loss",
+    entryPrice: 0.1951,
+    detectedAt: "2026-10-25T01:00:00.000Z",
+    status: "stop_loss",
+    exitPrice: 0.179492,
+    pnlPercent: -8,
+    peakPrice: 0.1978,
+    closedAt: "2026-10-25T02:15:00.000Z",
+    stopPct: 8,
+    lastMilestone: 0,
+    trailingArmedAt: null
+  },
+  {
+    id: 2869,
+    signalId: 19847,
+    symbol: "TAG-USDT",
+    oldDetectedAt: "2026-10-25T08:38:15.297Z",
+    oldEntryPrice: 6785e-7,
+    oldStatus: "stop_loss",
+    entryPrice: 5115e-7,
+    detectedAt: "2026-10-25T02:00:00.000Z",
+    status: "profit",
+    exitPrice: 65615e-8,
+    pnlPercent: 28.2796,
+    peakPrice: 7073e-7,
+    closedAt: "2026-10-25T09:00:00.000Z",
+    stopPct: 8,
+    lastMilestone: 35,
+    trailingArmedAt: "2026-10-25T08:30:00.000Z"
+  },
+  {
+    id: 2759,
+    signalId: 19518,
+    symbol: "COMP-USDT",
+    oldDetectedAt: "2026-10-22T19:09:54.531Z",
+    oldEntryPrice: 24.4,
+    oldStatus: "active",
+    entryPrice: 24.44,
+    detectedAt: "2026-10-20T15:00:00.000Z",
+    status: "profit",
+    exitPrice: 26.816,
+    pnlPercent: 9.7218,
+    peakPrice: 29.26,
+    closedAt: "2026-10-20T17:30:00.000Z",
+    stopPct: 10,
+    lastMilestone: 15,
+    trailingArmedAt: "2026-10-20T17:00:00.000Z"
+  },
+  {
+    id: 2760,
+    signalId: 19526,
+    symbol: "OPN-USDT",
+    oldDetectedAt: "2026-10-22T19:27:06.566Z",
+    oldEntryPrice: 0.05088,
+    oldStatus: "active",
+    entryPrice: 0.05027,
+    detectedAt: "2026-10-21T09:00:00.000Z",
+    status: "bu_stop",
+    exitPrice: 0.05027,
+    pnlPercent: 0,
+    peakPrice: 0.05742,
+    closedAt: "2026-10-22T17:00:00.000Z",
+    stopPct: 10,
+    lastMilestone: 10,
+    trailingArmedAt: null
+  },
+  {
+    id: 2771,
+    signalId: 19544,
+    symbol: "TRB-USDT",
+    oldDetectedAt: "2026-10-22T19:27:29.663Z",
+    oldEntryPrice: 17.869,
+    oldStatus: "active",
+    entryPrice: 17.799,
+    detectedAt: "2026-10-20T13:00:00.000Z",
+    status: "active",
+    exitPrice: null,
+    pnlPercent: null,
+    peakPrice: 18.732,
+    closedAt: null,
+    stopPct: 10,
+    lastMilestone: null,
+    trailingArmedAt: null
+  },
+  {
+    id: 2783,
+    signalId: 19573,
+    symbol: "MUBARAK-USDT",
+    oldDetectedAt: "2026-10-22T22:38:13.326Z",
+    oldEntryPrice: 0.05245,
+    oldStatus: "active",
+    entryPrice: 0.05432,
+    detectedAt: "2026-10-21T14:00:00.000Z",
+    status: "active",
+    exitPrice: null,
+    pnlPercent: null,
+    peakPrice: 0.05734,
+    closedAt: null,
+    stopPct: 10,
+    lastMilestone: null,
+    trailingArmedAt: null
+  },
+  {
+    id: 2789,
+    signalId: 19587,
+    symbol: "TRIA-USDT",
+    oldDetectedAt: "2026-10-23T01:08:29.121Z",
+    oldEntryPrice: 2633e-6,
+    oldStatus: "active",
+    entryPrice: 2883e-6,
+    detectedAt: "2026-10-22T05:00:00.000Z",
+    status: "stop_loss",
+    exitPrice: 25947e-7,
+    pnlPercent: -10,
+    peakPrice: 2941e-6,
+    closedAt: "2026-10-22T06:15:00.000Z",
+    stopPct: 10,
+    lastMilestone: 0,
+    trailingArmedAt: null
+  },
+  {
+    id: 2868,
+    signalId: 19846,
+    symbol: "BABY-USDT",
+    oldDetectedAt: "2026-10-25T08:07:39.968Z",
+    oldEntryPrice: 0.01342,
+    oldStatus: "active",
+    entryPrice: 0.01379,
+    detectedAt: "2026-10-21T14:00:00.000Z",
+    status: "active",
+    exitPrice: null,
+    pnlPercent: null,
+    peakPrice: 0.01403,
+    closedAt: null,
+    stopPct: 10,
+    lastMilestone: null,
+    trailingArmedAt: null
+  },
+  {
+    id: 2763,
+    signalId: 19525,
+    symbol: "PENGU-USDT",
+    oldDetectedAt: "2026-10-22T19:27:07.32Z",
+    oldEntryPrice: 7806e-6,
+    oldStatus: "bu_stop",
+    entryPrice: 8064e-6,
+    detectedAt: "2026-10-21T07:00:00.000Z",
+    status: "active",
+    exitPrice: null,
+    pnlPercent: null,
+    peakPrice: 8399e-6,
+    closedAt: null,
+    stopPct: 10,
+    lastMilestone: null,
+    trailingArmedAt: null
+  },
+  {
+    id: 2768,
+    signalId: 19536,
+    symbol: "BOME-USDT",
+    oldDetectedAt: "2026-10-22T19:27:28.158Z",
+    oldEntryPrice: 6053e-7,
+    oldStatus: "bu_stop",
+    entryPrice: 6334e-7,
+    detectedAt: "2026-10-21T08:00:00.000Z",
+    status: "active",
+    exitPrice: null,
+    pnlPercent: null,
+    peakPrice: 6611e-7,
+    closedAt: null,
+    stopPct: 10,
+    lastMilestone: null,
+    trailingArmedAt: null
+  },
+  {
+    id: 2778,
+    signalId: 19562,
+    symbol: "SOON-USDT",
+    oldDetectedAt: "2026-10-22T20:38:56.943Z",
+    oldEntryPrice: 0.2988,
+    oldStatus: "bu_stop",
+    entryPrice: 0.3271,
+    detectedAt: "2026-10-21T12:00:00.000Z",
+    status: "active",
+    exitPrice: null,
+    pnlPercent: null,
+    peakPrice: 0.3425,
+    closedAt: null,
+    stopPct: 10,
+    lastMilestone: null,
+    trailingArmedAt: null
+  },
+  {
+    id: 2796,
+    signalId: 19602,
+    symbol: "USELESS-USDT",
+    oldDetectedAt: "2026-10-23T05:38:35.943Z",
+    oldEntryPrice: 0.16435,
+    oldStatus: "stop_loss",
+    entryPrice: 0.16329,
+    detectedAt: "2026-10-21T15:00:00.000Z",
+    status: "in_run",
+    exitPrice: null,
+    pnlPercent: null,
+    peakPrice: 0.18748,
+    closedAt: null,
+    stopPct: 10,
+    lastMilestone: 10,
+    trailingArmedAt: null
+  }
+];
+var NEON_CLOSED_NOT_ENTERED = [
+  [2837, 19747, "PENGU-USDT", "active"],
+  [2829, 19724, "BMT-USDT", "profit"],
+  [2448, 18783, "OGN-USDT", "bu_stop"],
+  [2481, 18861, "CATE-USDT", "stop_loss"],
+  [2484, 18868, "KITE-USDT", "stop_loss"],
+  [2522, 18953, "AVAX-USDT", "bu_stop"],
+  [2523, 18955, "WLD-USDT", "bu_stop"],
+  [2530, 18972, "ARB-USDT", "bu_stop"],
+  [2536, 18986, "PEOPLE-USDT", "bu_stop"],
+  [2588, 19111, "OPN-USDT", "profit"],
+  [2762, 19520, "ZAMA-USDT", "bu_stop"],
+  [2766, 19534, "AVA-USDT", "profit"],
+  [2772, 19548, "MAGMA-USDT", "stop_loss"],
+  [2782, 19571, "PHA-USDT", "bu_stop"],
+  [2785, 19576, "WLD-USDT", "stop_loss"],
+  [2825, 19714, "BEAM-USDT", "stop_loss"],
+  [2840, 19754, "TRUST-USDT", "bu_stop"],
+  [2848, 19775, "ANIME-USDT", "profit"]
+];
+
+// src/lib/neon-open-removal.ts
+var MARKER = "neon_open_removal_2026_10_25_v3";
+var TRACKED_BACKUP = "tracked_signals_backup_neon_open_removal_20261025";
+var SIGNALS_BACKUP = "signals_backup_neon_open_removal_20261025";
+var NEON_OPEN_REMOVAL_TARGETS = [
+  [2773, 19547, "CVX-USDT", "active"],
+  [2831, 19730, "SUI-USDT", "active"],
+  [2833, 19735, "NIL-USDT", "active"],
+  [2847, 19773, "AXL-USDT", "active"],
+  [2856, 19807, "1000PEPE-USDT", "active"],
+  [2863, 19832, "WAXP-USDT", "active"],
+  [2864, 19835, "DNA-USDT", "active"],
+  ...NEON_CLOSED_NOT_ENTERED
+];
+async function removeNeonOpenNoWaitPositions() {
+  if (process.env.NODE_ENV !== "production") {
+    return { removed: 0, skipped: [], alreadyApplied: false };
+  }
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      "SELECT pg_advisory_xact_lock(hashtext('neon_open_removal'))"
+    );
+    await client.query(
+      `CREATE TABLE IF NOT EXISTS neon_recalc_markers (
+         name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now()
+       )`
+    );
+    const done2 = await client.query(
+      "SELECT 1 FROM neon_recalc_markers WHERE name = $1",
+      [MARKER]
+    );
+    if (done2.rows.length > 0) {
+      await client.query("COMMIT");
+      return { removed: 0, skipped: [], alreadyApplied: true };
+    }
+    const locked = await client.query(
+      `SELECT id, signal_id, symbol, sentiment_key, status::text AS status,
+              runner_state, core_closed_at
+         FROM tracked_signals WHERE id = ANY($1::integer[]) FOR UPDATE`,
+      [NEON_OPEN_REMOVAL_TARGETS.map(([id]) => id)]
+    );
+    const rows = locked.rows;
+    const trackedIds = [];
+    const signalIds = [];
+    const skipped = [];
+    for (const [id, signalId, symbol2] of NEON_OPEN_REMOVAL_TARGETS) {
+      const row = rows.find((r) => r.id === id);
+      if (!row || row.signal_id !== signalId || row.symbol !== symbol2 || row.sentiment_key !== "neon_support_bounce" || row.status === "reclassified" || row.runner_state !== null || row.core_closed_at !== null) {
+        skipped.push(id);
+        continue;
+      }
+      trackedIds.push(id);
+      signalIds.push(signalId);
+    }
+    if (trackedIds.length > 0) {
+      await client.query(
+        `CREATE TABLE IF NOT EXISTS ${TRACKED_BACKUP}
+           (LIKE tracked_signals INCLUDING DEFAULTS)`
+      );
+      await client.query(
+        `CREATE TABLE IF NOT EXISTS ${SIGNALS_BACKUP}
+           (LIKE signals INCLUDING DEFAULTS)`
+      );
+      await client.query(
+        `INSERT INTO ${TRACKED_BACKUP}
+         SELECT * FROM tracked_signals t WHERE t.id = ANY($1::integer[])
+            AND NOT EXISTS (SELECT 1 FROM ${TRACKED_BACKUP} b WHERE b.id = t.id)`,
+        [trackedIds]
+      );
+      await client.query(
+        `INSERT INTO ${SIGNALS_BACKUP}
+         SELECT * FROM signals g WHERE g.id = ANY($1::integer[])
+            AND NOT EXISTS (SELECT 1 FROM ${SIGNALS_BACKUP} b WHERE b.id = g.id)`,
+        [signalIds]
+      );
+      await client.query(
+        `UPDATE milestone_notification_deliveries
+            SET status = 'abandoned', lease_until = NULL, claim_token = NULL,
+                last_error = 'neon_open_removal_2026_10_25'
+          WHERE tracked_signal_id = ANY($1::integer[])
+            AND status IN ('ready', 'retry', 'failed')`,
+        [trackedIds]
+      );
+      await client.query(
+        `UPDATE trading_signal_deliveries
+            SET status = 'quarantined', claim_token = NULL, claim_until = NULL,
+                last_error = 'neon_open_removal_2026_10_25'
+          WHERE source_signal_id = ANY($1::integer[])
+            AND status NOT IN ('delivered', 'quarantined')`,
+        [signalIds]
+      );
+      await client.query(
+        "DELETE FROM signal_whale_seeds WHERE tracked_signal_id = ANY($1::integer[]) OR signal_id = ANY($2::integer[])",
+        [trackedIds, signalIds]
+      );
+      await client.query(
+        "DELETE FROM altbullet_take_profit_shadow WHERE tracked_signal_id = ANY($1::integer[]) OR signal_id = ANY($2::integer[])",
+        [trackedIds, signalIds]
+      );
+      await client.query(
+        "DELETE FROM altbullet_indicator_snapshots WHERE signal_id = ANY($1::integer[])",
+        [signalIds]
+      );
+      await client.query(
+        "DELETE FROM lc_stop_bid_observations WHERE tracked_signal_id = ANY($1::integer[])",
+        [trackedIds]
+      );
+      const del = await client.query(
+        "DELETE FROM tracked_signals WHERE id = ANY($1::integer[])",
+        [trackedIds]
+      );
+      if (del.rowCount !== trackedIds.length) {
+        throw new Error("Neon open removal: tracker delete incomplete");
+      }
+      await client.query(
+        `DELETE FROM signals s WHERE s.id = ANY($1::integer[])
+            AND NOT EXISTS (SELECT 1 FROM stealth_breakout_armed_setups a
+                             WHERE a.fired_signal_id = s.id)`,
+        [signalIds]
+      );
+    }
+    await client.query("INSERT INTO neon_recalc_markers (name) VALUES ($1)", [
+      MARKER
+    ]);
+    await client.query("COMMIT");
+    return { removed: trackedIds.length, skipped, alreadyApplied: false };
+  } catch (error40) {
+    await client.query("ROLLBACK");
+    throw error40;
+  } finally {
+    client.release();
+  }
+}
+
+// src/lib/neon-no-wait-recalc.ts
+init_src();
+var MARKER2 = "neon_no_wait_recalc_2026_10_25_v3";
+var BACKUP_TABLE = "tracked_signals_backup_neon_no_wait_20261025";
+async function applyNeonNoWaitRecalc() {
+  if (process.env.NODE_ENV !== "production") {
+    return { applied: 0, skipped: [], alreadyApplied: false };
+  }
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      "SELECT pg_advisory_xact_lock(hashtext('neon_no_wait_recalc'))"
+    );
+    await client.query(
+      `CREATE TABLE IF NOT EXISTS neon_recalc_markers (
+         name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now()
+       )`
+    );
+    const done2 = await client.query(
+      "SELECT 1 FROM neon_recalc_markers WHERE name = $1",
+      [MARKER2]
+    );
+    if (done2.rows.length > 0) {
+      await client.query("COMMIT");
+      return { applied: 0, skipped: [], alreadyApplied: true };
+    }
+    await client.query(
+      `CREATE TABLE IF NOT EXISTS ${BACKUP_TABLE}
+         (LIKE tracked_signals INCLUDING DEFAULTS)`
+    );
+    const eligible = [];
+    const skipped = [];
+    const locked = await client.query(
+      `SELECT id, signal_id, symbol, sentiment_key, status::text AS status,
+              entry_price, detected_at
+         FROM tracked_signals WHERE id = ANY($1::integer[]) FOR UPDATE`,
+      [NEON_NO_WAIT_ROWS.map((r) => r.id)]
+    );
+    for (const row of NEON_NO_WAIT_ROWS) {
+      const cur = locked.rows.find((r) => r.id === row.id);
+      if (!cur || cur.signal_id !== row.signalId || cur.symbol !== row.symbol || cur.sentiment_key !== "neon_support_bounce" || cur.status === "reclassified") {
+        skipped.push(row.id);
+        continue;
+      }
+      eligible.push(row);
+    }
+    if (eligible.length > 0) {
+      await client.query(
+        `INSERT INTO ${BACKUP_TABLE}
+         SELECT * FROM tracked_signals t WHERE t.id = ANY($1::integer[])
+            AND NOT EXISTS (SELECT 1 FROM ${BACKUP_TABLE} b WHERE b.id = t.id)`,
+        [eligible.map((r) => r.id)]
+      );
+    }
+    for (const r of eligible) {
+      const breakEvenArmed = r.status === "bu_stop" || r.status === "profit" || (r.status === "active" || r.status === "in_run") && r.lastMilestone !== null && r.lastMilestone >= 8;
+      const stopPrice = breakEvenArmed ? r.entryPrice : r.entryPrice * (1 - r.stopPct / 100);
+      const trailingLevel = r.status === "profit" ? r.exitPrice : null;
+      await client.query(
+        `UPDATE tracked_signals SET
+           detected_at = $2::timestamptz AT TIME ZONE 'UTC',
+           entry_price = $3, original_entry_price = $3,
+           status = $4::tracked_status,
+           exit_price = $5, pnl_percent = $6, peak_price = $7,
+           closed_at = $8::timestamptz AT TIME ZONE 'UTC',
+           stop_loss_price = $9, stop_loss_pct = $10,
+           last_milestone = $11,
+           trailing_stop_level = $12,
+           trailing_stop_armed_at =
+             CASE WHEN $13::text IS NULL THEN NULL
+                  ELSE $13::timestamptz AT TIME ZONE 'UTC' END,
+           detect_lag_min = 0, confirm_lag_min = 0,
+           pending_milestone = NULL, pending_milestone_kind = NULL,
+           pending_milestone_price = NULL,
+           pending_milestone_trailing_stop = NULL,
+           pending_milestone_status = NULL,
+           pending_milestone_lease_until = NULL,
+           updated_at = NOW()
+         WHERE id = $1`,
+        [
+          r.id,
+          r.detectedAt,
+          r.entryPrice,
+          r.status,
+          r.exitPrice,
+          r.pnlPercent,
+          r.peakPrice,
+          r.closedAt,
+          stopPrice,
+          r.stopPct,
+          r.lastMilestone,
+          trailingLevel,
+          r.trailingArmedAt
+        ]
+      );
+    }
+    await client.query("INSERT INTO neon_recalc_markers (name) VALUES ($1)", [
+      MARKER2
+    ]);
+    await client.query("COMMIT");
+    return { applied: eligible.length, skipped, alreadyApplied: false };
+  } catch (error40) {
+    await client.query("ROLLBACK");
+    throw error40;
+  } finally {
+    client.release();
+  }
+}
+
 // src/lib/non-aggregated-data-neutral-close.ts
 init_src();
 var NON_AGGREGATED_DATA_NEUTRAL_CLOSE_REASON = "non_aggregated_data_neutral_close";
@@ -147304,6 +148311,18 @@ app_default.listen(port, async (err) => {
       logger.warn({ restored }, "Neon rows closed by zone rule restored");
     } catch (err2) {
       logger.error({ err: err2 }, "Neon zone-rule restore failed");
+    }
+    try {
+      const recalc = await applyNeonNoWaitRecalc();
+      logger.warn(recalc, "Neon no-wait October recalculation reviewed");
+    } catch (err2) {
+      logger.error({ err: err2 }, "Neon no-wait October recalculation failed");
+    }
+    try {
+      const removal = await removeNeonOpenNoWaitPositions();
+      logger.warn(removal, "Neon open no-wait removal reviewed");
+    } catch (err2) {
+      logger.error({ err: err2 }, "Neon open no-wait removal failed");
     }
   }
   try {

@@ -52,6 +52,7 @@ import {
   ilike,
   sql,
   getTableColumns,
+  type AnyColumn,
 } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import {
@@ -428,6 +429,11 @@ const journalClosedPatternCondition = () =>
       eq(trackedSignalsTable.status, "profit"),
     ),
   );
+// Selects over TRACKED_SIGNALS_WITH_CORE_SQL use a raw FROM, which drizzle rejects
+// for plain column fields; render them as aliased column SQL instead.
+const viaCoreSql = <T extends AnyColumn>(column: T) =>
+  sql<T["_"]["data"]>`${column}`.mapWith(column);
+
 const currentStatsCohortCondition = () => sql`
   NOT (
     ${trackedSignalsTable.sentimentKey} = 'impulse_buy'
@@ -1123,7 +1129,7 @@ router.get("/tracker/journal", cacheJournalResponse, async (req, res) => {
     // 1b. Closed signals — filter by closedAt >= from
     const closedStatusRows = await db
       .select({
-        status: trackedSignalsTable.status,
+        status: viaCoreSql(trackedSignalsTable.status),
         count: sql<number>`count(*)::int`,
         avgPnl: sql<number>`round(avg(${normalizedTrackedPnlSql()})::numeric, 2)`,
         pnlSum: sql<number>`coalesce(sum(${normalizedTrackedPnlSql()}), 0)`,
@@ -1278,9 +1284,9 @@ router.get("/tracker/journal", cacheJournalResponse, async (req, res) => {
     // 2. Best / worst trade — filter by closedAt >= from
     const bestRows = await db
       .select({
-        symbol: trackedSignalsTable.symbol,
-        pnl: trackedSignalsTable.pnlPercent,
-        sentimentKey: trackedSignalsTable.sentimentKey,
+        symbol: viaCoreSql(trackedSignalsTable.symbol),
+        pnl: viaCoreSql(trackedSignalsTable.pnlPercent),
+        sentimentKey: viaCoreSql(trackedSignalsTable.sentimentKey),
       })
       .from(sql`${TRACKED_SIGNALS_WITH_CORE_SQL} AS tracked_signals`)
       .where(
@@ -1295,9 +1301,9 @@ router.get("/tracker/journal", cacheJournalResponse, async (req, res) => {
 
     const worstRows = await db
       .select({
-        symbol: trackedSignalsTable.symbol,
-        pnl: trackedSignalsTable.pnlPercent,
-        sentimentKey: trackedSignalsTable.sentimentKey,
+        symbol: viaCoreSql(trackedSignalsTable.symbol),
+        pnl: viaCoreSql(trackedSignalsTable.pnlPercent),
+        sentimentKey: viaCoreSql(trackedSignalsTable.sentimentKey),
       })
       .from(sql`${TRACKED_SIGNALS_WITH_CORE_SQL} AS tracked_signals`)
       .where(
@@ -1314,8 +1320,8 @@ router.get("/tracker/journal", cacheJournalResponse, async (req, res) => {
     // 3. Per-pattern breakdown — closed signals only, filtered by closedAt >= from
     const patternRows = await db
       .select({
-        sentimentKey: trackedSignalsTable.sentimentKey,
-        status: trackedSignalsTable.status,
+        sentimentKey: viaCoreSql(trackedSignalsTable.sentimentKey),
+        status: viaCoreSql(trackedSignalsTable.status),
         count: sql<number>`count(*)::int`,
         sumPnl: sql<number>`coalesce(sum(${normalizedTrackedPnlSql()}), 0)`,
         avgPnl: sql<number>`round(avg(${normalizedTrackedPnlSql()})::numeric, 2)`,

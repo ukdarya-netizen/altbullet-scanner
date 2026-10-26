@@ -379,6 +379,7 @@ import {
   getMaxWatchDays,
   getNoTouchStopMs,
   getBuStopMilestone,
+  suppressesPreTargetFivePctNotice,
   resolveLongSplitFillAdjustment,
   resolveBuStopProtection,
   SMART_CANCEL_MIN_AGE_MS,
@@ -10786,6 +10787,7 @@ async function runInRunFastCycle(
       if (
         tracked.status === "active" &&
         _buMilestone > 5 &&
+        !suppressesPreTargetFivePctNotice(tracked.sentimentKey) &&
         pnl >= 5 &&
         (tracked.lastMilestone ?? 0) < 5
       ) {

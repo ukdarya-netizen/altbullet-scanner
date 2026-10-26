@@ -441,6 +441,37 @@ export async function terminalizeBrokenQualifiedNeonSupport(input: {
   return result.rows.length > 0;
 }
 
+/**
+ * Owner 2026-10-25: a qualified Neon event that was offered to a scan and did
+ * not fire is closed; it never waits for later gates at a higher price.
+ */
+export async function expireOfferedNeonSupportEvents(
+  ids: readonly number[],
+): Promise<number> {
+  if (ids.length === 0) return 0;
+  const result = await db.execute(sql`
+    UPDATE stealth_abneon_shadow_candidates
+    SET status = 'terminal',
+        terminal_reason = 'neon_not_entered_at_detection',
+        updated_at = now()
+    WHERE id IN (${sql.join(
+      ids.map((id) => sql`${id}`),
+      sql`, `,
+    )})
+      AND detection_method = 'abneon_support_bounce'
+      AND (
+        status = 'qualified'
+        OR (
+          status = 'firing'
+          AND (fire_claim_expires_at IS NULL OR fire_claim_expires_at < now())
+        )
+      )
+    RETURNING id
+  `);
+  if (result.rows.length > 0) activeCache = undefined;
+  return result.rows.length;
+}
+
 /** Terminalizes a nonretryable duplicate/conflict without claiming it fired. */
 export async function terminalizeAbneonSupportBounceClaim(input: {
   id: number;

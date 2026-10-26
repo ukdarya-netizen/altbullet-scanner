@@ -78,6 +78,8 @@ import {
   neutralizeOpOpenNeonPosition,
   restoreNeonRowsClosedByZoneRule,
 } from "./lib/op-neon-neutral-close.js";
+import { removeNeonOpenNoWaitPositions } from "./lib/neon-open-removal.js";
+import { applyNeonNoWaitRecalc } from "./lib/neon-no-wait-recalc.js";
 import { neutralizeNonAggregatedOpenPositions } from "./lib/non-aggregated-data-neutral-close.js";
 import { neutralizeReviewedStealthVolumeGateSignals } from "./lib/stealth-volume-gate-neutral-close.js";
 import { neutralizeNeonVolumeGateSignals } from "./lib/neon-volume-gate-neutral-close.js";
@@ -5775,6 +5777,18 @@ app.listen(port, async (err) => {
       logger.warn({ restored }, "Neon rows closed by zone rule restored");
     } catch (err) {
       logger.error({ err }, "Neon zone-rule restore failed");
+    }
+    try {
+      const recalc = await applyNeonNoWaitRecalc();
+      logger.warn(recalc, "Neon no-wait October recalculation reviewed");
+    } catch (err) {
+      logger.error({ err }, "Neon no-wait October recalculation failed");
+    }
+    try {
+      const removal = await removeNeonOpenNoWaitPositions();
+      logger.warn(removal, "Neon open no-wait removal reviewed");
+    } catch (err) {
+      logger.error({ err }, "Neon open no-wait removal failed");
     }
   }
   try {

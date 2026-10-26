@@ -268,6 +268,7 @@ import {
   supportBounceQualificationTime,
   terminalizeAbneonSupportBounceClaim,
   terminalizeBrokenQualifiedNeonSupport,
+  expireOfferedNeonSupportEvents,
 } from "./stealth-abneon-shadow-store.js";
 import {
   buildStealthScanWorklist,
@@ -637,6 +638,8 @@ const prescanTracker = new Map<string, PrescanEntry>();
 // Обновляется после getFutureTickers() — используется для различия
 // "нет на BingX" vs "есть на BingX, но вне топ-N пресканера".
 const bingxFuturesSymbols = new Set<string>();
+// Neon qualified events already offered to a scan (symbol:triggerCandleTime).
+const neonOfferedEventKeys = new Set<string>();
 
 const _latestFrMap = new Map<string, number>();
 let _latestFrMapUpdatedAt = 0;
@@ -5243,8 +5246,22 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     }
   >();
   try {
+    // Owner 2026-10-25: Neon enters at detection or not at all. A qualified
+    // event that was already offered to a scan and did not fire is closed
+    // instead of waiting for later gates to pass at a higher price.
+    const listedNeon = await listQualifiedAbneonSupportBounces(100);
+    const alreadyOffered = listedNeon.filter((row) =>
+      neonOfferedEventKeys.has(`${row.symbol}:${row.triggerCandleTime}`),
+    );
+    if (alreadyOffered.length > 0) {
+      await expireOfferedNeonSupportEvents(alreadyOffered.map((r) => r.id));
+      for (const row of alreadyOffered) {
+        neonOfferedEventKeys.delete(`${row.symbol}:${row.triggerCandleTime}`);
+      }
+    }
+    const offeredIds = new Set(alreadyOffered.map((row) => row.id));
     persistedNeonSupportEvents = routePersistedNeonSupportBounces(
-      await listQualifiedAbneonSupportBounces(100),
+      listedNeon.filter((row) => !offeredIds.has(row.id)),
     );
     for (const symbol of persistedNeonSupportEvents.keys()) {
       const ticker = stealthTickerBySymbol.get(symbol);
@@ -6092,6 +6109,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     persistedNeonSupportEvents,
     newlyQualifiedNeonEvents,
   );
+  for (const [symbol, event] of persistedNeonSupportEvents) {
+    neonOfferedEventKeys.add(`${symbol}:${event.triggerCandleTime}`);
+  }
   for (const symbol of newlyQualifiedNeonEvents.keys()) {
     const ticker = stealthTickerBySymbol.get(symbol);
     if (ticker && !usdtTickers.some((item) => item.symbol === symbol)) {
@@ -6941,12 +6961,10 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               } else if (
                 spotVol24h < marketCapUsd * ALPHA_MIN_SPOT_MCAP_PCT &&
                 !stealthConfirmed &&
-                // Owner 2026-10-24: Neon on BTC is exempt from the spot/mcap
-                // gate (BTC spot volume is structurally below the threshold).
-                !(
-                  res.sentimentKey === "neon_support_bounce" &&
-                  res.symbol === "BTC-USDT"
-                )
+                // Owner 2026-10-25: Neon has no spot/mcap minimum (TAG +30..60%
+                // was rejected by it at detection and entered late). BTC was
+                // exempt since 2026-10-24.
+                res.sentimentKey !== "neon_support_bounce"
               ) {
                 const pct = ((spotVol24h / marketCapUsd) * 100).toFixed(3);
                 logger.info(
@@ -6962,6 +6980,15 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   res.volumeMultiplier ?? null,
                   res.price24hChange ?? null,
                   prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                  "rejected",
+                  {
+                    confirmedFireGate: {
+                      spotVol24hUsd: spotVol24h,
+                      marketCapUsd,
+                      spotMcapPct: (spotVol24h / marketCapUsd) * 100,
+                      minPct: ALPHA_MIN_SPOT_MCAP_PCT * 100,
+                    },
+                  },
                 );
                 return;
               }
@@ -6998,6 +7025,15 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   res.volumeMultiplier ?? null,
                   res.price24hChange ?? null,
                   prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                  "rejected",
+                  {
+                    // The exact values this gate judged (calibration input).
+                    confirmedFireGate: {
+                      spotVol24hUsd: spotVol24h,
+                      marketCapUsd,
+                      spotMcapPct: _ibSpotMcapPct,
+                    },
+                  },
                 );
                 return;
               }
@@ -7027,6 +7063,15 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   res.volumeMultiplier ?? null,
                   res.price24hChange ?? null,
                   prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                  "rejected",
+                  {
+                    confirmedFireGate: {
+                      spotTakerNetBuyPct: cfSpotTf?.netBuyPct ?? null,
+                      spotTakerDominance: cfSpotTf?.dominance ?? null,
+                      spotVol24hUsd: spotVol24h,
+                      marketCapUsd,
+                    },
+                  },
                 );
                 return;
               }
@@ -7049,6 +7094,15 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     res.volumeMultiplier ?? null,
                     res.price24hChange ?? null,
                     prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                    "rejected",
+                    {
+                      confirmedFireGate: {
+                        spotTakerNetBuyPct: cfSpotTf.netBuyPct ?? null,
+                        spotTakerDominance: cfSpotTf.dominance ?? null,
+                        spotVol24hUsd: spotVol24h,
+                        marketCapUsd,
+                      },
+                    },
                   );
                   return;
                 }
@@ -7078,6 +7132,15 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     res.volumeMultiplier ?? null,
                     res.price24hChange ?? null,
                     prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                    "rejected",
+                    {
+                      confirmedFireGate: {
+                        spotTakerNetBuyPct: cfSpotTf.netBuyPct ?? null,
+                        spotTakerDominance: cfSpotTf.dominance ?? null,
+                        spotVol24hUsd: spotVol24h,
+                        marketCapUsd,
+                      },
+                    },
                   );
                   return;
                 }
@@ -9099,10 +9162,13 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 price1h: Number.isFinite(price1hChange) ? price1hChange : null,
                 price3h: base3hClose > 0 ? price3h : null,
                 spotVolumeMultiplier: _impulseSpotVolMult,
-                cvd15m: _plmCvd15m,
-                cvd30m: _plmCvd30m,
-                cvd1h: _plmCvd1h,
-                cvd4h: _plmCvd4h,
+                // Exactly the values evaluateImpulseBuy judged (fresh
+                // aggregated CVD/taker when measured), not the prescan cache.
+                cvd15m: _impulseCvd15m,
+                cvd30m: _impulseCvd30m,
+                cvd1h: _impulseCvd1h,
+                cvd4h: _impulseCvd4h,
+                futTakerNetBuyPct: _impulseFutTakerNetBuyPct,
                 components: _impulseDecision.components,
               },
             });
@@ -9131,8 +9197,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 liqRatioAbove015Shadow: _impulseLiqShadow.aboveShadowThreshold,
                 liqCacheStale: _impulseLiqAtDecision?.stale ?? null,
                 liqCacheAgeMs: _impulseLiqAtDecision?.cacheAgeMs ?? null,
-                cvd30m: _plmEntry?.lastCvd30m ?? null,
-                cvd1h: _plmEntry?.lastCvd1h ?? null,
+                cvd30m: _impulseCvd30m,
+                cvd1h: _impulseCvd1h,
                 candleBodyPct: _impulseDecision.candleBodyPct!,
                 candleVolumeMult: _impulseDecision.volumeMultiplier!,
                 candleCloseStrength: _impulseDecision.closeStrength!,
