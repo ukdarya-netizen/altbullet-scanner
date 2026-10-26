@@ -1,0 +1,33 @@
+cohort,candidate,signals,removed,retained,reductionPct,complete72h,strong72Total,strong72Retained,strong72Lost,trackerPeak10Total,trackerPeak10Retained,trackerPeak10Lost,censored72Total,censored72Removed,stopLossTotal,stopLossRemoved,stopLossRetained,buStopTotal,buStopRemoved,buStopRetained,otherClosedOutcomesRemoved,removedSymbols
+single_entry_v1_fire_cohort_21,spot >=1.5x,21,8,13,38.1,15,9,5,4,6,3,3,6,0,1,1,0,8,3,5,7,PHA-USDT|ORDI-USDT|1000CHEEMS-USDT|LAB-USDT|ATH-USDT|WAL-USDT|AGLD-USDT|JASMY-USDT
+documented_gate_input_parity_15,spot >=1.5x,15,7,8,46.7,13,8,5,3,5,3,2,2,0,1,1,0,8,3,5,6,PHA-USDT|ORDI-USDT|1000CHEEMS-USDT|ATH-USDT|WAL-USDT|AGLD-USDT|JASMY-USDT
+chronological_train_10,spot >=1.5x,10,6,4,60,10,6,3,3,4,2,2,0,0,1,1,0,5,3,2,6,PHA-USDT|ORDI-USDT|1000CHEEMS-USDT|ATH-USDT|WAL-USDT|AGLD-USDT
+temporal_holdout_5,spot >=1.5x,5,1,4,20,3,2,2,0,1,1,0,2,0,0,0,0,3,0,3,0,JASMY-USDT
+single_entry_v1_fire_cohort_21,spot <=2.0x,21,7,14,33.3,15,9,5,4,6,4,2,6,2,1,0,1,8,4,4,5,ATH-USDT|MERL-USDT|1000CAT-USDT|C-USDT|NMR-USDT|JCT-USDT|CGPT-USDT
+documented_gate_input_parity_15,spot <=2.0x,15,5,10,33.3,13,8,4,4,5,3,2,2,0,1,0,1,8,4,4,5,ATH-USDT|MERL-USDT|1000CAT-USDT|C-USDT|NMR-USDT
+chronological_train_10,spot <=2.0x,10,3,7,30,10,6,4,2,4,3,1,0,0,1,0,1,5,2,3,3,ATH-USDT|MERL-USDT|1000CAT-USDT
+temporal_holdout_5,spot <=2.0x,5,2,3,40,3,2,0,2,1,0,1,2,0,0,0,0,3,2,1,2,C-USDT|NMR-USDT
+single_entry_v1_fire_cohort_21,p3h <=3%,21,4,17,19,15,9,8,1,6,5,1,6,2,1,0,1,8,1,7,2,LAB-USDT|JASMY-USDT|ARX-USDT|JCT-USDT
+documented_gate_input_parity_15,p3h <=3%,15,2,13,13.3,13,8,8,0,5,5,0,2,1,1,0,1,8,1,7,1,JASMY-USDT|ARX-USDT
+chronological_train_10,p3h <=3%,10,0,10,0,10,6,6,0,4,4,0,0,0,1,0,1,5,0,5,0,
+temporal_holdout_5,p3h <=3%,5,2,3,40,3,2,2,0,1,1,0,2,1,0,0,0,3,1,2,1,JASMY-USDT|ARX-USDT
+single_entry_v1_fire_cohort_21,p3h >=2%,21,7,14,33.3,15,9,5,4,6,4,2,6,1,1,1,0,8,3,5,6,PHA-USDT|ATH-USDT|MERL-USDT|WAL-USDT|AGLD-USDT|NMR-USDT|CGPT-USDT
+documented_gate_input_parity_15,p3h >=2%,15,6,9,40,13,8,4,4,5,3,2,2,0,1,1,0,8,3,5,6,PHA-USDT|ATH-USDT|MERL-USDT|WAL-USDT|AGLD-USDT|NMR-USDT
+chronological_train_10,p3h >=2%,10,5,5,50,10,6,3,3,4,2,2,0,0,1,1,0,5,2,3,5,PHA-USDT|ATH-USDT|MERL-USDT|WAL-USDT|AGLD-USDT
+temporal_holdout_5,p3h >=2%,5,1,4,20,3,2,1,1,1,1,0,2,0,0,0,0,3,1,2,1,NMR-USDT
+single_entry_v1_fire_cohort_21,p24h <=10%,21,9,12,42.9,15,9,6,3,6,4,2,6,4,1,0,1,8,2,6,4,KSM-USDT|PHA-USDT|ATH-USDT|WAL-USDT|JASMY-USDT|KSM-USDT|EPIC-USDT|GWEI-USDT|JCT-USDT
+documented_gate_input_parity_15,p24h <=10%,15,6,9,40,13,8,5,3,5,3,2,2,1,1,0,1,8,2,6,4,KSM-USDT|PHA-USDT|ATH-USDT|WAL-USDT|JASMY-USDT|EPIC-USDT
+chronological_train_10,p24h <=10%,10,4,6,40,10,6,3,3,4,2,2,0,0,1,0,1,5,2,3,4,KSM-USDT|PHA-USDT|ATH-USDT|WAL-USDT
+temporal_holdout_5,p24h <=10%,5,2,3,40,3,2,2,0,1,1,0,2,1,0,0,0,3,0,3,0,JASMY-USDT|EPIC-USDT
+single_entry_v1_fire_cohort_21,OI30m <2%,21,0,21,0,15,9,9,0,6,6,0,6,0,1,0,1,8,0,8,0,
+documented_gate_input_parity_15,OI30m <2%,15,0,15,0,13,8,8,0,5,5,0,2,0,1,0,1,8,0,8,0,
+chronological_train_10,OI30m <2%,10,0,10,0,10,6,6,0,4,4,0,0,0,1,0,1,5,0,5,0,
+temporal_holdout_5,OI30m <2%,5,0,5,0,3,2,2,0,1,1,0,2,0,0,0,0,3,0,3,0,
+single_entry_v1_fire_cohort_21,futures taker <20%,21,4,17,19,15,9,8,1,6,5,1,6,2,1,0,1,8,1,7,2,KSM-USDT|1000CAT-USDT|JCT-USDT|CGPT-USDT
+documented_gate_input_parity_15,futures taker <20%,15,2,13,13.3,13,8,7,1,5,4,1,2,0,1,0,1,8,1,7,2,KSM-USDT|1000CAT-USDT
+chronological_train_10,futures taker <20%,10,2,8,20,10,6,5,1,4,3,1,0,0,1,0,1,5,1,4,2,KSM-USDT|1000CAT-USDT
+temporal_holdout_5,futures taker <20%,5,0,5,0,3,2,2,0,1,1,0,2,0,0,0,0,3,0,3,0,
+single_entry_v1_fire_cohort_21,CVD positives >=3,21,9,12,42.9,15,9,7,2,6,5,1,6,5,1,0,1,8,2,6,4,LAB-USDT|TAIKO-USDT|WAL-USDT|NMR-USDT|KSM-USDT|EPIC-USDT|GWEI-USDT|JCT-USDT|CGPT-USDT
+documented_gate_input_parity_15,CVD positives >=3,15,3,12,20,13,8,7,1,5,5,0,2,1,1,0,1,8,2,6,2,WAL-USDT|NMR-USDT|EPIC-USDT
+chronological_train_10,CVD positives >=3,10,1,9,10,10,6,6,0,4,4,0,0,0,1,0,1,5,1,4,1,WAL-USDT
+temporal_holdout_5,CVD positives >=3,5,2,3,40,3,2,1,1,1,1,0,2,1,0,0,0,3,1,2,1,NMR-USDT|EPIC-USDT

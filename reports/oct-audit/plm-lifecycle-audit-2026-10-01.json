@@ -1,0 +1,902 @@
+{
+  "audit": {
+    "title": "PLM lifecycle audit, frozen cohort 2026-10-01",
+    "generated_at_utc": "2026-10-01T04:55:15.866Z",
+    "cohort_snapshot_cut_utc": "2026-10-01T04:36:43.459443Z",
+    "data_boundary": "Cohort status, close, recorded peak and PnL are frozen to the CSV. Forward 15m candles are restricted to that cut; latest stored cohort candle is 2026-10-01 01:00:00+00.",
+    "readonly": true,
+    "production_writes": false
+  },
+  "input": {
+    "file": ".local/reports/plm-cohort-2026-10-01.csv",
+    "sha256": "bca5f118644f9f9b6484ff7a2530c7d792eb6f48dd148175ba60646d66e2e2c3",
+    "rows": 168
+  },
+  "definitions": {
+    "strong_mover_threshold_pct": 10,
+    "price_basis": "original_entry_price when positive; otherwise entry_price",
+    "basis_counts": {
+      "original_entry_price": 65,
+      "entry_price_fallback": 103,
+      "snapshot_entry_price_mismatch": 31
+    },
+    "recorded_peak": "CSV peak_price relative to chosen basis; independent of exit/PnL",
+    "forward_path": "15m OHLC from decision time to decision+72h, bounded by cohort cut",
+    "complete_path_bars": 288,
+    "partial_nonhit": "unknown, not failure",
+    "postclose": "Only candles strictly after closed_at and inside entry+72h; measured against chosen entry basis",
+    "first_hit_resolution": "15-minute candle timestamp; not intrabar exact"
+  },
+  "cohort": {
+    "n": 168,
+    "closed": 162,
+    "active": 6,
+    "status_counts": {
+      "profit": 42,
+      "bu_stop": 68,
+      "stop_loss": 33,
+      "expired": 14,
+      "cancelled": 5,
+      "active": 6
+    },
+    "recorded_peak": {
+      "strong_10_n": 60,
+      "strong_10_pct": 35.7,
+      "closed_strong_10_n": 60,
+      "closed_strong_10_pct": 37,
+      "by_status": {
+        "cancelled": 0,
+        "profit": 42,
+        "stop_loss": 0,
+        "bu_stop": 17,
+        "expired": 1,
+        "active": 0
+      },
+      "distribution_pct": {
+        "p10": -1.03,
+        "p25": 1.84,
+        "median": 6.6,
+        "p75": 13.44,
+        "p90": 23.79,
+        "max": 81
+      }
+    },
+    "entry_policy_version": {
+      "<unset>": 147,
+      "single_entry_v1": 21
+    },
+    "snapshot_source_counts": {
+      "tracked_signals_legacy": 79,
+      "tracked_signals": 89
+    },
+    "path_coverage": {
+      "complete": 162,
+      "partial": 5,
+      "no_bars": 1,
+      "counts_by_bars": {
+        "0": 1,
+        "24": 2,
+        "48": 1,
+        "72": 1,
+        "144": 1,
+        "288": 162
+      },
+      "snapshots_missing": 0
+    },
+    "forward_72h": {
+      "mfe_median_complete": 10.08848315331078,
+      "mae_median_complete": -7.812884848095431,
+      "mfe_p10": 0.868055555555558,
+      "mfe_p90": 47.861232738295726,
+      "thresholds": {
+        "10": {
+          "complete_hit": 81,
+          "complete_miss": 81,
+          "partial_observed_hit": 0,
+          "partial_nonhit_unknown": 5
+        },
+        "20": {
+          "complete_hit": 48,
+          "complete_miss": 114,
+          "partial_observed_hit": 0,
+          "partial_nonhit_unknown": 5
+        },
+        "30": {
+          "complete_hit": 31,
+          "complete_miss": 131,
+          "partial_observed_hit": 0,
+          "partial_nonhit_unknown": 5
+        }
+      },
+      "partial_observed_mfe10": 0,
+      "partial_observed_mfe20": 0,
+      "partial_observed_mfe30": 0
+    },
+    "after_close": {
+      "10": {
+        "complete_window_n": 138,
+        "hit_n": 58,
+        "miss_n": 80,
+        "without_postclose_window": 23,
+        "partial_observed_hits": 0,
+        "partial_censored_nonhits": 1
+      },
+      "20": {
+        "complete_window_n": 138,
+        "hit_n": 37,
+        "miss_n": 101,
+        "without_postclose_window": 23,
+        "partial_observed_hits": 0,
+        "partial_censored_nonhits": 1
+      },
+      "30": {
+        "complete_window_n": 138,
+        "hit_n": 29,
+        "miss_n": 109,
+        "without_postclose_window": 23,
+        "partial_observed_hits": 0,
+        "partial_censored_nonhits": 1
+      }
+    },
+    "after_close_by_status": {
+      "stop_loss": {
+        "n": 33,
+        "evaluable": 28,
+        "hit10": 2,
+        "hit20": 1,
+        "hit30": 1,
+        "newStrong10": 2,
+        "medianPostcloseMfe": -5.86,
+        "newStrongRows": [
+          {
+            "id": 1056,
+            "symbol": "ON-USDT",
+            "recordedPeakPct": 3.85,
+            "postcloseMfePct": 19.34,
+            "first10": "2026-07-29 13:00:00+00"
+          },
+          {
+            "id": 1278,
+            "symbol": "PORTAL-USDT",
+            "recordedPeakPct": 0,
+            "postcloseMfePct": 31.47,
+            "first10": "2026-08-26 05:00:00+00"
+          }
+        ]
+      },
+      "cancelled": {
+        "n": 5,
+        "evaluable": 5,
+        "hit10": 1,
+        "hit20": 1,
+        "hit30": 0,
+        "newStrong10": 1,
+        "medianPostcloseMfe": 6.12,
+        "newStrongRows": [
+          {
+            "id": 1253,
+            "symbol": "SEI-USDT",
+            "recordedPeakPct": 0.62,
+            "postcloseMfePct": 20.68,
+            "first10": "2026-08-21 12:30:00+00"
+          }
+        ]
+      },
+      "bu_stop": {
+        "n": 68,
+        "evaluable": 65,
+        "hit10": 24,
+        "hit20": 15,
+        "hit30": 12,
+        "newStrong10": 17,
+        "medianPostcloseMfe": 7.4,
+        "newStrongRows": [
+          {
+            "id": 1293,
+            "symbol": "CYS-USDT",
+            "recordedPeakPct": 5.59,
+            "postcloseMfePct": 19.63,
+            "first10": "2026-08-26 18:30:00+00"
+          },
+          {
+            "id": 1319,
+            "symbol": "GWEI-USDT",
+            "recordedPeakPct": 5.89,
+            "postcloseMfePct": 12.39,
+            "first10": "2026-08-28 07:30:00+00"
+          },
+          {
+            "id": 1323,
+            "symbol": "KITE-USDT",
+            "recordedPeakPct": 7.7,
+            "postcloseMfePct": 14.24,
+            "first10": "2026-08-29 14:15:00+00"
+          },
+          {
+            "id": 1336,
+            "symbol": "PROM-USDT",
+            "recordedPeakPct": 8.94,
+            "postcloseMfePct": 62.71,
+            "first10": "2026-08-28 10:15:00+00"
+          },
+          {
+            "id": 1364,
+            "symbol": "PROM-USDT",
+            "recordedPeakPct": 7.1,
+            "postcloseMfePct": 61.81,
+            "first10": "2026-08-29 13:45:00+00"
+          },
+          {
+            "id": 1391,
+            "symbol": "0G-USDT",
+            "recordedPeakPct": 7.04,
+            "postcloseMfePct": 38.82,
+            "first10": "2026-08-31 09:30:00+00"
+          },
+          {
+            "id": 1392,
+            "symbol": "UAI-USDT",
+            "recordedPeakPct": 4.98,
+            "postcloseMfePct": 54.85,
+            "first10": "2026-09-01 08:00:00+00"
+          },
+          {
+            "id": 1402,
+            "symbol": "TWT-USDT",
+            "recordedPeakPct": 5.23,
+            "postcloseMfePct": 12.77,
+            "first10": "2026-09-03 13:15:00+00"
+          },
+          {
+            "id": 1495,
+            "symbol": "COTI-USDT",
+            "recordedPeakPct": 7.97,
+            "postcloseMfePct": 19.25,
+            "first10": "2026-09-06 10:15:00+00"
+          },
+          {
+            "id": 1504,
+            "symbol": "XAN-USDT",
+            "recordedPeakPct": 5.08,
+            "postcloseMfePct": 31.41,
+            "first10": "2026-09-06 16:15:00+00"
+          },
+          {
+            "id": 1505,
+            "symbol": "METIS-USDT",
+            "recordedPeakPct": 9.42,
+            "postcloseMfePct": 22.4,
+            "first10": "2026-09-06 20:15:00+00"
+          },
+          {
+            "id": 1506,
+            "symbol": "SOLV-USDT",
+            "recordedPeakPct": 5.31,
+            "postcloseMfePct": 32.74,
+            "first10": "2026-09-07 06:15:00+00"
+          },
+          {
+            "id": 1592,
+            "symbol": "KNC-USDT",
+            "recordedPeakPct": 5.51,
+            "postcloseMfePct": 14.69,
+            "first10": "2026-09-13 00:30:00+00"
+          },
+          {
+            "id": 1632,
+            "symbol": "REZ-USDT",
+            "recordedPeakPct": 9.77,
+            "postcloseMfePct": 36.47,
+            "first10": "2026-09-12 21:15:00+00"
+          },
+          {
+            "id": 1722,
+            "symbol": "ORDI-USDT",
+            "recordedPeakPct": 8.19,
+            "postcloseMfePct": 10.18,
+            "first10": "2026-09-21 11:00:00+00"
+          },
+          {
+            "id": 1725,
+            "symbol": "ATH-USDT",
+            "recordedPeakPct": 6.35,
+            "postcloseMfePct": 12.18,
+            "first10": "2026-09-20 16:45:00+00"
+          },
+          {
+            "id": 1975,
+            "symbol": "NMR-USDT",
+            "recordedPeakPct": 5.02,
+            "postcloseMfePct": 53.42,
+            "first10": "2026-09-28 11:30:00+00"
+          }
+        ]
+      },
+      "profit": {
+        "n": 42,
+        "evaluable": 40,
+        "hit10": 31,
+        "hit20": 20,
+        "hit30": 16,
+        "newStrong10": 0,
+        "medianPostcloseMfe": 21.39,
+        "newStrongRows": []
+      },
+      "expired": {
+        "n": 14,
+        "evaluable": 0,
+        "hit10": 0,
+        "hit20": 0,
+        "hit30": 0,
+        "newStrong10": 0,
+        "medianPostcloseMfe": null,
+        "newStrongRows": []
+      }
+    },
+    "new_strong_after_close": {
+      "n": 20,
+      "by_status": {
+        "stop_loss": 2,
+        "cancelled": 1,
+        "bu_stop": 17
+      },
+      "rows": [
+        {
+          "id": 1056,
+          "symbol": "ON-USDT",
+          "status": "stop_loss",
+          "recordedPeakPct": 3.85,
+          "postcloseMfePct": 19.34,
+          "first10": "2026-07-29 13:00:00+00"
+        },
+        {
+          "id": 1278,
+          "symbol": "PORTAL-USDT",
+          "status": "stop_loss",
+          "recordedPeakPct": 0,
+          "postcloseMfePct": 31.47,
+          "first10": "2026-08-26 05:00:00+00"
+        },
+        {
+          "id": 1253,
+          "symbol": "SEI-USDT",
+          "status": "cancelled",
+          "recordedPeakPct": 0.62,
+          "postcloseMfePct": 20.68,
+          "first10": "2026-08-21 12:30:00+00"
+        },
+        {
+          "id": 1293,
+          "symbol": "CYS-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 5.59,
+          "postcloseMfePct": 19.63,
+          "first10": "2026-08-26 18:30:00+00"
+        },
+        {
+          "id": 1319,
+          "symbol": "GWEI-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 5.89,
+          "postcloseMfePct": 12.39,
+          "first10": "2026-08-28 07:30:00+00"
+        },
+        {
+          "id": 1323,
+          "symbol": "KITE-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 7.7,
+          "postcloseMfePct": 14.24,
+          "first10": "2026-08-29 14:15:00+00"
+        },
+        {
+          "id": 1336,
+          "symbol": "PROM-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 8.94,
+          "postcloseMfePct": 62.71,
+          "first10": "2026-08-28 10:15:00+00"
+        },
+        {
+          "id": 1364,
+          "symbol": "PROM-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 7.1,
+          "postcloseMfePct": 61.81,
+          "first10": "2026-08-29 13:45:00+00"
+        },
+        {
+          "id": 1391,
+          "symbol": "0G-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 7.04,
+          "postcloseMfePct": 38.82,
+          "first10": "2026-08-31 09:30:00+00"
+        },
+        {
+          "id": 1392,
+          "symbol": "UAI-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 4.98,
+          "postcloseMfePct": 54.85,
+          "first10": "2026-09-01 08:00:00+00"
+        },
+        {
+          "id": 1402,
+          "symbol": "TWT-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 5.23,
+          "postcloseMfePct": 12.77,
+          "first10": "2026-09-03 13:15:00+00"
+        },
+        {
+          "id": 1495,
+          "symbol": "COTI-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 7.97,
+          "postcloseMfePct": 19.25,
+          "first10": "2026-09-06 10:15:00+00"
+        },
+        {
+          "id": 1504,
+          "symbol": "XAN-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 5.08,
+          "postcloseMfePct": 31.41,
+          "first10": "2026-09-06 16:15:00+00"
+        },
+        {
+          "id": 1505,
+          "symbol": "METIS-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 9.42,
+          "postcloseMfePct": 22.4,
+          "first10": "2026-09-06 20:15:00+00"
+        },
+        {
+          "id": 1506,
+          "symbol": "SOLV-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 5.31,
+          "postcloseMfePct": 32.74,
+          "first10": "2026-09-07 06:15:00+00"
+        },
+        {
+          "id": 1592,
+          "symbol": "KNC-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 5.51,
+          "postcloseMfePct": 14.69,
+          "first10": "2026-09-13 00:30:00+00"
+        },
+        {
+          "id": 1632,
+          "symbol": "REZ-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 9.77,
+          "postcloseMfePct": 36.47,
+          "first10": "2026-09-12 21:15:00+00"
+        },
+        {
+          "id": 1722,
+          "symbol": "ORDI-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 8.19,
+          "postcloseMfePct": 10.18,
+          "first10": "2026-09-21 11:00:00+00"
+        },
+        {
+          "id": 1725,
+          "symbol": "ATH-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 6.35,
+          "postcloseMfePct": 12.18,
+          "first10": "2026-09-20 16:45:00+00"
+        },
+        {
+          "id": 1975,
+          "symbol": "NMR-USDT",
+          "status": "bu_stop",
+          "recordedPeakPct": 5.02,
+          "postcloseMfePct": 53.42,
+          "first10": "2026-09-28 11:30:00+00"
+        }
+      ]
+    },
+    "time_to_first_threshold_hours": {
+      "10": {
+        "hits": 81,
+        "median_hours": 13.21,
+        "p25_hours": 3.67,
+        "p75_hours": 24.42
+      },
+      "20": {
+        "hits": 48,
+        "median_hours": 22.03,
+        "p25_hours": 12.83,
+        "p75_hours": 35.38
+      },
+      "30": {
+        "hits": 31,
+        "median_hours": 27.46,
+        "p25_hours": 21.06,
+        "p75_hours": 43.37
+      }
+    },
+    "by_status": {
+      "cancelled": {
+        "n": 5,
+        "closed": 5,
+        "active": 0,
+        "recorded_strong10": 0,
+        "recorded_peak_unknown": 0,
+        "complete_72h": 5,
+        "partial_72h": 0,
+        "mfe10_complete": 1,
+        "mfe20_complete": 1,
+        "mfe30_complete": 0,
+        "postclose_windows_complete": 5,
+        "afterclose_hit10": 1,
+        "afterclose_hit20": 1,
+        "afterclose_hit30": 0,
+        "postclose_mfe_median_complete": 6.124401913875599,
+        "pnl_known": 5,
+        "pnl_median": -1.0645849
+      },
+      "profit": {
+        "n": 42,
+        "closed": 42,
+        "active": 0,
+        "recorded_strong10": 42,
+        "recorded_peak_unknown": 0,
+        "complete_72h": 42,
+        "partial_72h": 0,
+        "mfe10_complete": 42,
+        "mfe20_complete": 30,
+        "mfe30_complete": 18,
+        "postclose_windows_complete": 40,
+        "afterclose_hit10": 31,
+        "afterclose_hit20": 20,
+        "afterclose_hit30": 16,
+        "postclose_mfe_median_complete": 21.386908589760232,
+        "pnl_known": 42,
+        "pnl_median": 11.0084385
+      },
+      "stop_loss": {
+        "n": 33,
+        "closed": 33,
+        "active": 0,
+        "recorded_strong10": 0,
+        "recorded_peak_unknown": 0,
+        "complete_72h": 33,
+        "partial_72h": 0,
+        "mfe10_complete": 2,
+        "mfe20_complete": 1,
+        "mfe30_complete": 1,
+        "postclose_windows_complete": 28,
+        "afterclose_hit10": 2,
+        "afterclose_hit20": 1,
+        "afterclose_hit30": 1,
+        "postclose_mfe_median_complete": -5.860502297522007,
+        "pnl_known": 33,
+        "pnl_median": -8.30926
+      },
+      "bu_stop": {
+        "n": 68,
+        "closed": 68,
+        "active": 0,
+        "recorded_strong10": 17,
+        "recorded_peak_unknown": 0,
+        "complete_72h": 67,
+        "partial_72h": 1,
+        "mfe10_complete": 35,
+        "mfe20_complete": 15,
+        "mfe30_complete": 12,
+        "postclose_windows_complete": 65,
+        "afterclose_hit10": 24,
+        "afterclose_hit20": 15,
+        "afterclose_hit30": 12,
+        "postclose_mfe_median_complete": 7.399672630806564,
+        "pnl_known": 68,
+        "pnl_median": 0
+      },
+      "expired": {
+        "n": 14,
+        "closed": 14,
+        "active": 0,
+        "recorded_strong10": 1,
+        "recorded_peak_unknown": 0,
+        "complete_72h": 14,
+        "partial_72h": 0,
+        "mfe10_complete": 1,
+        "mfe20_complete": 1,
+        "mfe30_complete": 0,
+        "postclose_windows_complete": 0,
+        "afterclose_hit10": 0,
+        "afterclose_hit20": 0,
+        "afterclose_hit30": 0,
+        "postclose_mfe_median_complete": null,
+        "pnl_known": 14,
+        "pnl_median": 1.43180345
+      },
+      "active": {
+        "n": 6,
+        "closed": 0,
+        "active": 6,
+        "recorded_strong10": 0,
+        "recorded_peak_unknown": 0,
+        "complete_72h": 1,
+        "partial_72h": 4,
+        "mfe10_complete": 0,
+        "mfe20_complete": 0,
+        "mfe30_complete": 0,
+        "postclose_windows_complete": 0,
+        "afterclose_hit10": 0,
+        "afterclose_hit20": 0,
+        "afterclose_hit30": 0,
+        "postclose_mfe_median_complete": null,
+        "pnl_known": 0,
+        "pnl_median": null
+      }
+    },
+    "cohort_strata": {
+      "legacy": {
+        "n": 147,
+        "closed": 147,
+        "active": 0,
+        "strong_peak10": 54,
+        "stop_loss": 32,
+        "complete_72h": 147,
+        "partial_72h": 0,
+        "mfe10_complete": 72,
+        "mfe20_complete": 44,
+        "mfe30_complete": 30
+      },
+      "single_entry_v1": {
+        "n": 21,
+        "closed": 15,
+        "active": 6,
+        "strong_peak10": 6,
+        "stop_loss": 1,
+        "complete_72h": 15,
+        "partial_72h": 5,
+        "mfe10_complete": 9,
+        "mfe20_complete": 4,
+        "mfe30_complete": 1
+      }
+    },
+    "entry_month_dubai_utc_plus_4": {
+      "2026-07": {
+        "n": 4,
+        "closed": 4,
+        "active": 0,
+        "strong_peak10": 1,
+        "stop_loss": 1,
+        "bu_stop": 1,
+        "cancelled": 1,
+        "expired": 0,
+        "profit": 1
+      },
+      "2026-08": {
+        "n": 67,
+        "closed": 67,
+        "active": 0,
+        "strong_peak10": 25,
+        "stop_loss": 13,
+        "bu_stop": 30,
+        "cancelled": 4,
+        "expired": 5,
+        "profit": 15
+      },
+      "2026-09": {
+        "n": 96,
+        "closed": 91,
+        "active": 5,
+        "strong_peak10": 34,
+        "stop_loss": 19,
+        "bu_stop": 37,
+        "cancelled": 0,
+        "expired": 9,
+        "profit": 26
+      },
+      "2026-10": {
+        "n": 1,
+        "closed": 0,
+        "active": 1,
+        "strong_peak10": 0,
+        "stop_loss": 0,
+        "bu_stop": 0,
+        "cancelled": 0,
+        "expired": 0,
+        "profit": 0
+      }
+    },
+    "close_month_dubai_utc_plus_4": {
+      "2026-07": {
+        "n": 3,
+        "closed": 3,
+        "active": 0,
+        "strong_peak10": 1,
+        "stop_loss": 1,
+        "bu_stop": 0,
+        "cancelled": 1,
+        "expired": 0,
+        "profit": 1
+      },
+      "2026-08": {
+        "n": 62,
+        "closed": 62,
+        "active": 0,
+        "strong_peak10": 23,
+        "stop_loss": 11,
+        "bu_stop": 30,
+        "cancelled": 4,
+        "expired": 3,
+        "profit": 14
+      },
+      "2026-09": {
+        "n": 97,
+        "closed": 97,
+        "active": 0,
+        "strong_peak10": 36,
+        "stop_loss": 21,
+        "bu_stop": 38,
+        "cancelled": 0,
+        "expired": 11,
+        "profit": 27
+      }
+    },
+    "stop_before_peak_proxy": {
+      "stop_loss_complete": 33,
+      "after_close_hit10": 2,
+      "after_close_hit20": 1,
+      "after_close_hit30": 1,
+      "strong10_after_stop_ids": [
+        1056,
+        1278
+      ],
+      "recorded_strong_before_close": 0,
+      "any_72h_strong": 2
+    },
+    "closed_pnl_pct": {
+      "n": 162,
+      "median": 0,
+      "p10": -8.3073,
+      "p90": 12.6219
+    }
+  },
+  "decision_data": {
+    "query_read_window_utc": "2026-10-01 04:48–04:50Z",
+    "note": "trajectory_status for scanner-side events is asynchronously backfilled and may shift on rerun; the CSV export preserves extraction-time counts",
+    "decision_metrics_coverage": {
+      "cohort_n": 168,
+      "nested_decision_metrics_n": 38,
+      "versioned_single_entry_v1_n": 21,
+      "unversioned_nested_metrics_n": 17,
+      "missing_nested_metrics_n": 130,
+      "required_values_complete_n": 35,
+      "unversioned_missing_spotVolMult_n": 3,
+      "versioned_complete_n": 21
+    },
+    "frozen_cohort_source_note": "147 rows have no entry_policy_version; 79 are from tracked_signals_legacy and 68 from tracked_signals. 21 rows are tagged single_entry_v1; do not equate source table with gate version.",
+    "rejected_blocked_raw": {
+      "events": 110525,
+      "rejected": 110435,
+      "blocked": 90,
+      "trajectory_status_counts": {
+        "blocked|unavailable": 90,
+        "rejected|unavailable": 83911,
+        "rejected|complete": 24604,
+        "rejected|partial": 1920
+      },
+      "reason_group_counts": {
+        "confirmed_fire_other": 104,
+        "cvd_count_lt2": 2503,
+        "legacy_unstamped_p24h_range": 66647,
+        "p24h_high": 2378,
+        "p24h_low": 10355,
+        "p3h_high": 2260,
+        "p3h_low": 17536,
+        "snf_negative_1h": 4997,
+        "spot_vol_low": 854,
+        "spot_vol_unavailable": 2891
+      },
+      "p24h_range_unversioned_rows": 66647,
+      "p24h_range_has_nested_decision_metrics": 0
+    },
+    "symbol_utc_day_dedup": {
+      "key": "symbol + UTC calendar day",
+      "selection": "earliest positive-entry-price event per symbol-day; no-price-only symbol-days retained as unknown",
+      "raw_events": 110525,
+      "unique_symbols": 607,
+      "unique_symbol_utc_days": 11238,
+      "with_positive_price": 10527,
+      "without_positive_price": 711,
+      "earliest_priced_path_status_counts": {
+        "complete": 2604,
+        "unavailable": 7680,
+        "partial": 243
+      }
+    },
+    "global_inventory_query_at_utc": "2026-10-01 around 04:51Z",
+    "global_decision_inventory": {
+      "rows": [
+        {
+          "source": "oi_watch_reconciliation",
+          "decision_kind": "expired",
+          "trajectory_status": "complete",
+          "count": 1
+        },
+        {
+          "source": "oi_watch_reconciliation",
+          "decision_kind": "watching",
+          "trajectory_status": "complete",
+          "count": 1
+        },
+        {
+          "source": "scanner_sym_reject",
+          "decision_kind": "blocked",
+          "trajectory_status": "unavailable",
+          "count": 90
+        },
+        {
+          "source": "scanner_sym_reject",
+          "decision_kind": "rejected",
+          "trajectory_status": "complete",
+          "count": 24615
+        },
+        {
+          "source": "scanner_sym_reject",
+          "decision_kind": "rejected",
+          "trajectory_status": "partial",
+          "count": 1909
+        },
+        {
+          "source": "scanner_sym_reject",
+          "decision_kind": "rejected",
+          "trajectory_status": "unavailable",
+          "count": 83911
+        },
+        {
+          "source": "tracked_signals",
+          "decision_kind": "fired",
+          "trajectory_status": "complete",
+          "count": 86
+        },
+        {
+          "source": "tracked_signals",
+          "decision_kind": "fired",
+          "trajectory_status": "partial",
+          "count": 6
+        },
+        {
+          "source": "tracked_signals_legacy",
+          "decision_kind": "fired",
+          "trajectory_status": "complete",
+          "count": 79
+        }
+      ],
+      "totals": {
+        "fired": 171,
+        "rejected": 110435,
+        "blocked": 90,
+        "other_reconciliation_rows": 2
+      }
+    }
+  },
+  "policy_context": {
+    "strong_mover_rule": "Peak >=10% irrespective of subsequent exit/PnL.",
+    "current_plm_gates": "24h 5–15%; 3h 1.5–4%; decision-time Spot Volume >=1.1x; positive Netflow on 1h/4h; at least two positive spot CVD values among 15m/30m/1h/4h.",
+    "automatic_cancellation": false,
+    "notes": "Historical stale_oi_vol remains a lifecycle outcome; OI/Futures Taker/Whale/OI ratios/cycles are telemetry only. No retrospective threshold inference."
+  },
+  "files": {
+    "report": ".local/reports/plm-lifecycle-audit-2026-10-01.md",
+    "json": ".local/reports/plm-lifecycle-audit-2026-10-01.json",
+    "path_csv": ".local/reports/plm-lifecycle-cohort-paths-2026-10-01.csv",
+    "gate_csv": ".local/reports/plm-lifecycle-gate-events-2026-10-01.csv",
+    "symbol_day_csv": ".local/reports/plm-lifecycle-earliest-priced-symbol-days-2026-10-01.csv",
+    "sql": ".local/reports/plm-lifecycle-audit-queries-2026-10-01.sql",
+    "global_inventory_csv": ".local/reports/plm-lifecycle-decision-inventory-2026-10-01.csv"
+  }
+}

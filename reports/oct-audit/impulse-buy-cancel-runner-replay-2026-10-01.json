@@ -1,0 +1,1306 @@
+{
+  "generatedAt": "2026-10-01T04:09:16.912Z",
+  "dataAsOf": "2026-10-01T04:09:16.912Z",
+  "observationOnly": true,
+  "cohort": "13 single-entry impulse_smart_cancel_cvd production cancellations",
+  "source": {
+    "productionSelection": "read-only tracked_signals + fired decision snapshots",
+    "candleSource": "stored 15m trajectories plus public BingX swap 15m extension and bounded 1m entry/cancel-window refinement",
+    "exitTelemetry": "cancellation-time CVD/OI is absent from tracked row fields; gate cannot be reconstructed",
+    "sourceHorizon": "entry-anchored to min(five days, production_as_of); not a post-decision 72h label",
+    "maxAgeSignalBasis": "original detected/opened time",
+    "normalStalePath": "disabled for impulse_buy; not recreated"
+  },
+  "policy": {
+    "pattern": "impulse_buy",
+    "originalEntryAnchor": true,
+    "smartCancelRemovedOnly": true,
+    "maxAgeHours": 72,
+    "maxAgeEvidence": "unknown_from_ohlc; conditional branch only",
+    "staleGraceHours": null,
+    "coreMaximumWatchDays": 4,
+    "runnerMaximumAgeHours": 120,
+    "breakevenMilestonePct": 5,
+    "breakevenFloorPct": 0,
+    "profitProtectionMilestonePct": 10,
+    "profitProtectionFloorPct": 5,
+    "coreFirstTargetPct": 10,
+    "coreTrailingActivationPct": 15,
+    "coreTrailingGapPct": 10,
+    "runnerBreakevenFloorPct": 0,
+    "runnerTrailingActivationPct": 30,
+    "runnerTrailingGapPct": 30,
+    "feeFundingSlippageAndPartialFillAccounting": "not modeled",
+    "fills": "ideal stop levels are price-path marks, not evidence of execution",
+    "ambiguity": "same-candle stop raises are bounded; prior armed stop is checked first"
+  },
+  "summary": {
+    "cohort": {
+      "rows": 13,
+      "completeStored72hTrajectories": 10,
+      "partialStoredTrajectories": 3,
+      "fullFiveDayPriceCoverage": 9,
+      "entryPriceBasisMismatches": 0
+    },
+    "recordedCancellationBaseline": {
+      "count": 13,
+      "pnlSumPct": -37.380301,
+      "pnlMeanPct": -2.8754077692307694,
+      "negativeCount": 13,
+      "strictOver10Count": 0,
+      "recordedPeakAtLeast10Count": 0
+    },
+    "counterfactualNoSmartCancel": {
+      "definiteExitBeforeRecordedCancelCount": 0,
+      "terminalOutcomeRows": 10,
+      "unresolvedRows": 3,
+      "strictTerminalOver10WorstCaseRowCount": 2,
+      "strictTerminalOver10BestCaseRowCount": 2,
+      "coreWholePosition": {
+        "terminalOutcomeCount": 8,
+        "strictOver10Count": 0,
+        "strictOver10RateAmongTerminalOutcomes": 0,
+        "minimumPnlPct": -8,
+        "maximumPnlPct": -7.999999999999992
+      },
+      "pureRunnerOnly": {
+        "terminalOutcomeCount": 4,
+        "strictOver10Count": 4,
+        "strictOver10RateAmongTerminalOutcomes": 1,
+        "minimumPnlPct": 27.03445855028374,
+        "maximumPnlPct": 33.48164627363738
+      },
+      "rawPricePeakAtLeast10SecondaryCount": 4
+    },
+    "maxAge72h": {
+      "priceOnlyEligibleRows": 0,
+      "featureGatePassUnknownRows": 0,
+      "note": "The 72h OI/CVD/market gate snapshot is incomplete; recorded cancellation-time features are not substitutes. Conditional max-age exits are reported per row, never assumed."
+    },
+    "sensitivitySamePolicy": {
+      "policyChangedByCohort": false,
+      "completeStored72hRows": 10,
+      "fullFiveDayPriceCoverageRows": 9,
+      "partialNewerRows": 3,
+      "completeStored72hStrictOver10UpperBoundRows": 2,
+      "partialStoredStrictOver10UpperBoundRows": 0,
+      "settings": "same entry-anchored milestones/trailing/max-age/runner settings for every row; no per-subgroup threshold optimization"
+    }
+  },
+  "rows": [
+    {
+      "id": 1707,
+      "symbol": "DASH-USDT",
+      "entryAt": "2026-09-17T16:39:45.337Z",
+      "cancelAt": "2026-09-18T00:36:44.945Z",
+      "originalEntryPrice": 61.99,
+      "recordedEntryPrice": 61.99,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 60.37,
+        "pnlPercent": -2.6133246,
+        "peakPriceAtCancel": 62.46,
+        "ageHours": 7.9498911111111115,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": null,
+      "milestonesObserved": {},
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-20T03:00:00.000Z",
+          "priceObservedAt": "2026-09-20T03:00:00.000Z",
+          "exitPrice": 57.030800000000006,
+          "pnlPercent": -7.999999999999993,
+          "reason": "emergency_stop",
+          "accountingBasis": "whole_entry_position_gross_price_return",
+          "pathOrder": "prior_armed_stop_first",
+          "coreClose": {
+            "at": "2026-09-20T03:00:00.000Z",
+            "stopPrice": 57.030800000000006,
+            "stopKind": "emergency_stop",
+            "peakPrice": 65.01,
+            "peakPct": 4.871753508630429,
+            "coreCandle": {
+              "start": "2026-09-20T02:45:00.000Z",
+              "end": "2026-09-20T03:00:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only"
+        }
+      ],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": -7.999999999999993,
+      "terminalOutcomeWorstPnlPct": -7.999999999999993,
+      "terminalOutcomeCount": 1,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 12574847,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 499,
+        "firstObservedAt": "2026-09-17T16:40:00.000Z",
+        "lastObservedAt": "2026-09-22T16:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 45337,
+        "entryWindowRefinedBars": 5,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-09-22T16:39:45.337Z",
+        "fiveDayOriginalEntryHorizonObserved": true
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 65.01,
+        "highestObservedPnlPct": 4.871753508630429,
+        "highestObservedAfterRecordedCancel": 65.01,
+        "highestObservedAfterCancelPnlPct": 4.871753508630429,
+        "postCancelPriceCoverageHours": 112.13751527777778,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 1715,
+      "symbol": "PUMP-USDT",
+      "entryAt": "2026-09-18T05:05:31.022Z",
+      "cancelAt": "2026-09-18T11:27:41.197Z",
+      "originalEntryPrice": 0.004267,
+      "recordedEntryPrice": 0.004267,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.004178,
+        "pnlPercent": -2.0857747,
+        "peakPriceAtCancel": 0.004328,
+        "ageHours": 6.369493055555555,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": null,
+      "milestonesObserved": {},
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-20T03:30:00.000Z",
+          "priceObservedAt": "2026-09-20T03:30:00.000Z",
+          "exitPrice": 0.00392564,
+          "pnlPercent": -7.999999999999995,
+          "reason": "emergency_stop",
+          "accountingBasis": "whole_entry_position_gross_price_return",
+          "pathOrder": "prior_armed_stop_first",
+          "coreClose": {
+            "at": "2026-09-20T03:30:00.000Z",
+            "stopPrice": 0.00392564,
+            "stopKind": "emergency_stop",
+            "peakPrice": 0.00445,
+            "peakPct": 4.2887274431685025,
+            "coreCandle": {
+              "start": "2026-09-20T03:15:00.000Z",
+              "end": "2026-09-20T03:30:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only"
+        }
+      ],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": -7.999999999999995,
+      "terminalOutcomeWorstPnlPct": -7.999999999999995,
+      "terminalOutcomeCount": 1,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 12960502,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 503,
+        "firstObservedAt": "2026-09-18T05:06:00.000Z",
+        "lastObservedAt": "2026-09-23T05:15:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 31022,
+        "entryWindowRefinedBars": 9,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-09-23T05:05:31.022Z",
+        "fiveDayOriginalEntryHorizonObserved": true
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.004706,
+        "highestObservedPnlPct": 10.28825872978674,
+        "highestObservedAfterRecordedCancel": 0.004706,
+        "highestObservedAfterCancelPnlPct": 10.28825872978674,
+        "postCancelPriceCoverageHours": 113.78855638888889,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 1718,
+      "symbol": "ENA-USDT",
+      "entryAt": "2026-09-18T07:35:28.632Z",
+      "cancelAt": "2026-09-18T19:31:00.686Z",
+      "originalEntryPrice": 0.17093,
+      "recordedEntryPrice": 0.17093,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.16695,
+        "pnlPercent": -2.3284385,
+        "peakPriceAtCancel": 0.17096,
+        "ageHours": 11.925570555555556,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": null,
+      "milestonesObserved": {
+        "5": "2026-09-19T03:15:00.000Z",
+        "10": "2026-09-19T08:30:00.000Z",
+        "15": "2026-09-19T12:15:00.000Z"
+      },
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-23T07:35:28.632Z",
+          "priceObservedAt": null,
+          "exitPrice": 0.21714,
+          "pnlPercent": 27.03445855028374,
+          "reason": "runner_five_day_lifetime_close_profit",
+          "accountingBasis": "pure_runner_return_from_original_entry",
+          "pathOrder": "prior_armed_stop_first;five_day_timer_uses_canonical_sql_lifetime_close",
+          "coreClose": {
+            "at": "2026-09-20T02:45:00.000Z",
+            "stopPrice": 0.203977,
+            "stopKind": "core_trailing_stop",
+            "peakPrice": 0.22107,
+            "peakPct": 29.33364535189843,
+            "coreCandle": {
+              "start": "2026-09-20T02:30:00.000Z",
+              "end": "2026-09-20T02:45:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only",
+          "ageCloseBasis": "canonical SQL lifetime close: max(observed mark, effective trailing floor)",
+          "expiryPriceSource": "canonical lifetime mark settlement; not evidence of an executable fill",
+          "lifetimeTrailingActive": true,
+          "effectiveTrailingStop": 0.17925100000000002,
+          "observedPriceMark": 0.21714,
+          "durableRunnerPeakPrice": 0.23053,
+          "coreClosedAt": "2026-09-20T02:45:00.000Z",
+          "runnerOpenedAfterCoreCloseAt": "2026-09-20T02:45:00.000Z",
+          "runnerPeakPriceAtCoreClose": 0.22107,
+          "runnerTransitionCandleAmbiguous": true,
+          "runnerTransitionCandlePriceChecked": 0.19902,
+          "coreCloseCandleExcludedFromRunner": false,
+          "runnerExitStrictlyAfterCore": true
+        },
+        {
+          "terminal": true,
+          "exitAt": "2026-09-23T07:35:28.632Z",
+          "priceObservedAt": null,
+          "exitPrice": 0.21714,
+          "pnlPercent": 27.03445855028374,
+          "reason": "runner_five_day_lifetime_close_profit",
+          "accountingBasis": "pure_runner_return_from_original_entry",
+          "pathOrder": "same_bar_high_first_same_core_stop;five_day_timer_uses_canonical_sql_lifetime_close",
+          "coreClose": {
+            "at": "2026-09-20T02:45:00.000Z",
+            "stopPrice": 0.203977,
+            "stopKind": "core_trailing_stop",
+            "peakPrice": 0.22107,
+            "peakPct": 29.33364535189843,
+            "coreCandle": {
+              "start": "2026-09-20T02:30:00.000Z",
+              "end": "2026-09-20T02:45:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only",
+          "ageCloseBasis": "canonical SQL lifetime close: max(observed mark, effective trailing floor)",
+          "expiryPriceSource": "canonical lifetime mark settlement; not evidence of an executable fill",
+          "lifetimeTrailingActive": true,
+          "effectiveTrailingStop": 0.17925100000000002,
+          "observedPriceMark": 0.21714,
+          "durableRunnerPeakPrice": 0.23053,
+          "coreClosedAt": "2026-09-20T02:45:00.000Z",
+          "runnerOpenedAfterCoreCloseAt": "2026-09-20T02:45:00.000Z",
+          "runnerPeakPriceAtCoreClose": 0.22107,
+          "runnerTransitionCandleAmbiguous": true,
+          "runnerTransitionCandlePriceChecked": 0.1987,
+          "coreCloseCandleExcludedFromRunner": false,
+          "runnerExitStrictlyAfterCore": true
+        }
+      ],
+      "ambiguityCount": 1,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": 27.03445855028374,
+      "terminalOutcomeWorstPnlPct": 27.03445855028374,
+      "terminalOutcomeCount": 2,
+      "allTerminalOutcomesStrictlyAbove10": true,
+      "anyTerminalOutcomeStrictlyAbove10": true,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 13027840,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 503,
+        "firstObservedAt": "2026-09-18T07:36:00.000Z",
+        "lastObservedAt": "2026-09-23T07:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 28632,
+        "entryWindowRefinedBars": 9,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-09-23T07:35:28.632Z",
+        "fiveDayOriginalEntryHorizonObserved": true
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.23053,
+        "highestObservedPnlPct": 34.86807465044171,
+        "highestObservedAfterRecordedCancel": 0.23053,
+        "highestObservedAfterCancelPnlPct": 34.86807465044171,
+        "postCancelPriceCoverageHours": 108.23314277777777,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 1723,
+      "symbol": "VTHO-USDT",
+      "entryAt": "2026-09-18T17:06:39.633Z",
+      "cancelAt": "2026-09-19T00:35:18.547Z",
+      "originalEntryPrice": 0.0007287,
+      "recordedEntryPrice": 0.0007287,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.0006955,
+        "pnlPercent": -4.556059,
+        "peakPriceAtCancel": 0.0007309,
+        "ageHours": 7.477476111111111,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": null,
+      "milestonesObserved": {},
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-19T04:00:00.000Z",
+          "priceObservedAt": "2026-09-19T04:00:00.000Z",
+          "exitPrice": 0.000670404,
+          "pnlPercent": -8,
+          "reason": "emergency_stop",
+          "accountingBasis": "whole_entry_position_gross_price_return",
+          "pathOrder": "prior_armed_stop_first",
+          "coreClose": {
+            "at": "2026-09-19T04:00:00.000Z",
+            "stopPrice": 0.000670404,
+            "stopKind": "emergency_stop",
+            "peakPrice": 0.0007327,
+            "peakPct": 0.5489227391244667,
+            "coreCandle": {
+              "start": "2026-09-19T03:45:00.000Z",
+              "end": "2026-09-19T04:00:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only"
+        }
+      ],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": -8,
+      "terminalOutcomeWorstPnlPct": -8,
+      "terminalOutcomeCount": 1,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 13348892,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 502,
+        "firstObservedAt": "2026-09-18T17:07:00.000Z",
+        "lastObservedAt": "2026-09-23T17:15:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 39633,
+        "entryWindowRefinedBars": 8,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-09-23T17:06:39.633Z",
+        "fiveDayOriginalEntryHorizonObserved": true
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.0007582,
+        "highestObservedPnlPct": 4.048305201042955,
+        "highestObservedAfterRecordedCancel": 0.0007582,
+        "highestObservedAfterCancelPnlPct": 4.048305201042955,
+        "postCancelPriceCoverageHours": 112.66151472222222,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 1735,
+      "symbol": "ENA-USDT",
+      "entryAt": "2026-09-20T16:35:02.464Z",
+      "cancelAt": "2026-09-21T01:53:45.778Z",
+      "originalEntryPrice": 0.21969,
+      "recordedEntryPrice": 0.21969,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.21206,
+        "pnlPercent": -3.4730756,
+        "peakPriceAtCancel": 0.23002,
+        "ageHours": 9.312031666666666,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": null,
+      "milestonesObserved": {},
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-23T14:15:00.000Z",
+          "priceObservedAt": "2026-09-23T14:15:00.000Z",
+          "exitPrice": 0.2021148,
+          "pnlPercent": -7.999999999999993,
+          "reason": "emergency_stop",
+          "accountingBasis": "whole_entry_position_gross_price_return",
+          "pathOrder": "prior_armed_stop_first",
+          "coreClose": {
+            "at": "2026-09-23T14:15:00.000Z",
+            "stopPrice": 0.2021148,
+            "stopKind": "emergency_stop",
+            "peakPrice": 0.23053,
+            "peakPct": 4.93422549956758,
+            "coreCandle": {
+              "start": "2026-09-23T14:00:00.000Z",
+              "end": "2026-09-23T14:15:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only"
+        }
+      ],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": -7.999999999999993,
+      "terminalOutcomeWorstPnlPct": -7.999999999999993,
+      "terminalOutcomeCount": 1,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 14778607,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 503,
+        "firstObservedAt": "2026-09-20T16:36:00.000Z",
+        "lastObservedAt": "2026-09-25T16:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 2464,
+        "entryWindowRefinedBars": 9,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-09-25T16:35:02.464Z",
+        "fiveDayOriginalEntryHorizonObserved": true
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.25918,
+        "highestObservedPnlPct": 17.975328872502175,
+        "highestObservedAfterRecordedCancel": 0.25918,
+        "highestObservedAfterCancelPnlPct": 17.975328872502175,
+        "postCancelPriceCoverageHours": 110.85395055555556,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 1737,
+      "symbol": "FET-USDT",
+      "entryAt": "2026-09-20T17:05:17.706Z",
+      "cancelAt": "2026-09-21T02:04:43.121Z",
+      "originalEntryPrice": 0.1798,
+      "recordedEntryPrice": 0.1798,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.175,
+        "pnlPercent": -2.669633,
+        "peakPriceAtCancel": 0.1819,
+        "ageHours": 8.990393055555556,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": null,
+      "milestonesObserved": {
+        "5": "2026-09-21T09:00:00.000Z",
+        "10": "2026-09-21T13:00:00.000Z",
+        "15": "2026-09-21T14:00:00.000Z"
+      },
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-25T17:05:17.706Z",
+          "priceObservedAt": null,
+          "exitPrice": 0.24,
+          "pnlPercent": 33.48164627363738,
+          "reason": "runner_five_day_lifetime_close_profit",
+          "accountingBasis": "pure_runner_return_from_original_entry",
+          "pathOrder": "prior_armed_stop_first;five_day_timer_uses_canonical_sql_lifetime_close",
+          "coreClose": {
+            "at": "2026-09-23T14:15:00.000Z",
+            "stopPrice": 0.19832,
+            "stopKind": "core_trailing_stop",
+            "peakPrice": 0.2163,
+            "peakPct": 20.30033370411569,
+            "coreCandle": {
+              "start": "2026-09-23T14:00:00.000Z",
+              "end": "2026-09-23T14:15:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only",
+          "ageCloseBasis": "canonical SQL lifetime close: max(observed mark, effective trailing floor)",
+          "expiryPriceSource": "canonical lifetime mark settlement; not evidence of an executable fill",
+          "lifetimeTrailingActive": true,
+          "effectiveTrailingStop": 0.19276,
+          "observedPriceMark": 0.24,
+          "durableRunnerPeakPrice": 0.2467,
+          "coreClosedAt": "2026-09-23T14:15:00.000Z",
+          "runnerOpenedAfterCoreCloseAt": "2026-09-23T14:15:00.000Z",
+          "runnerPeakPriceAtCoreClose": 0.2163,
+          "runnerTransitionCandleAmbiguous": true,
+          "runnerTransitionCandlePriceChecked": 0.1978,
+          "coreCloseCandleExcludedFromRunner": false,
+          "runnerExitStrictlyAfterCore": true
+        },
+        {
+          "terminal": true,
+          "exitAt": "2026-09-25T17:05:17.706Z",
+          "priceObservedAt": null,
+          "exitPrice": 0.24,
+          "pnlPercent": 33.48164627363738,
+          "reason": "runner_five_day_lifetime_close_profit",
+          "accountingBasis": "pure_runner_return_from_original_entry",
+          "pathOrder": "same_bar_high_first_same_core_stop;five_day_timer_uses_canonical_sql_lifetime_close",
+          "coreClose": {
+            "at": "2026-09-23T14:15:00.000Z",
+            "stopPrice": 0.19832,
+            "stopKind": "core_trailing_stop",
+            "peakPrice": 0.2163,
+            "peakPct": 20.30033370411569,
+            "coreCandle": {
+              "start": "2026-09-23T14:00:00.000Z",
+              "end": "2026-09-23T14:15:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only",
+          "ageCloseBasis": "canonical SQL lifetime close: max(observed mark, effective trailing floor)",
+          "expiryPriceSource": "canonical lifetime mark settlement; not evidence of an executable fill",
+          "lifetimeTrailingActive": true,
+          "effectiveTrailingStop": 0.19276,
+          "observedPriceMark": 0.24,
+          "durableRunnerPeakPrice": 0.2467,
+          "coreClosedAt": "2026-09-23T14:15:00.000Z",
+          "runnerOpenedAfterCoreCloseAt": "2026-09-23T14:15:00.000Z",
+          "runnerPeakPriceAtCoreClose": 0.2163,
+          "runnerTransitionCandleAmbiguous": true,
+          "runnerTransitionCandlePriceChecked": 0.1928,
+          "coreCloseCandleExcludedFromRunner": false,
+          "runnerExitStrictlyAfterCore": true
+        }
+      ],
+      "ambiguityCount": 1,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": 33.48164627363738,
+      "terminalOutcomeWorstPnlPct": 33.48164627363738,
+      "terminalOutcomeCount": 2,
+      "allTerminalOutcomesStrictlyAbove10": true,
+      "anyTerminalOutcomeStrictlyAbove10": true,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 14796439,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 503,
+        "firstObservedAt": "2026-09-20T17:06:00.000Z",
+        "lastObservedAt": "2026-09-25T17:15:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 17706,
+        "entryWindowRefinedBars": 9,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-09-25T17:05:17.706Z",
+        "fiveDayOriginalEntryHorizonObserved": true
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.2467,
+        "highestObservedPnlPct": 37.20800889877643,
+        "highestObservedAfterRecordedCancel": 0.2467,
+        "highestObservedAfterCancelPnlPct": 37.20800889877643,
+        "postCancelPriceCoverageHours": 111.17135527777778,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 1921,
+      "symbol": "WIF-USDT",
+      "entryAt": "2026-09-25T11:37:31.002Z",
+      "cancelAt": "2026-09-28T03:39:21.144Z",
+      "originalEntryPrice": 0.2445,
+      "recordedEntryPrice": 0.2445,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.2381,
+        "pnlPercent": -2.6175869,
+        "peakPriceAtCancel": 0.2559,
+        "ageHours": 64.030595,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": {
+        "ruleHours": 72,
+        "observedAt": "2026-09-28T11:37:31.002Z",
+        "eligibleUnderPriceOnlyRules": false,
+        "activeStage": true,
+        "peakPctAtObservation": 4.98977505112474,
+        "gateEvidence": {
+          "futuresOi30m": "not available in price-only replay",
+          "spotCvd30m": "not available in price-only replay",
+          "spotCvd1h": "not available in price-only replay",
+          "netChangeAndMarketGates": "not available in price-only replay"
+        },
+        "ifGatePasses": null,
+        "ifGateDoesNotPass": "the separately gated normal path may continue",
+        "notIncludedInObservedOutcome": true
+      },
+      "milestonesObserved": {},
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-28T15:00:00.000Z",
+          "priceObservedAt": "2026-09-28T15:00:00.000Z",
+          "exitPrice": 0.22494,
+          "pnlPercent": -7.999999999999997,
+          "reason": "emergency_stop",
+          "accountingBasis": "whole_entry_position_gross_price_return",
+          "pathOrder": "prior_armed_stop_first",
+          "coreClose": {
+            "at": "2026-09-28T15:00:00.000Z",
+            "stopPrice": 0.22494,
+            "stopKind": "emergency_stop",
+            "peakPrice": 0.2567,
+            "peakPct": 4.98977505112474,
+            "coreCandle": {
+              "start": "2026-09-28T14:45:00.000Z",
+              "end": "2026-09-28T15:00:00.000Z",
+              "source": "bingx_public_15m"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only"
+        }
+      ],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": -7.999999999999997,
+      "terminalOutcomeWorstPnlPct": -7.999999999999997,
+      "terminalOutcomeCount": 1,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 17977651,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 501,
+        "firstObservedAt": "2026-09-25T11:38:00.000Z",
+        "lastObservedAt": "2026-09-30T11:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 31002,
+        "entryWindowRefinedBars": 7,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-09-30T11:37:31.002Z",
+        "fiveDayOriginalEntryHorizonObserved": true
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.2567,
+        "highestObservedPnlPct": 4.98977505112474,
+        "highestObservedAfterRecordedCancel": 0.2564,
+        "highestObservedAfterCancelPnlPct": 4.867075664621686,
+        "postCancelPriceCoverageHours": 56.09412666666667,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 1922,
+      "symbol": "FARTCOIN-USDT",
+      "entryAt": "2026-09-25T11:37:41.897Z",
+      "cancelAt": "2026-09-26T01:29:54.452Z",
+      "originalEntryPrice": 0.1984,
+      "recordedEntryPrice": 0.1984,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.1938,
+        "pnlPercent": -2.3185484,
+        "peakPriceAtCancel": 0.1987,
+        "ageHours": 13.870154166666667,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": null,
+      "milestonesObserved": {},
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-28T03:45:00.000Z",
+          "priceObservedAt": "2026-09-28T03:45:00.000Z",
+          "exitPrice": 0.182528,
+          "pnlPercent": -7.999999999999999,
+          "reason": "emergency_stop",
+          "accountingBasis": "whole_entry_position_gross_price_return",
+          "pathOrder": "prior_armed_stop_first",
+          "coreClose": {
+            "at": "2026-09-28T03:45:00.000Z",
+            "stopPrice": 0.182528,
+            "stopKind": "emergency_stop",
+            "peakPrice": 0.2,
+            "peakPct": 0.806451612903235,
+            "coreCandle": {
+              "start": "2026-09-28T03:30:00.000Z",
+              "end": "2026-09-28T03:45:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only"
+        }
+      ],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": -7.999999999999999,
+      "terminalOutcomeWorstPnlPct": -7.999999999999999,
+      "terminalOutcomeCount": 1,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 17977652,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 501,
+        "firstObservedAt": "2026-09-25T11:38:00.000Z",
+        "lastObservedAt": "2026-09-30T11:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 41897,
+        "entryWindowRefinedBars": 7,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-09-30T11:37:41.897Z",
+        "fiveDayOriginalEntryHorizonObserved": true
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.2,
+        "highestObservedPnlPct": 0.806451612903235,
+        "highestObservedAfterRecordedCancel": 0.1993,
+        "highestObservedAfterCancelPnlPct": 0.45362903225807055,
+        "postCancelPriceCoverageHours": 106.25154111111111,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 1930,
+      "symbol": "SYN-USDT",
+      "entryAt": "2026-09-25T16:36:50.845Z",
+      "cancelAt": "2026-09-27T15:45:54.696Z",
+      "originalEntryPrice": 0.18645,
+      "recordedEntryPrice": 0.18645,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.18243,
+        "pnlPercent": -2.156074,
+        "peakPriceAtCancel": 0.19358,
+        "ageHours": 47.151069722222225,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": null,
+      "milestonesObserved": {},
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-28T05:45:00.000Z",
+          "priceObservedAt": "2026-09-28T05:45:00.000Z",
+          "exitPrice": 0.17153400000000002,
+          "pnlPercent": -7.999999999999992,
+          "reason": "emergency_stop",
+          "accountingBasis": "whole_entry_position_gross_price_return",
+          "pathOrder": "prior_armed_stop_first",
+          "coreClose": {
+            "at": "2026-09-28T05:45:00.000Z",
+            "stopPrice": 0.17153400000000002,
+            "stopKind": "emergency_stop",
+            "peakPrice": 0.19406,
+            "peakPct": 4.081523196567447,
+            "coreCandle": {
+              "start": "2026-09-28T05:30:00.000Z",
+              "end": "2026-09-28T05:45:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only"
+        }
+      ],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": -7.999999999999992,
+      "terminalOutcomeWorstPnlPct": -7.999999999999992,
+      "terminalOutcomeCount": 1,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 18142251,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 502,
+        "firstObservedAt": "2026-09-25T16:37:00.000Z",
+        "lastObservedAt": "2026-09-30T16:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 50845,
+        "entryWindowRefinedBars": 8,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-09-30T16:36:50.845Z",
+        "fiveDayOriginalEntryHorizonObserved": true
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.19406,
+        "highestObservedPnlPct": 4.081523196567447,
+        "highestObservedAfterRecordedCancel": 0.18463,
+        "highestObservedAfterCancelPnlPct": -0.9761330115312501,
+        "postCancelPriceCoverageHours": 72.98480666666667,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 1949,
+      "symbol": "FLOW-USDT",
+      "entryAt": "2026-09-26T16:37:35.952Z",
+      "cancelAt": "2026-09-27T00:11:46.062Z",
+      "originalEntryPrice": 0.03365,
+      "recordedEntryPrice": 0.03365,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.03275,
+        "pnlPercent": -2.6745913,
+        "peakPriceAtCancel": 0.03377,
+        "ageHours": 7.569475,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": null,
+      "milestonesObserved": {},
+      "outcomes": [
+        {
+          "terminal": true,
+          "exitAt": "2026-09-28T05:45:00.000Z",
+          "priceObservedAt": "2026-09-28T05:45:00.000Z",
+          "exitPrice": 0.030958,
+          "pnlPercent": -8,
+          "reason": "emergency_stop",
+          "accountingBasis": "whole_entry_position_gross_price_return",
+          "pathOrder": "prior_armed_stop_first",
+          "coreClose": {
+            "at": "2026-09-28T05:45:00.000Z",
+            "stopPrice": 0.030958,
+            "stopKind": "emergency_stop",
+            "peakPrice": 0.03419,
+            "peakPct": 1.6047548291233247,
+            "coreCandle": {
+              "start": "2026-09-28T05:30:00.000Z",
+              "end": "2026-09-28T05:45:00.000Z",
+              "source": "pattern_backfill_candles"
+            }
+          },
+          "executionEvidence": "unknown; theoretical price-level mark only"
+        }
+      ],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": null,
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": -8,
+      "terminalOutcomeWorstPnlPct": -8,
+      "terminalOutcomeCount": 1,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": false,
+      "coverage": {
+        "snapshotId": 18754500,
+        "trajectoryStatus": "complete",
+        "stored15mCount": 288,
+        "priceBarsTotal": 449,
+        "firstObservedAt": "2026-09-26T16:38:00.000Z",
+        "lastObservedAt": "2026-10-01T03:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 35952,
+        "entryWindowRefinedBars": 7,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-10-01T04:09:16.912Z",
+        "fiveDayOriginalEntryHorizonObserved": false
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.03419,
+        "highestObservedPnlPct": 1.6047548291233247,
+        "highestObservedAfterRecordedCancel": 0.03419,
+        "highestObservedAfterCancelPnlPct": 1.6047548291233247,
+        "postCancelPriceCoverageHours": 99.55387166666667,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 2047,
+      "symbol": "PUMP-USDT",
+      "entryAt": "2026-09-29T19:37:45.054Z",
+      "cancelAt": "2026-09-30T03:21:40.612Z",
+      "originalEntryPrice": 0.005922,
+      "recordedEntryPrice": 0.005922,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.005793,
+        "pnlPercent": -2.178318,
+        "peakPriceAtCancel": 0.005998,
+        "ageHours": 7.732099444444445,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": false,
+          "currentCvd1h": false,
+          "oi30m": -0.008398833,
+          "oi4h": -1.2367299,
+          "availability": "some tracked cancellation-time CVD/OI values are present; full smart-cancel decision cannot be reconstructed"
+        }
+      },
+      "maxAgeGate": {
+        "ruleHours": 72,
+        "eligibleUnderPriceOnlyRules": null,
+        "notReachedBySourceHorizon": true,
+        "observedAt": "2026-10-01T04:09:16.912Z",
+        "gateEvidence": "unavailable; the 72-hour rule was not reached",
+        "ifGatePasses": null,
+        "ifGateDoesNotPass": "not reached",
+        "notIncludedInObservedOutcome": true
+      },
+      "milestonesObserved": {},
+      "outcomes": [],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": {
+        "terminal": false,
+        "reason": "counterfactual_path_right_censored",
+        "stage": "active_core",
+        "lastObservedAt": "2026-10-01T03:45:00.000Z",
+        "markedPrice": 0.005754,
+        "markedPnlPercent": -2.836879432624124,
+        "peakPrice": 0.006026,
+        "peakPnlPercent": 1.7561634582911168,
+        "sourceCoverageEnd": "2026-10-01T03:45:00.000Z",
+        "fiveDayOriginalEntryHorizonObserved": false
+      },
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": null,
+      "terminalOutcomeWorstPnlPct": null,
+      "terminalOutcomeCount": 0,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": true,
+      "coverage": {
+        "snapshotId": 20766610,
+        "trajectoryStatus": "partial",
+        "stored15mCount": 120,
+        "priceBarsTotal": 149,
+        "firstObservedAt": "2026-09-29T19:38:00.000Z",
+        "lastObservedAt": "2026-10-01T03:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 45054,
+        "entryWindowRefinedBars": 7,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-10-01T04:09:16.912Z",
+        "fiveDayOriginalEntryHorizonObserved": false
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.006026,
+        "highestObservedPnlPct": 1.7561634582911168,
+        "highestObservedAfterRecordedCancel": 0.006018,
+        "highestObservedAfterCancelPnlPct": 1.6210739614994887,
+        "postCancelPriceCoverageHours": 24.38871888888889,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 2063,
+      "symbol": "MARSCOIN-USDT",
+      "entryAt": "2026-09-30T13:07:18.948Z",
+      "cancelAt": "2026-09-30T19:55:44.833Z",
+      "originalEntryPrice": 0.14216,
+      "recordedEntryPrice": 0.14216,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.13546,
+        "pnlPercent": -4.7129993,
+        "peakPriceAtCancel": 0.14246,
+        "ageHours": 6.807190277777778,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": {
+        "ruleHours": 72,
+        "eligibleUnderPriceOnlyRules": null,
+        "notReachedBySourceHorizon": true,
+        "observedAt": "2026-10-01T04:09:16.912Z",
+        "gateEvidence": "unavailable; the 72-hour rule was not reached",
+        "ifGatePasses": null,
+        "ifGateDoesNotPass": "not reached",
+        "notIncludedInObservedOutcome": true
+      },
+      "milestonesObserved": {},
+      "outcomes": [],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": {
+        "terminal": false,
+        "reason": "counterfactual_path_right_censored",
+        "stage": "active_core",
+        "lastObservedAt": "2026-10-01T03:45:00.000Z",
+        "markedPrice": 0.14188,
+        "markedPnlPercent": -0.19696117051210077,
+        "peakPrice": 0.14258,
+        "peakPnlPercent": 0.2954417557681512,
+        "sourceCoverageEnd": "2026-10-01T03:45:00.000Z",
+        "fiveDayOriginalEntryHorizonObserved": false
+      },
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": null,
+      "terminalOutcomeWorstPnlPct": null,
+      "terminalOutcomeCount": 0,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": true,
+      "coverage": {
+        "snapshotId": 21309194,
+        "trajectoryStatus": "partial",
+        "stored15mCount": 48,
+        "priceBarsTotal": 79,
+        "firstObservedAt": "2026-09-30T13:08:00.000Z",
+        "lastObservedAt": "2026-10-01T03:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 18948,
+        "entryWindowRefinedBars": 7,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-10-01T04:09:16.912Z",
+        "fiveDayOriginalEntryHorizonObserved": false
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.14258,
+        "highestObservedPnlPct": 0.2954417557681512,
+        "highestObservedAfterRecordedCancel": 0.14258,
+        "highestObservedAfterCancelPnlPct": 0.2954417557681512,
+        "postCancelPriceCoverageHours": 7.820879722222222,
+        "treatedAsRealized": false
+      }
+    },
+    {
+      "id": 2064,
+      "symbol": "ARB-USDT",
+      "entryAt": "2026-09-30T13:07:39.242Z",
+      "cancelAt": "2026-09-30T19:13:49.732Z",
+      "originalEntryPrice": 0.20862,
+      "recordedEntryPrice": 0.20862,
+      "entryPriceBasisMatchesOriginal": true,
+      "stopLossPct": 8,
+      "recordedCancellation": {
+        "exitPrice": 0.20237,
+        "pnlPercent": -2.9958777,
+        "peakPriceAtCancel": 0.21077,
+        "ageHours": 6.102913888888889,
+        "smartCancelEvidenceAtDecision": {
+          "currentCvd30m": null,
+          "currentCvd1h": null,
+          "oi30m": null,
+          "oi4h": null,
+          "availability": "tracked cancellation row has no exit CVD/OI values; cancellation evidence cannot be replayed"
+        }
+      },
+      "maxAgeGate": {
+        "ruleHours": 72,
+        "eligibleUnderPriceOnlyRules": null,
+        "notReachedBySourceHorizon": true,
+        "observedAt": "2026-10-01T04:09:16.912Z",
+        "gateEvidence": "unavailable; the 72-hour rule was not reached",
+        "ifGatePasses": null,
+        "ifGateDoesNotPass": "not reached",
+        "notIncludedInObservedOutcome": true
+      },
+      "milestonesObserved": {},
+      "outcomes": [],
+      "ambiguityCount": 0,
+      "censoredRunnerBranches": [],
+      "continuationCensored": {
+        "terminal": false,
+        "reason": "counterfactual_path_right_censored",
+        "stage": "active_core",
+        "lastObservedAt": "2026-10-01T03:45:00.000Z",
+        "markedPrice": 0.20478,
+        "markedPnlPercent": -1.8406672418751844,
+        "peakPrice": 0.21226,
+        "peakPnlPercent": 1.7447991563608496,
+        "sourceCoverageEnd": "2026-10-01T03:45:00.000Z",
+        "fiveDayOriginalEntryHorizonObserved": false
+      },
+      "definitelyExitedBeforeRecordedCancel": false,
+      "definitelyPreCancelOutcomeCount": 0,
+      "definitelyPreCancelBestPnlPct": null,
+      "terminalOutcomeBestPnlPct": null,
+      "terminalOutcomeWorstPnlPct": null,
+      "terminalOutcomeCount": 0,
+      "allTerminalOutcomesStrictlyAbove10": false,
+      "anyTerminalOutcomeStrictlyAbove10": false,
+      "hasUnresolvedContinuation": true,
+      "coverage": {
+        "snapshotId": 21309195,
+        "trajectoryStatus": "partial",
+        "stored15mCount": 48,
+        "priceBarsTotal": 79,
+        "firstObservedAt": "2026-09-30T13:08:00.000Z",
+        "lastObservedAt": "2026-10-01T03:45:00.000Z",
+        "sourceGapCount": 0,
+        "sourceGaps": [],
+        "entryOverlapExcludedMs": 39242,
+        "entryWindowRefinedBars": 7,
+        "cancelWindowRefinedBars": 15,
+        "horizonAt": "2026-10-01T04:09:16.912Z",
+        "fiveDayOriginalEntryHorizonObserved": false
+      },
+      "secondaryPriceObservation": {
+        "highestObservedPriceThroughHorizon": 0.21226,
+        "highestObservedPnlPct": 1.7447991563608496,
+        "highestObservedAfterRecordedCancel": 0.20543,
+        "highestObservedAfterCancelPnlPct": -1.529095963953599,
+        "postCancelPriceCoverageHours": 8.51951888888889,
+        "treatedAsRealized": false
+      }
+    }
+  ]
+}

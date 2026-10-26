@@ -1,0 +1,172 @@
+{
+  "capture_asof_utc": "2026-10-01T06:02:27.412957+00:00",
+  "environment": "production_read_only_replica",
+  "capture_scope": "all canonical tracked:<id> fired impulse_buy snapshots matched to tracked_signals; no UI cutoff, status, policy, or entry-date exclusion",
+  "statement_snapshot": "single SQL statement; statement_timestamp() and MVCC snapshot",
+  "cohort_rows": 188,
+  "distinct_tracker_ids": 188,
+  "duplicate_tracker_rows": 0,
+  "canonical_snapshot_rows": 188,
+  "first_detected_at_utc": "2026-06-18T14:48:16.594+00:00",
+  "last_detected_at_utc": "2026-10-01T03:06:29.114+00:00",
+  "snapshot_source_counts": {
+    "tracked_signals": 158,
+    "tracked_signals_legacy": 30
+  },
+  "snapshot_legacy_rows": 30,
+  "status_counts": {
+    "active": 4,
+    "profit": 28,
+    "bu_stop": 63,
+    "expired": 4,
+    "cancelled": 55,
+    "stop_loss": 32,
+    "reclassified": 2
+  },
+  "entry_metric_presence_counts": {
+    "spot_net_buy_1h_pct": 153,
+    "spot_taker_net_buy_pct": 94,
+    "trigger_candle_body_pct": 61,
+    "trigger_candle_closed_at": 61,
+    "futures_taker_net_buy_pct": 148,
+    "trigger_candle_volume_usd": 0,
+    "trigger_baseline_volume_usd": 0,
+    "trigger_candle_close_strength": 61,
+    "tracker_spot_volume_multiplier": 166,
+    "trigger_candle_volume_multiplier": 61,
+    "tracker_futures_volume_multiplier": 172
+  },
+  "price_basis_counts": {
+    "unavailable": 0,
+    "entry_price_fallback": 95,
+    "original_entry_price": 93
+  },
+  "taker_metric_semantics": "Persisted spot/futures taker columns are net-buy percentages: (buy volume - sell volume) / (buy volume + sell volume) * 100; these are not buy-share percentages.",
+  "missing_absolute_futures_24h_volume": "No absolute futures 24h volume field is exported or inferred.",
+  "horizon_coverage": {
+    "1": {
+      "cohort_rows": 188,
+      "mature_rows": 188,
+      "mature_gap_free_rows": 185,
+      "rows_with_gap_free_coverage": 185
+    },
+    "3": {
+      "cohort_rows": 188,
+      "mature_rows": 187,
+      "mature_gap_free_rows": 185,
+      "rows_with_gap_free_coverage": 185
+    },
+    "6": {
+      "cohort_rows": 188,
+      "mature_rows": 187,
+      "mature_gap_free_rows": 185,
+      "rows_with_gap_free_coverage": 185
+    },
+    "12": {
+      "cohort_rows": 188,
+      "mature_rows": 187,
+      "mature_gap_free_rows": 185,
+      "rows_with_gap_free_coverage": 185
+    },
+    "24": {
+      "cohort_rows": 188,
+      "mature_rows": 182,
+      "mature_gap_free_rows": 180,
+      "rows_with_gap_free_coverage": 180
+    },
+    "72": {
+      "cohort_rows": 188,
+      "mature_rows": 180,
+      "mature_gap_free_rows": 178,
+      "rows_with_gap_free_coverage": 178
+    }
+  },
+  "path_notes": {
+    "source": "pattern_backfill_candles",
+    "interval": "15m",
+    "hit_times": "15m bar open and bar close are approximate threshold times; same-bar target/stop overlaps are explicitly flagged",
+    "coverage_rule": "all expected aligned buckets from ceil(entry,15m) through floor(entry+horizon,15m)-15m; valid OHLC; zero invalid or duplicate bars; exact endpoints",
+    "preclose_rule": "separate tracker closed_at-bounded path for non-cancelled closed rows; not evidence of a fill",
+    "source_filter": "bingx_15m",
+    "closed_bar_filter": "open >= detected_at; open + 15m <= horizon endpoint and capture asof",
+    "candle_at_semantics": "candle open time"
+  },
+  "json_window_array_schema": {
+    "window_values": [
+      "mature_at_capture",
+      "first_expected_open_index",
+      "last_expected_open_index",
+      "expected_bar_count",
+      "valid_bucket_count",
+      "invalid_bar_count",
+      "duplicate_bar_count",
+      "first_valid_open_index",
+      "last_valid_open_index",
+      "coverage_complete",
+      "max_high_pct",
+      "min_low_pct",
+      "endpoint_close_pct",
+      "first_plus5_open_index",
+      "first_plus10_open_index",
+      "first_plus20_open_index",
+      "first_minus8_open_index",
+      "first_minus10_open_index",
+      "first_bar_high_pct",
+      "first_bar_low_pct",
+      "first_bar_close_pct",
+      "same_bar_target_stop_ambiguous",
+      "preclose_array"
+    ],
+    "preclose_values": [
+      "applicable",
+      "last_expected_open_index",
+      "expected_bar_count",
+      "valid_bucket_count",
+      "invalid_bar_count",
+      "duplicate_bar_count",
+      "first_valid_open_index",
+      "last_valid_open_index",
+      "coverage_complete",
+      "max_high_pct",
+      "min_low_pct",
+      "endpoint_close_pct"
+    ],
+    "bar_index_anchor": "Each index is the 15-minute open-time bucket offset from floor(detected_at UTC / 15m); close index = open index + 1. NULL means no observation."
+  },
+  "quality_flag_note": "Large entry-anchored candle moves (including symbol redenominations/discontinuities) are flagged, never silently dropped.",
+  "rows_with_path_or_first_candle_gt300pct": [
+    {
+      "id": 1428,
+      "symbol": "AKE-USDT",
+      "first_candle_discontinuity_gt300pct": false,
+      "any_forward_path_high_gt300pct": true
+    },
+    {
+      "id": 1430,
+      "symbol": "MARSCOIN-USDT",
+      "first_candle_discontinuity_gt300pct": false,
+      "any_forward_path_high_gt300pct": true
+    },
+    {
+      "id": 1586,
+      "symbol": "LSK-USDT",
+      "first_candle_discontinuity_gt300pct": false,
+      "any_forward_path_high_gt300pct": true
+    }
+  ],
+  "export_files": [
+    "extraction.sql",
+    "cohort.json",
+    "cohort.csv",
+    "horizon-windows.csv",
+    "metadata.json"
+  ],
+  "data_guardrails": [
+    "Every tracked fire joins exactly one canonical event_key tracked:<id> fired impulse_buy snapshot.",
+    "Entry metrics are read only from immutable snapshot.entry_metrics; missing values remain null and are not filled from mutable tracker metrics.",
+    "Entry basis is positive original_entry_price, otherwise current entry_price; basis source is recorded.",
+    "No statuses, policies, dates, UI cutoffs or rows were excluded.",
+    "No market data was fetched; forward paths use only frozen production pattern_backfill_candles.",
+    "Forward paths are OHLC observations, not evidence of fills or executable prices."
+  ]
+}

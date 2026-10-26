@@ -1,0 +1,10 @@
+source,decision_kind,trajectory_status_at_query,rows
+oi_watch_reconciliation,expired,complete,1
+oi_watch_reconciliation,watching,complete,1
+scanner_sym_reject,blocked,unavailable,90
+scanner_sym_reject,rejected,complete,24615
+scanner_sym_reject,rejected,partial,1909
+scanner_sym_reject,rejected,unavailable,83911
+tracked_signals,fired,complete,86
+tracked_signals,fired,partial,6
+tracked_signals_legacy,fired,complete,79

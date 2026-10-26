@@ -1,0 +1,2451 @@
+{
+  "source": "https://open-api.bingx.com/openApi/swap/v3/quote/klines",
+  "market_type": "BingX USDT perpetual swap",
+  "interval": "30m",
+  "fetch_scope": "one exact pre-entry anchor candle per frozen snapshot trigger timestamp; exact frozen symbol; no exchange/instrument substitution",
+  "uses_private_endpoint": false,
+  "unique_requests": 61,
+  "trigger_timestamp_rows": 61,
+  "results": [
+    {
+      "associated_tracker_ids": [
+        1665
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "6.103",
+          "high": "6.118",
+          "low": "5.935",
+          "open": "5.980",
+          "time": 1789390800000,
+          "volume": "198728"
+        }
+      ],
+      "closed_at_utc": "2026-09-14T13:30:00.000Z",
+      "endTime": 1789392599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "6.103",
+            "high": "6.118",
+            "low": "5.935",
+            "open": "5.980",
+            "time": 1789390800000,
+            "volume": "198728"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789390800000,
+      "symbol": "INJ-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=INJ-USDT&interval=30m&startTime=1789390800000&endTime=1789392599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1666
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.011965",
+          "high": "0.012030",
+          "low": "0.011514",
+          "open": "0.011558",
+          "time": 1789403400000,
+          "volume": "3099178.55"
+        }
+      ],
+      "closed_at_utc": "2026-09-14T17:00:00.000Z",
+      "endTime": 1789405199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.011965",
+            "high": "0.012030",
+            "low": "0.011514",
+            "open": "0.011558",
+            "time": 1789403400000,
+            "volume": "3099178.55"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789403400000,
+      "symbol": "AVAAI-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=AVAAI-USDT&interval=30m&startTime=1789403400000&endTime=1789405199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1672
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.19722",
+          "high": "0.19800",
+          "low": "0.18199",
+          "open": "0.18351",
+          "time": 1789448400000,
+          "volume": "587723.1"
+        }
+      ],
+      "closed_at_utc": "2026-09-15T05:30:00.000Z",
+      "endTime": 1789450199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.19722",
+            "high": "0.19800",
+            "low": "0.18199",
+            "open": "0.18351",
+            "time": 1789448400000,
+            "volume": "587723.1"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789448400000,
+      "symbol": "POWER-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=POWER-USDT&interval=30m&startTime=1789448400000&endTime=1789450199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1678
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.024281",
+          "high": "0.024473",
+          "low": "0.023598",
+          "open": "0.023712",
+          "time": 1789473600000,
+          "volume": "6587803"
+        }
+      ],
+      "closed_at_utc": "2026-09-15T12:30:00.000Z",
+      "endTime": 1789475399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.024281",
+            "high": "0.024473",
+            "low": "0.023598",
+            "open": "0.023712",
+            "time": 1789473600000,
+            "volume": "6587803"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789473600000,
+      "symbol": "AKE-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=AKE-USDT&interval=30m&startTime=1789473600000&endTime=1789475399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1682
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.10152",
+          "high": "0.10174",
+          "low": "0.09845",
+          "open": "0.09861",
+          "time": 1789484400000,
+          "volume": "1184468.7"
+        }
+      ],
+      "closed_at_utc": "2026-09-15T15:30:00.000Z",
+      "endTime": 1789486199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.10152",
+            "high": "0.10174",
+            "low": "0.09845",
+            "open": "0.09861",
+            "time": 1789484400000,
+            "volume": "1184468.7"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789484400000,
+      "symbol": "OP-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=OP-USDT&interval=30m&startTime=1789484400000&endTime=1789486199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1683
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.003695",
+          "high": "0.003751",
+          "low": "0.003582",
+          "open": "0.003587",
+          "time": 1789493400000,
+          "volume": "69172140.54"
+        }
+      ],
+      "closed_at_utc": "2026-09-15T18:00:00.000Z",
+      "endTime": 1789495199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.003695",
+            "high": "0.003751",
+            "low": "0.003582",
+            "open": "0.003587",
+            "time": 1789493400000,
+            "volume": "69172140.54"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789493400000,
+      "symbol": "REZ-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=REZ-USDT&interval=30m&startTime=1789493400000&endTime=1789495199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1687
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.23707",
+          "high": "0.23786",
+          "low": "0.22761",
+          "open": "0.22960",
+          "time": 1789540200000,
+          "volume": "675812.30"
+        }
+      ],
+      "closed_at_utc": "2026-09-16T07:00:00.000Z",
+      "endTime": 1789541999999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.23707",
+            "high": "0.23786",
+            "low": "0.22761",
+            "open": "0.22960",
+            "time": 1789540200000,
+            "volume": "675812.30"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789540200000,
+      "symbol": "USELESS-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=USELESS-USDT&interval=30m&startTime=1789540200000&endTime=1789541999999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1688
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.23025",
+          "high": "0.23527",
+          "low": "0.20740",
+          "open": "0.20757",
+          "time": 1789549200000,
+          "volume": "663776.07"
+        }
+      ],
+      "closed_at_utc": "2026-09-16T09:30:00.000Z",
+      "endTime": 1789550999999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.23025",
+            "high": "0.23527",
+            "low": "0.20740",
+            "open": "0.20757",
+            "time": 1789549200000,
+            "volume": "663776.07"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789549200000,
+      "symbol": "BR-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=BR-USDT&interval=30m&startTime=1789549200000&endTime=1789550999999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1689
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.61271",
+          "high": "0.61751",
+          "low": "0.53306",
+          "open": "0.54317",
+          "time": 1789554600000,
+          "volume": "1680121.547"
+        }
+      ],
+      "closed_at_utc": "2026-09-16T11:00:00.000Z",
+      "endTime": 1789556399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.61271",
+            "high": "0.61751",
+            "low": "0.53306",
+            "open": "0.54317",
+            "time": 1789554600000,
+            "volume": "1680121.547"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789554600000,
+      "symbol": "LSK-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=LSK-USDT&interval=30m&startTime=1789554600000&endTime=1789556399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1697
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.6195",
+          "high": "0.6225",
+          "low": "0.6013",
+          "open": "0.6053",
+          "time": 1789606800000,
+          "volume": "151478.5"
+        }
+      ],
+      "closed_at_utc": "2026-09-17T01:30:00.000Z",
+      "endTime": 1789608599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.6195",
+            "high": "0.6225",
+            "low": "0.6013",
+            "open": "0.6053",
+            "time": 1789606800000,
+            "volume": "151478.5"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789606800000,
+      "symbol": "PONS-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=PONS-USDT&interval=30m&startTime=1789606800000&endTime=1789608599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1698
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.10905",
+          "high": "0.10944",
+          "low": "0.10427",
+          "open": "0.10462",
+          "time": 1789619400000,
+          "volume": "702521.2"
+        }
+      ],
+      "closed_at_utc": "2026-09-17T05:00:00.000Z",
+      "endTime": 1789621199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.10905",
+            "high": "0.10944",
+            "low": "0.10427",
+            "open": "0.10462",
+            "time": 1789619400000,
+            "volume": "702521.2"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789619400000,
+      "symbol": "MARSCOIN-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=MARSCOIN-USDT&interval=30m&startTime=1789619400000&endTime=1789621199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1699
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.07390",
+          "high": "0.07439",
+          "low": "0.06995",
+          "open": "0.07004",
+          "time": 1789619400000,
+          "volume": "3233075.98"
+        }
+      ],
+      "closed_at_utc": "2026-09-17T05:00:00.000Z",
+      "endTime": 1789621199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.07390",
+            "high": "0.07439",
+            "low": "0.06995",
+            "open": "0.07004",
+            "time": 1789619400000,
+            "volume": "3233075.98"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789619400000,
+      "symbol": "INIT-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=INIT-USDT&interval=30m&startTime=1789619400000&endTime=1789621199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1700
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.0009686",
+          "high": "0.0009710",
+          "low": "0.0009370",
+          "open": "0.0009422",
+          "time": 1789626600000,
+          "volume": "1337766974"
+        }
+      ],
+      "closed_at_utc": "2026-09-17T07:00:00.000Z",
+      "endTime": 1789628399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.0009686",
+            "high": "0.0009710",
+            "low": "0.0009370",
+            "open": "0.0009422",
+            "time": 1789626600000,
+            "volume": "1337766974"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789626600000,
+      "symbol": "BOME-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=BOME-USDT&interval=30m&startTime=1789626600000&endTime=1789628399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1702
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.18928",
+          "high": "0.19278",
+          "low": "0.17350",
+          "open": "0.17420",
+          "time": 1789635600000,
+          "volume": "2581590.10"
+        }
+      ],
+      "closed_at_utc": "2026-09-17T09:30:00.000Z",
+      "endTime": 1789637399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.18928",
+            "high": "0.19278",
+            "low": "0.17350",
+            "open": "0.17420",
+            "time": 1789635600000,
+            "volume": "2581590.10"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789635600000,
+      "symbol": "SYN-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=SYN-USDT&interval=30m&startTime=1789635600000&endTime=1789637399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1703
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.5724",
+          "high": "0.5727",
+          "low": "0.5541",
+          "open": "0.5548",
+          "time": 1789646400000,
+          "volume": "92810.155"
+        }
+      ],
+      "closed_at_utc": "2026-09-17T12:30:00.000Z",
+      "endTime": 1789648199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.5724",
+            "high": "0.5727",
+            "low": "0.5541",
+            "open": "0.5548",
+            "time": 1789646400000,
+            "volume": "92810.155"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789646400000,
+      "symbol": "AERO-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=AERO-USDT&interval=30m&startTime=1789646400000&endTime=1789648199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1705
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "7.246",
+          "high": "7.248",
+          "low": "6.967",
+          "open": "7.026",
+          "time": 1789651800000,
+          "volume": "116447"
+        }
+      ],
+      "closed_at_utc": "2026-09-17T14:00:00.000Z",
+      "endTime": 1789653599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "7.246",
+            "high": "7.248",
+            "low": "6.967",
+            "open": "7.026",
+            "time": 1789651800000,
+            "volume": "116447"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789651800000,
+      "symbol": "UNI-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=UNI-USDT&interval=30m&startTime=1789651800000&endTime=1789653599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1707
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "61.59",
+          "high": "61.87",
+          "low": "59.65",
+          "open": "60.17",
+          "time": 1789660800000,
+          "volume": "9554.31"
+        }
+      ],
+      "closed_at_utc": "2026-09-17T16:30:00.000Z",
+      "endTime": 1789662599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "61.59",
+            "high": "61.87",
+            "low": "59.65",
+            "open": "60.17",
+            "time": 1789660800000,
+            "volume": "9554.31"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789660800000,
+      "symbol": "DASH-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=DASH-USDT&interval=30m&startTime=1789660800000&endTime=1789662599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1711
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.7420",
+          "high": "0.7441",
+          "low": "0.7137",
+          "open": "0.7166",
+          "time": 1789698600000,
+          "volume": "341939.3"
+        }
+      ],
+      "closed_at_utc": "2026-09-18T03:00:00.000Z",
+      "endTime": 1789700399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.7420",
+            "high": "0.7441",
+            "low": "0.7137",
+            "open": "0.7166",
+            "time": 1789698600000,
+            "volume": "341939.3"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789698600000,
+      "symbol": "PONS-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=PONS-USDT&interval=30m&startTime=1789698600000&endTime=1789700399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1712
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.11511",
+          "high": "0.11562",
+          "low": "0.10604",
+          "open": "0.10604",
+          "time": 1789700400000,
+          "volume": "4678800.2"
+        }
+      ],
+      "closed_at_utc": "2026-09-18T03:30:00.000Z",
+      "endTime": 1789702199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.11511",
+            "high": "0.11562",
+            "low": "0.10604",
+            "open": "0.10604",
+            "time": 1789700400000,
+            "volume": "4678800.2"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789700400000,
+      "symbol": "OP-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=OP-USDT&interval=30m&startTime=1789700400000&endTime=1789702199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1715
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.004260",
+          "high": "0.004284",
+          "low": "0.004059",
+          "open": "0.004079",
+          "time": 1789705800000,
+          "volume": "129224531"
+        }
+      ],
+      "closed_at_utc": "2026-09-18T05:00:00.000Z",
+      "endTime": 1789707599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.004260",
+            "high": "0.004284",
+            "low": "0.004059",
+            "open": "0.004079",
+            "time": 1789705800000,
+            "volume": "129224531"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789705800000,
+      "symbol": "PUMP-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=PUMP-USDT&interval=30m&startTime=1789705800000&endTime=1789707599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1717
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.02151",
+          "high": "0.02163",
+          "low": "0.02086",
+          "open": "0.02088",
+          "time": 1789707600000,
+          "volume": "3427589.9"
+        }
+      ],
+      "closed_at_utc": "2026-09-18T05:30:00.000Z",
+      "endTime": 1789709399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.02151",
+            "high": "0.02163",
+            "low": "0.02086",
+            "open": "0.02088",
+            "time": 1789707600000,
+            "volume": "3427589.9"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789707600000,
+      "symbol": "TUT-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=TUT-USDT&interval=30m&startTime=1789707600000&endTime=1789709399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1718
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.17091",
+          "high": "0.17103",
+          "low": "0.16651",
+          "open": "0.16694",
+          "time": 1789714800000,
+          "volume": "3029008.13"
+        }
+      ],
+      "closed_at_utc": "2026-09-18T07:30:00.000Z",
+      "endTime": 1789716599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.17091",
+            "high": "0.17103",
+            "low": "0.16651",
+            "open": "0.16694",
+            "time": 1789714800000,
+            "volume": "3029008.13"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789714800000,
+      "symbol": "ENA-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ENA-USDT&interval=30m&startTime=1789714800000&endTime=1789716599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1719
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.2516",
+          "high": "0.2517",
+          "low": "0.2443",
+          "open": "0.2447",
+          "time": 1789723800000,
+          "volume": "454030"
+        }
+      ],
+      "closed_at_utc": "2026-09-18T10:00:00.000Z",
+      "endTime": 1789725599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.2516",
+            "high": "0.2517",
+            "low": "0.2443",
+            "open": "0.2447",
+            "time": 1789723800000,
+            "volume": "454030"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789723800000,
+      "symbol": "SUSHI-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=SUSHI-USDT&interval=30m&startTime=1789723800000&endTime=1789725599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1720
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.21076",
+          "high": "0.21775",
+          "low": "0.18784",
+          "open": "0.19420",
+          "time": 1789725600000,
+          "volume": "314742.73"
+        }
+      ],
+      "closed_at_utc": "2026-09-18T10:30:00.000Z",
+      "endTime": 1789727399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.21076",
+            "high": "0.21775",
+            "low": "0.18784",
+            "open": "0.19420",
+            "time": 1789725600000,
+            "volume": "314742.73"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789725600000,
+      "symbol": "MAGMA-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=MAGMA-USDT&interval=30m&startTime=1789725600000&endTime=1789727399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1721
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.008568",
+          "high": "0.008749",
+          "low": "0.008113",
+          "open": "0.008241",
+          "time": 1789732800000,
+          "volume": "46885089.7"
+        }
+      ],
+      "closed_at_utc": "2026-09-18T12:30:00.000Z",
+      "endTime": 1789734599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.008568",
+            "high": "0.008749",
+            "low": "0.008113",
+            "open": "0.008241",
+            "time": 1789732800000,
+            "volume": "46885089.7"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789732800000,
+      "symbol": "G-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=G-USDT&interval=30m&startTime=1789732800000&endTime=1789734599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1723
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.0007343",
+          "high": "0.0007374",
+          "low": "0.0007088",
+          "open": "0.0007090",
+          "time": 1789749000000,
+          "volume": "75156616"
+        }
+      ],
+      "closed_at_utc": "2026-09-18T17:00:00.000Z",
+      "endTime": 1789750799999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.0007343",
+            "high": "0.0007374",
+            "low": "0.0007088",
+            "open": "0.0007090",
+            "time": 1789749000000,
+            "volume": "75156616"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789749000000,
+      "symbol": "VTHO-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=VTHO-USDT&interval=30m&startTime=1789749000000&endTime=1789750799999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1727
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.0027349",
+          "high": "0.0027413",
+          "low": "0.0025098",
+          "open": "0.0025194",
+          "time": 1789828200000,
+          "volume": "74216240"
+        }
+      ],
+      "closed_at_utc": "2026-09-19T15:00:00.000Z",
+      "endTime": 1789829999999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.0027349",
+            "high": "0.0027413",
+            "low": "0.0025098",
+            "open": "0.0025194",
+            "time": 1789828200000,
+            "volume": "74216240"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789828200000,
+      "symbol": "ONE-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ONE-USDT&interval=30m&startTime=1789828200000&endTime=1789829999999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1732
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.24977",
+          "high": "0.25170",
+          "low": "0.24213",
+          "open": "0.24444",
+          "time": 1789869600000,
+          "volume": "410918.50"
+        }
+      ],
+      "closed_at_utc": "2026-09-20T02:30:00.000Z",
+      "endTime": 1789871399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.24977",
+            "high": "0.25170",
+            "low": "0.24213",
+            "open": "0.24444",
+            "time": 1789869600000,
+            "volume": "410918.50"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789869600000,
+      "symbol": "SYN-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=SYN-USDT&interval=30m&startTime=1789869600000&endTime=1789871399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1733
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.26848",
+          "high": "0.27803",
+          "low": "0.24161",
+          "open": "0.24170",
+          "time": 1789900200000,
+          "volume": "785234.489"
+        }
+      ],
+      "closed_at_utc": "2026-09-20T11:00:00.000Z",
+      "endTime": 1789901999999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.26848",
+            "high": "0.27803",
+            "low": "0.24161",
+            "open": "0.24170",
+            "time": 1789900200000,
+            "volume": "785234.489"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789900200000,
+      "symbol": "ALLO-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ALLO-USDT&interval=30m&startTime=1789900200000&endTime=1789901999999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1734
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.0009035",
+          "high": "0.0009049",
+          "low": "0.0008410",
+          "open": "0.0008502",
+          "time": 1789920000000,
+          "volume": "70593553.1"
+        }
+      ],
+      "closed_at_utc": "2026-09-20T16:30:00.000Z",
+      "endTime": 1789921799999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.0009035",
+            "high": "0.0009049",
+            "low": "0.0008410",
+            "open": "0.0008502",
+            "time": 1789920000000,
+            "volume": "70593553.1"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789920000000,
+      "symbol": "PTB-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=PTB-USDT&interval=30m&startTime=1789920000000&endTime=1789921799999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1735
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.21638",
+          "high": "0.21732",
+          "low": "0.20311",
+          "open": "0.20369",
+          "time": 1789920000000,
+          "volume": "10237800.75"
+        }
+      ],
+      "closed_at_utc": "2026-09-20T16:30:00.000Z",
+      "endTime": 1789921799999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.21638",
+            "high": "0.21732",
+            "low": "0.20311",
+            "open": "0.20369",
+            "time": 1789920000000,
+            "volume": "10237800.75"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789920000000,
+      "symbol": "ENA-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ENA-USDT&interval=30m&startTime=1789920000000&endTime=1789921799999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1736
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.007970",
+          "high": "0.007975",
+          "low": "0.007780",
+          "open": "0.007789",
+          "time": 1789921800000,
+          "volume": "9966997.6"
+        }
+      ],
+      "closed_at_utc": "2026-09-20T17:00:00.000Z",
+      "endTime": 1789923599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.007970",
+            "high": "0.007975",
+            "low": "0.007780",
+            "open": "0.007789",
+            "time": 1789921800000,
+            "volume": "9966997.6"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789921800000,
+      "symbol": "PENGU-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=PENGU-USDT&interval=30m&startTime=1789921800000&endTime=1789923599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1737
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.1796",
+          "high": "0.1799",
+          "low": "0.1756",
+          "open": "0.1758",
+          "time": 1789921800000,
+          "volume": "1062870"
+        }
+      ],
+      "closed_at_utc": "2026-09-20T17:00:00.000Z",
+      "endTime": 1789923599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.1796",
+            "high": "0.1799",
+            "low": "0.1756",
+            "open": "0.1758",
+            "time": 1789921800000,
+            "volume": "1062870"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789921800000,
+      "symbol": "FET-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=FET-USDT&interval=30m&startTime=1789921800000&endTime=1789923599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1738
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.1369",
+          "high": "0.1373",
+          "low": "0.1299",
+          "open": "0.1299",
+          "time": 1789921800000,
+          "volume": "485971.62"
+        }
+      ],
+      "closed_at_utc": "2026-09-20T17:00:00.000Z",
+      "endTime": 1789923599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.1369",
+            "high": "0.1373",
+            "low": "0.1299",
+            "open": "0.1299",
+            "time": 1789921800000,
+            "volume": "485971.62"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789921800000,
+      "symbol": "CFG-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=CFG-USDT&interval=30m&startTime=1789921800000&endTime=1789923599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1741
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.039716",
+          "high": "0.039716",
+          "low": "0.033311",
+          "open": "0.034639",
+          "time": 1789968600000,
+          "volume": "9040603"
+        }
+      ],
+      "closed_at_utc": "2026-09-21T06:00:00.000Z",
+      "endTime": 1789970399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.039716",
+            "high": "0.039716",
+            "low": "0.033311",
+            "open": "0.034639",
+            "time": 1789968600000,
+            "volume": "9040603"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789968600000,
+      "symbol": "AKE-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=AKE-USDT&interval=30m&startTime=1789968600000&endTime=1789970399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1763
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.0044289",
+          "high": "0.0044486",
+          "low": "0.0042913",
+          "open": "0.0042966",
+          "time": 1789999200000,
+          "volume": "10420460414"
+        }
+      ],
+      "closed_at_utc": "2026-09-21T14:30:00.000Z",
+      "endTime": 1790000999999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.0044289",
+            "high": "0.0044486",
+            "low": "0.0042913",
+            "open": "0.0042966",
+            "time": 1789999200000,
+            "volume": "10420460414"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1789999200000,
+      "symbol": "1000PEPE-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=1000PEPE-USDT&interval=30m&startTime=1789999200000&endTime=1790000999999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1764
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.014780",
+          "high": "0.014892",
+          "low": "0.013832",
+          "open": "0.013881",
+          "time": 1790002800000,
+          "volume": "4119742.21"
+        }
+      ],
+      "closed_at_utc": "2026-09-21T15:30:00.000Z",
+      "endTime": 1790004599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.014780",
+            "high": "0.014892",
+            "low": "0.013832",
+            "open": "0.013881",
+            "time": 1790002800000,
+            "volume": "4119742.21"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790002800000,
+      "symbol": "CHILLGUY-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=CHILLGUY-USDT&interval=30m&startTime=1790002800000&endTime=1790004599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1787
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.1485",
+          "high": "0.1498",
+          "low": "0.1383",
+          "open": "0.1396",
+          "time": 1790100000000,
+          "volume": "1832624.93"
+        }
+      ],
+      "closed_at_utc": "2026-09-22T18:30:00.000Z",
+      "endTime": 1790101799999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.1485",
+            "high": "0.1498",
+            "low": "0.1383",
+            "open": "0.1396",
+            "time": 1790100000000,
+            "volume": "1832624.93"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790100000000,
+      "symbol": "ON-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ON-USDT&interval=30m&startTime=1790100000000&endTime=1790101799999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1807
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "1.9734",
+          "high": "1.9782",
+          "low": "1.8710",
+          "open": "1.8855",
+          "time": 1790173800000,
+          "volume": "64792.168"
+        }
+      ],
+      "closed_at_utc": "2026-09-23T15:00:00.000Z",
+      "endTime": 1790175599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "1.9734",
+            "high": "1.9782",
+            "low": "1.8710",
+            "open": "1.8855",
+            "time": 1790173800000,
+            "volume": "64792.168"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790173800000,
+      "symbol": "RAY-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=RAY-USDT&interval=30m&startTime=1790173800000&endTime=1790175599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1911
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "1.02186",
+          "high": "1.02980",
+          "low": "0.98427",
+          "open": "0.99486",
+          "time": 1790283600000,
+          "volume": "161563.92"
+        }
+      ],
+      "closed_at_utc": "2026-09-24T21:30:00.000Z",
+      "endTime": 1790285399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "1.02186",
+            "high": "1.02980",
+            "low": "0.98427",
+            "open": "0.99486",
+            "time": 1790283600000,
+            "volume": "161563.92"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790283600000,
+      "symbol": "BR-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=BR-USDT&interval=30m&startTime=1790283600000&endTime=1790285399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1912
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.006402",
+          "high": "0.006616",
+          "low": "0.005610",
+          "open": "0.005614",
+          "time": 1790294400000,
+          "volume": "11284721.1"
+        }
+      ],
+      "closed_at_utc": "2026-09-25T00:30:00.000Z",
+      "endTime": 1790296199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.006402",
+            "high": "0.006616",
+            "low": "0.005610",
+            "open": "0.005614",
+            "time": 1790294400000,
+            "volume": "11284721.1"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790294400000,
+      "symbol": "WAXP-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=WAXP-USDT&interval=30m&startTime=1790294400000&endTime=1790296199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1921
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.2450",
+          "high": "0.2458",
+          "low": "0.2396",
+          "open": "0.2399",
+          "time": 1790334000000,
+          "volume": "13604417.57"
+        }
+      ],
+      "closed_at_utc": "2026-09-25T11:30:00.000Z",
+      "endTime": 1790335799999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.2450",
+            "high": "0.2458",
+            "low": "0.2396",
+            "open": "0.2399",
+            "time": 1790334000000,
+            "volume": "13604417.57"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790334000000,
+      "symbol": "WIF-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=WIF-USDT&interval=30m&startTime=1790334000000&endTime=1790335799999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1922
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.1988",
+          "high": "0.1989",
+          "low": "0.1897",
+          "open": "0.1899",
+          "time": 1790334000000,
+          "volume": "10740099.517"
+        }
+      ],
+      "closed_at_utc": "2026-09-25T11:30:00.000Z",
+      "endTime": 1790335799999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.1988",
+            "high": "0.1989",
+            "low": "0.1897",
+            "open": "0.1899",
+            "time": 1790334000000,
+            "volume": "10740099.517"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790334000000,
+      "symbol": "FARTCOIN-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=FARTCOIN-USDT&interval=30m&startTime=1790334000000&endTime=1790335799999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1925
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.14097",
+          "high": "0.14124",
+          "low": "0.13731",
+          "open": "0.13733",
+          "time": 1790339400000,
+          "volume": "19283747.8"
+        }
+      ],
+      "closed_at_utc": "2026-09-25T13:00:00.000Z",
+      "endTime": 1790341199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.14097",
+            "high": "0.14124",
+            "low": "0.13731",
+            "open": "0.13733",
+            "time": 1790339400000,
+            "volume": "19283747.8"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790339400000,
+      "symbol": "OP-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=OP-USDT&interval=30m&startTime=1790339400000&endTime=1790341199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1926
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.05039",
+          "high": "0.05106",
+          "low": "0.04682",
+          "open": "0.04711",
+          "time": 1790344800000,
+          "volume": "3063822.89"
+        }
+      ],
+      "closed_at_utc": "2026-09-25T14:30:00.000Z",
+      "endTime": 1790346599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.05039",
+            "high": "0.05106",
+            "low": "0.04682",
+            "open": "0.04711",
+            "time": 1790344800000,
+            "volume": "3063822.89"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790344800000,
+      "symbol": "MUBARAK-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=MUBARAK-USDT&interval=30m&startTime=1790344800000&endTime=1790346599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1930
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.18770",
+          "high": "0.18889",
+          "low": "0.17803",
+          "open": "0.17832",
+          "time": 1790352000000,
+          "volume": "347470.99"
+        }
+      ],
+      "closed_at_utc": "2026-09-25T16:30:00.000Z",
+      "endTime": 1790353799999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.18770",
+            "high": "0.18889",
+            "low": "0.17803",
+            "open": "0.17832",
+            "time": 1790352000000,
+            "volume": "347470.99"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790352000000,
+      "symbol": "SYN-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=SYN-USDT&interval=30m&startTime=1790352000000&endTime=1790353799999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1933
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.006147",
+          "high": "0.006162",
+          "low": "0.005993",
+          "open": "0.006008",
+          "time": 1790357400000,
+          "volume": "92164257.5"
+        }
+      ],
+      "closed_at_utc": "2026-09-25T18:00:00.000Z",
+      "endTime": 1790359199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.006147",
+            "high": "0.006162",
+            "low": "0.005993",
+            "open": "0.006008",
+            "time": 1790357400000,
+            "volume": "92164257.5"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790357400000,
+      "symbol": "ATH-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ATH-USDT&interval=30m&startTime=1790357400000&endTime=1790359199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1943
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "65.92",
+          "high": "66.76",
+          "low": "64.07",
+          "open": "64.18",
+          "time": 1790418600000,
+          "volume": "6015.67"
+        }
+      ],
+      "closed_at_utc": "2026-09-26T11:00:00.000Z",
+      "endTime": 1790420399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "65.92",
+            "high": "66.76",
+            "low": "64.07",
+            "open": "64.18",
+            "time": 1790418600000,
+            "volume": "6015.67"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790418600000,
+      "symbol": "DASH-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=DASH-USDT&interval=30m&startTime=1790418600000&endTime=1790420399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1945
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.2762",
+          "high": "0.2778",
+          "low": "0.2700",
+          "open": "0.2705",
+          "time": 1790429400000,
+          "volume": "213685.817"
+        }
+      ],
+      "closed_at_utc": "2026-09-26T14:00:00.000Z",
+      "endTime": 1790431199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.2762",
+            "high": "0.2778",
+            "low": "0.2700",
+            "open": "0.2705",
+            "time": 1790429400000,
+            "volume": "213685.817"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790429400000,
+      "symbol": "EIGEN-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=EIGEN-USDT&interval=30m&startTime=1790429400000&endTime=1790431199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1949
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.03374",
+          "high": "0.03393",
+          "low": "0.03283",
+          "open": "0.03293",
+          "time": 1790438400000,
+          "volume": "1895143.8"
+        }
+      ],
+      "closed_at_utc": "2026-09-26T16:30:00.000Z",
+      "endTime": 1790440199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.03374",
+            "high": "0.03393",
+            "low": "0.03283",
+            "open": "0.03293",
+            "time": 1790438400000,
+            "volume": "1895143.8"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790438400000,
+      "symbol": "FLOW-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=FLOW-USDT&interval=30m&startTime=1790438400000&endTime=1790440199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1968
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.5376",
+          "high": "0.5400",
+          "low": "0.5242",
+          "open": "0.5246",
+          "time": 1790488800000,
+          "volume": "1027866.643"
+        }
+      ],
+      "closed_at_utc": "2026-09-27T06:30:00.000Z",
+      "endTime": 1790490599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.5376",
+            "high": "0.5400",
+            "low": "0.5242",
+            "open": "0.5246",
+            "time": 1790488800000,
+            "volume": "1027866.643"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790488800000,
+      "symbol": "WLD-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=WLD-USDT&interval=30m&startTime=1790488800000&endTime=1790490599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1973
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.2947",
+          "high": "0.2954",
+          "low": "0.2853",
+          "open": "0.2854",
+          "time": 1790517600000,
+          "volume": "249002.72"
+        }
+      ],
+      "closed_at_utc": "2026-09-27T14:30:00.000Z",
+      "endTime": 1790519399999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.2947",
+            "high": "0.2954",
+            "low": "0.2853",
+            "open": "0.2854",
+            "time": 1790517600000,
+            "volume": "249002.72"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790517600000,
+      "symbol": "ARX-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ARX-USDT&interval=30m&startTime=1790517600000&endTime=1790519399999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        1976
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.02245",
+          "high": "0.02249",
+          "low": "0.02123",
+          "open": "0.02150",
+          "time": 1790548200000,
+          "volume": "5718955.1"
+        }
+      ],
+      "closed_at_utc": "2026-09-27T23:00:00.000Z",
+      "endTime": 1790549999999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.02245",
+            "high": "0.02249",
+            "low": "0.02123",
+            "open": "0.02150",
+            "time": 1790548200000,
+            "volume": "5718955.1"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790548200000,
+      "symbol": "RARE-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=RARE-USDT&interval=30m&startTime=1790548200000&endTime=1790549999999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        2024
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "14.952",
+          "high": "15.013",
+          "low": "14.384",
+          "open": "14.425",
+          "time": 1790611200000,
+          "volume": "67595.7"
+        }
+      ],
+      "closed_at_utc": "2026-09-28T16:30:00.000Z",
+      "endTime": 1790612999999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "14.952",
+            "high": "15.013",
+            "low": "14.384",
+            "open": "14.425",
+            "time": 1790611200000,
+            "volume": "67595.7"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790611200000,
+      "symbol": "LINK-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=LINK-USDT&interval=30m&startTime=1790611200000&endTime=1790612999999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        2047
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.005977",
+          "high": "0.006005",
+          "low": "0.005761",
+          "open": "0.005802",
+          "time": 1790708400000,
+          "volume": "368662323"
+        }
+      ],
+      "closed_at_utc": "2026-09-29T19:30:00.000Z",
+      "endTime": 1790710199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.005977",
+            "high": "0.006005",
+            "low": "0.005761",
+            "open": "0.005802",
+            "time": 1790708400000,
+            "volume": "368662323"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790708400000,
+      "symbol": "PUMP-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=PUMP-USDT&interval=30m&startTime=1790708400000&endTime=1790710199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        2053
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.2784",
+          "high": "0.2818",
+          "low": "0.2598",
+          "open": "0.2610",
+          "time": 1790748000000,
+          "volume": "294270"
+        }
+      ],
+      "closed_at_utc": "2026-09-30T06:30:00.000Z",
+      "endTime": 1790749799999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.2784",
+            "high": "0.2818",
+            "low": "0.2598",
+            "open": "0.2610",
+            "time": 1790748000000,
+            "volume": "294270"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790748000000,
+      "symbol": "ARK-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ARK-USDT&interval=30m&startTime=1790748000000&endTime=1790749799999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        2059
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "7.441",
+          "high": "7.494",
+          "low": "7.158",
+          "open": "7.165",
+          "time": 1790767800000,
+          "volume": "14959.0"
+        }
+      ],
+      "closed_at_utc": "2026-09-30T12:00:00.000Z",
+      "endTime": 1790769599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "7.441",
+            "high": "7.494",
+            "low": "7.158",
+            "open": "7.165",
+            "time": 1790767800000,
+            "volume": "14959.0"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790767800000,
+      "symbol": "ZEN-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ZEN-USDT&interval=30m&startTime=1790767800000&endTime=1790769599999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        2063
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.14281",
+          "high": "0.14342",
+          "low": "0.13910",
+          "open": "0.13936",
+          "time": 1790771400000,
+          "volume": "423164.8"
+        }
+      ],
+      "closed_at_utc": "2026-09-30T13:00:00.000Z",
+      "endTime": 1790773199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.14281",
+            "high": "0.14342",
+            "low": "0.13910",
+            "open": "0.13936",
+            "time": 1790771400000,
+            "volume": "423164.8"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790771400000,
+      "symbol": "MARSCOIN-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=MARSCOIN-USDT&interval=30m&startTime=1790771400000&endTime=1790773199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        2064
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.20876",
+          "high": "0.21009",
+          "low": "0.20359",
+          "open": "0.20393",
+          "time": 1790771400000,
+          "volume": "5330060.2"
+        }
+      ],
+      "closed_at_utc": "2026-09-30T13:00:00.000Z",
+      "endTime": 1790773199999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.20876",
+            "high": "0.21009",
+            "low": "0.20359",
+            "open": "0.20393",
+            "time": 1790771400000,
+            "volume": "5330060.2"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790771400000,
+      "symbol": "ARB-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=ARB-USDT&interval=30m&startTime=1790771400000&endTime=1790773199999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        2071
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.07420",
+          "high": "0.07426",
+          "low": "0.07255",
+          "open": "0.07263",
+          "time": 1790784000000,
+          "volume": "3523300"
+        }
+      ],
+      "closed_at_utc": "2026-09-30T16:30:00.000Z",
+      "endTime": 1790785799999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.07420",
+            "high": "0.07426",
+            "low": "0.07255",
+            "open": "0.07263",
+            "time": 1790784000000,
+            "volume": "3523300"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790784000000,
+      "symbol": "SEI-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=SEI-USDT&interval=30m&startTime=1790784000000&endTime=1790785799999&limit=1"
+    },
+    {
+      "associated_tracker_ids": [
+        2082
+      ],
+      "attempt": 1,
+      "candles": [
+        {
+          "close": "0.02089",
+          "high": "0.02102",
+          "low": "0.02000",
+          "open": "0.02000",
+          "time": 1790821800000,
+          "volume": "13392255.80"
+        }
+      ],
+      "closed_at_utc": "2026-10-01T03:00:00.000Z",
+      "endTime": 1790823599999,
+      "error": null,
+      "http_status": 200,
+      "interval": "30m",
+      "limit": 1,
+      "response": {
+        "code": 0,
+        "data": [
+          {
+            "close": "0.02089",
+            "high": "0.02102",
+            "low": "0.02000",
+            "open": "0.02000",
+            "time": 1790821800000,
+            "volume": "13392255.80"
+          }
+        ],
+        "msg": ""
+      },
+      "source": "bingx_public_swap_klines_historical",
+      "startTime": 1790821800000,
+      "symbol": "PLUME-USDT",
+      "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?symbol=PLUME-USDT&interval=30m&startTime=1790821800000&endTime=1790823599999&limit=1"
+    }
+  ]
+}
