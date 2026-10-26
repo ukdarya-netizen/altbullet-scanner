@@ -1,0 +1,1 @@
+cat rejected_candles.csv.gz.part* | gunzip > rejected_candles.csv

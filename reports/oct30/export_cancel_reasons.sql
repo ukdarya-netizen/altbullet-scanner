@@ -1,0 +1,2 @@
+-- Read-only (production). Terminal reasons for cancelled/reclassified signals; merged into signals_entry_snapshot.csv by add_cancel_cols.py
+select id, status, cancel_reason from tracked_signals where status in ('cancelled','reclassified') and sentiment_key in ('neon_support_bounce','stealth_breakout','liquidation_cascade','price_led_momentum','impulse_buy') and detected_at>='2026-09-01' order by id;
