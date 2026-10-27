@@ -9,7 +9,7 @@ H = os.path.dirname(os.path.abspath(__file__)); WORK = os.environ.get("WORK", "w
 W = {r["id"]: r for r in csv.DictReader(open(f"{H}/../lc_watches/watches.csv"))}
 C = collections.defaultdict(list)
 for r in csv.DictReader(open(WORK + "lc_candles.csv")):
-    C[r["id"]].append((0, float(r["open"]), float(r["high"]), float(r["low"]), float(r["close"])))
+    C[r["id"]].append((int(r["open_time_ms"]), float(r["open"]), float(r["high"]), float(r["low"]), float(r["close"])))
 old = set(C)
 for r in csv.DictReader(gzip.open(f"{H}/../lc_watches/watch_candles_new.csv.gz", "rt")):
     if r["id"] not in old:
