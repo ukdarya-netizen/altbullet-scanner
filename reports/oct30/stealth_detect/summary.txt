@@ -1,0 +1,38 @@
+period 2026-08-28T10:42:14.115Z..2026-10-27T10:42:14.115Z symbols=1254 errors=282
+champion breakouts in the market: >=20% in 72h: 908, >=50%: 191
+== A_all_breakouts
+all                                              n= 6945 +10%_before_stop=20% (1402) champions>=20%=530 >=50%=120 | +5%rule win=53% exp=-0.29% days=61
+first half                                       n= 3608 +10%_before_stop=25% (903) champions>=20%=345 >=50%=71 | +5%rule win=60% exp=0.57% days=29
+second half                                      n= 3337 +10%_before_stop=15% (499) champions>=20%=185 >=50%=49 | +5%rule win=46% exp=-1.22% days=33
+== B_live_proxy(dist1%+body1ATR+vol2x+height4.5)
+all                                              n=  137 +10%_before_stop=31% (42) champions>=20%=27 >=50%=11 | +5%rule win=47% exp=-1.86% days=56
+first half                                       n=   68 +10%_before_stop=32% (22) champions>=20%=14 >=50%=8 | +5%rule win=51% exp=-1.46% days=29
+second half                                      n=   69 +10%_before_stop=29% (20) champions>=20%=13 >=50%=3 | +5%rule win=43% exp=-2.25% days=27
+== C_momentum3h>=2.3
+all                                              n= 3483 +10%_before_stop=27% (956) champions>=20%=428 >=50%=105 | +5%rule win=55% exp=-0.30% days=61
+first half                                       n= 1818 +10%_before_stop=32% (577) champions>=20%=270 >=50%=63 | +5%rule win=62% exp=0.53% days=29
+second half                                      n= 1665 +10%_before_stop=23% (379) champions>=20%=158 >=50%=42 | +5%rule win=48% exp=-1.21% days=33
+== D_confirm_2nd_close
+all                                              n= 5964 +10%_before_stop=19% (1152) champions>=20%=474 >=50%=109 | +5%rule win=52% exp=-0.35% days=60
+first half                                       n= 3119 +10%_before_stop=24% (758) champions>=20%=309 >=50%=64 | +5%rule win=60% exp=0.57% days=29
+second half                                      n= 2845 +10%_before_stop=14% (394) champions>=20%=165 >=50%=45 | +5%rule win=44% exp=-1.35% days=32
+== E_retest_hold
+all                                              n= 5716 +10%_before_stop=19% (1091) champions>=20%=421 >=50%=87 | +5%rule win=52% exp=-0.31% days=60
+first half                                       n= 2977 +10%_before_stop=24% (724) champions>=20%=282 >=50%=51 | +5%rule win=60% exp=0.65% days=29
+second half                                      n= 2739 +10%_before_stop=13% (367) champions>=20%=139 >=50%=36 | +5%rule win=44% exp=-1.37% days=32
+== F_retest_hold+vol2x_breakout
+all                                              n=  278 +10%_before_stop=22% (61) champions>=20%=28 >=50%=5 | +5%rule win=51% exp=-0.45% days=56
+first half                                       n=  153 +10%_before_stop=27% (42) champions>=20%=21 >=50%=4 | +5%rule win=58% exp=0.30% days=28
+second half                                      n=  125 +10%_before_stop=15% (19) champions>=20%=7 >=50%=1 | +5%rule win=43% exp=-1.36% days=28
+== G_range>=48h
+all                                              n= 3772 +10%_before_stop=18% (667) champions>=20%=276 >=50%=67 | +5%rule win=50% exp=-0.73% days=61
+first half                                       n= 1879 +10%_before_stop=22% (421) champions>=20%=166 >=50%=41 | +5%rule win=57% exp=0.17% days=29
+second half                                      n= 1893 +10%_before_stop=13% (246) champions>=20%=110 >=50%=26 | +5%rule win=42% exp=-1.62% days=33
+== H_range>=48h+retest
+all                                              n= 2968 +10%_before_stop=17% (515) champions>=20%=207 >=50%=53 | +5%rule win=51% exp=-0.58% days=60
+first half                                       n= 1492 +10%_before_stop=22% (335) champions>=20%=131 >=50%=31 | +5%rule win=60% exp=0.43% days=29
+second half                                      n= 1476 +10%_before_stop=12% (180) champions>=20%=76 >=50%=22 | +5%rule win=42% exp=-1.61% days=32
+== I_live_proxy+retest
+all                                              n=   85 +10%_before_stop=27% (23) champions>=20%=12 >=50%=4 | +5%rule win=51% exp=-1.23% days=42
+first half                                       n=   43 +10%_before_stop=30% (13) champions>=20%=6 >=50%=3 | +5%rule win=53% exp=-1.25% days=20
+second half                                      n=   42 +10%_before_stop=24% (10) champions>=20%=6 >=50%=1 | +5%rule win=48% exp=-1.21% days=22
