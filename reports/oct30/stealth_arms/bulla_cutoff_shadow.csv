@@ -1,0 +1,2 @@
+id,arm_id,symbol,level_source,reason,cut_at,trigger_time,level,details,outcome_status,outcome,evaluated_at
+1002,47510,BULLA-USDT,auto_range_1h,stale_fire_window,2026-10-25 10:00:03.782821+00,1792911600000,0.08613,"{""fireWindowMs"": 7200000}",pending,,
