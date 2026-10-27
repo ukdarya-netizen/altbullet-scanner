@@ -21,11 +21,6 @@ export const LC_MIN_DETECTION_CANDLE_RANGE_PCT = 5.6;
 // without the 2026-10-15 crash day: 140 trades, 48.6%, +390%.
 export const LC_MAX_DETECTION_CANDLE_BODY_PCT = -3.5;
 export const LC_DETECTION_ENTRY_WINDOW_MS = 15 * 60 * 1000;
-// Owner 2026-10-27: the bottom must be bought back: close at least 31% of the
-// candle range above its low. Same replay: 104 trades (vs 260), 57% +10%
-// before -10%, stops 13 (vs 42), take +5% sum +345% (+199% without
-// 2026-10-15, vs +162%), positive in all three thirds.
-export const LC_MIN_DETECTION_CANDLE_CLOSE_POS = 0.31;
 // Owner 2026-10-23: only the CLOSED detection candle is judged. While it is
 // still open the watch waits (reason "detection_candle_pending", non-terminal)
 // and the gate is re-evaluated each cycle. Threshold 10% -> 6% (replay of
@@ -49,7 +44,6 @@ export type LcDetectionCandleDecision =
         | "detection_candle_unavailable"
         | "detection_candle_too_small"
         | "detection_candle_not_capitulation"
-        | "detection_candle_bottom_not_bought"
         | "detection_candle_entry_window_passed"
         | "detection_candle_pending";
       rangePct: number | null;
@@ -106,15 +100,6 @@ export function evaluateLcDetectionCandleGate(
     return {
       pass: false,
       reason: "detection_candle_not_capitulation",
-      rangePct,
-      lowerWickPct,
-      bodyPct,
-    };
-  }
-  if ((c.close - c.low) / (c.high - c.low) < LC_MIN_DETECTION_CANDLE_CLOSE_POS) {
-    return {
-      pass: false,
-      reason: "detection_candle_bottom_not_bought",
       rangePct,
       lowerWickPct,
       bodyPct,
