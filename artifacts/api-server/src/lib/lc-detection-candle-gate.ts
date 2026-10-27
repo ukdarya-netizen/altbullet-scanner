@@ -20,6 +20,12 @@ export const LC_MIN_DETECTION_CANDLE_RANGE_PCT = 5.6;
 // 24%), take +10% sum +818%, positive in all three thirds (+221/+258/+339),
 // without the 2026-10-15 crash day: 140 trades, 48.6%, +390%.
 export const LC_MAX_DETECTION_CANDLE_BODY_PCT = -3.5;
+// Owner 2026-10-27: a red body deeper than 5.5% is a continuation, not an
+// exhausted cascade. Our LC watches Jul 14 - Oct 24 (reports/full), take +5%,
+// stop -10%: bodies -3.5..-5.5% positive in every month (Jul +9, Aug +4,
+// Sep +64, Oct w/o 15.10 +145, 15.10 +381; 174 trades); deeper bodies negative
+// in Jul, Aug and Sep. Stable for cut-offs -5.0..-6.0 with take +10%.
+export const LC_MIN_DETECTION_CANDLE_BODY_PCT = -5.5;
 export const LC_DETECTION_ENTRY_WINDOW_MS = 15 * 60 * 1000;
 // Owner 2026-10-23: only the CLOSED detection candle is judged. While it is
 // still open the watch waits (reason "detection_candle_pending", non-terminal)
@@ -96,7 +102,10 @@ export function evaluateLcDetectionCandleGate(
       bodyPct,
     };
   }
-  if (bodyPct > LC_MAX_DETECTION_CANDLE_BODY_PCT) {
+  if (
+    bodyPct > LC_MAX_DETECTION_CANDLE_BODY_PCT ||
+    bodyPct < LC_MIN_DETECTION_CANDLE_BODY_PCT
+  ) {
     return {
       pass: false,
       reason: "detection_candle_not_capitulation",

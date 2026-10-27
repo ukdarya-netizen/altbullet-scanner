@@ -57,3 +57,9 @@ test("small candle is rejected; missing or unclosed candle blocks", () => {
   );
   assert.equal(!open.pass && open.reason, "detection_candle_pending");
 });
+
+test("a red body deeper than 5.5% is rejected as continuation", () => {
+  const deep = evaluateLcDetectionCandleGate(c(100, 100, 93, 94), T + 60_000, now);
+  assert.equal(!deep.pass && deep.reason, "detection_candle_not_capitulation");
+  assert.equal(evaluateLcDetectionCandleGate(c(100, 100, 94, 94.5), T + 60_000, now).pass, true);
+});
