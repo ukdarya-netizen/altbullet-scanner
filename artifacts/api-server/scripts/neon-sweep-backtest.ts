@@ -116,7 +116,24 @@ type Signal = {
   entry: number;
   label: "win" | "loss" | "censored" | "incomplete";
   netPct: number | null;
+  hit10: boolean | null;
+  peak: number;
 };
+
+/** Owner 2026-10-27 target: +10% before the -8% stop within 72h; and the 72h peak. */
+function target10(m15: ClosedDetectorCandle[], from: number, entry: number): { hit10: boolean | null; peak: number } {
+  let peak = 0;
+  let hit10: boolean | null = null;
+  for (const c of m15) {
+    if (c.time < from) continue;
+    if (c.time >= from + HORIZON_MS) break;
+    peak = Math.max(peak, (c.high / entry - 1) * 100);
+    if (hit10 === null && c.low <= entry * (1 - STOP_PCT / 100)) hit10 = false;
+    if (hit10 === null && c.high >= entry * 1.1) hit10 = true;
+  }
+  if (hit10 === null) hit10 = from + HORIZON_MS > Date.now() ? null : false;
+  return { hit10, peak };
+}
 
 function labelTrade(
   m15: ClosedDetectorCandle[],
@@ -176,6 +193,7 @@ function simulate(
       arm = null;
       if (entry == null) continue;
       const lab = labelTrade(m15, t, entry, now);
+      const tg = target10(m15, t, entry);
       out.push({
         variant: variant.name,
         symbol,
@@ -186,6 +204,8 @@ function simulate(
         entry,
         label: lab.label,
         netPct: lab.netPct,
+        hit10: tg.hit10,
+        peak: tg.peak,
       });
       busyUntil = lab.resolvedAt;
     } else if (res.status === "armed" && res.frozenLevel != null && res.armCandleTime != null) {
@@ -205,8 +225,11 @@ function summarize(signals: Signal[], from: number, now: number): string {
     const wins = done.filter((s) => s.label === "win").length;
     const exp = done.length ? done.reduce((a, s) => a + (s.netPct ?? 0), 0) / done.length : NaN;
     const days = new Set(rs.map((s) => new Date(s.observedAt).toISOString().slice(0, 10))).size;
+    const t10 = rs.filter((s) => s.hit10 !== null);
+    const h10 = t10.filter((s) => s.hit10).length;
+    const c20 = rs.filter((s) => s.peak >= 20).length;
     lines.push(
-      `${name.padEnd(40)} n=${String(done.length).padStart(4)} win=${done.length ? Math.round((100 * wins) / done.length) : 0}% exp=${exp.toFixed(2)}% censored=${rs.filter((s) => s.label === "censored").length} days=${days} symbols=${new Set(rs.map((s) => s.symbol)).size}`,
+      `${name.padEnd(40)} +10%_before_stop=${t10.length ? Math.round((100 * h10) / t10.length) : 0}% (${h10}/${t10.length}) peaks>=20%=${c20} | n=${String(done.length).padStart(4)} win=${done.length ? Math.round((100 * wins) / done.length) : 0}% exp=${exp.toFixed(2)}% censored=${rs.filter((s) => s.label === "censored").length} days=${days} symbols=${new Set(rs.map((s) => s.symbol)).size}`,
     );
   };
   const key = (s: Signal) => `${s.symbol}|${s.triggerCandleTime}`;
@@ -262,10 +285,10 @@ async function main() {
     done++;
     if (done % 25 === 0) console.error(`${done}/${symbols.length} symbols, ${all.length} signals`);
   }
-  const header = "variant,symbol,observed_at,trigger_candle,reason,frozen_level,entry,label,net_pct";
+  const header = "variant,symbol,observed_at,trigger_candle,reason,frozen_level,entry,label,net_pct,hit10,peak72";
   writeFileSync(
     join(OUT, "signals.csv"),
-    [header, ...all.map((s) => [s.variant, s.symbol, new Date(s.observedAt).toISOString(), new Date(s.triggerCandleTime).toISOString(), s.reason, s.frozenLevel, s.entry, s.label, s.netPct ?? ""].join(","))].join("\n"),
+    [header, ...all.map((s) => [s.variant, s.symbol, new Date(s.observedAt).toISOString(), new Date(s.triggerCandleTime).toISOString(), s.reason, s.frozenLevel, s.entry, s.label, s.netPct ?? "", s.hit10 === null ? "" : s.hit10 ? 1 : 0, s.peak.toFixed(2)].join(","))].join("\n"),
   );
   writeFileSync(join(OUT, "errors.json"), JSON.stringify(errors, null, 1));
   const summary = `period ${new Date(from).toISOString()} .. ${new Date(now).toISOString()}, symbols ${symbols.length}, errors ${Object.keys(errors).length}\n` + summarize(all, from, now);
