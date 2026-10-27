@@ -1,0 +1,66 @@
+period 2026-08-28T13:48:04.809Z..2026-10-27T13:48:04.809Z symbols=1254 errors=134
+champion breakouts in the market: >=20% in 72h: 907, >=50%: 192
+== A_all_breakouts
+all                                              n= 6938 +10%_before_stop=20% (1404) champions>=20%=527 >=50%=120 | +5%rule win=53% exp=-0.29% | exits/trade: take5=-0.28% half_trail=-0.21% trail10=-0.13% trail15=-0.30% | days=61
+first half                                       n= 3612 +10%_before_stop=25% (906) champions>=20%=341 >=50%=71 | +5%rule win=60% exp=0.56% | exits/trade: take5=0.56% half_trail=0.79% trail10=1.02% trail15=0.88% | days=30
+second half                                      n= 3326 +10%_before_stop=15% (498) champions>=20%=186 >=50%=49 | +5%rule win=46% exp=-1.21% | exits/trade: take5=-1.21% half_trail=-1.31% trail10=-1.41% trail15=-1.60% | days=32
+== B_live_proxy(dist1%+body1ATR+vol2x+height4.5)
+all                                              n=  138 +10%_before_stop=31% (43) champions>=20%=27 >=50%=11 | +5%rule win=48% exp=-1.81% | exits/trade: take5=-1.72% half_trail=-1.66% trail10=-1.59% trail15=-1.85% | days=56
+first half                                       n=   69 +10%_before_stop=33% (23) champions>=20%=14 >=50%=8 | +5%rule win=52% exp=-1.37% | exits/trade: take5=-1.37% half_trail=-1.33% trail10=-1.28% trail15=-0.95% | days=29
+second half                                      n=   69 +10%_before_stop=29% (20) champions>=20%=13 >=50%=3 | +5%rule win=43% exp=-2.25% | exits/trade: take5=-2.08% half_trail=-2.00% trail10=-1.91% trail15=-2.77% | days=27
+== C_momentum3h>=2.3
+all                                              n= 3479 +10%_before_stop=27% (956) champions>=20%=424 >=50%=105 | +5%rule win=55% exp=-0.29% | exits/trade: take5=-0.28% half_trail=-0.17% trail10=-0.05% trail15=-0.28% | days=61
+first half                                       n= 1813 +10%_before_stop=32% (578) champions>=20%=266 >=50%=63 | +5%rule win=62% exp=0.58% | exits/trade: take5=0.58% half_trail=0.83% trail10=1.09% trail15=0.93% | days=30
+second half                                      n= 1666 +10%_before_stop=23% (378) champions>=20%=158 >=50%=42 | +5%rule win=48% exp=-1.23% | exits/trade: take5=-1.24% half_trail=-1.29% trail10=-1.34% trail15=-1.65% | days=32
+== D_confirm_2nd_close
+all                                              n= 5959 +10%_before_stop=19% (1155) champions>=20%=471 >=50%=109 | +5%rule win=52% exp=-0.34% | exits/trade: take5=-0.34% half_trail=-0.27% trail10=-0.20% trail15=-0.30% | days=61
+first half                                       n= 3118 +10%_before_stop=24% (759) champions>=20%=306 >=50%=64 | +5%rule win=60% exp=0.57% | exits/trade: take5=0.57% half_trail=0.80% trail10=1.04% trail15=0.99% | days=30
+second half                                      n= 2841 +10%_before_stop=14% (396) champions>=20%=165 >=50%=45 | +5%rule win=44% exp=-1.34% | exits/trade: take5=-1.35% half_trail=-1.47% trail10=-1.58% trail15=-1.74% | days=32
+== E_retest_hold
+all                                              n= 5713 +10%_before_stop=19% (1093) champions>=20%=419 >=50%=87 | +5%rule win=52% exp=-0.31% | exits/trade: take5=-0.31% half_trail=-0.23% trail10=-0.16% trail15=-0.22% | days=61
+first half                                       n= 2979 +10%_before_stop=24% (724) champions>=20%=280 >=50%=51 | +5%rule win=60% exp=0.66% | exits/trade: take5=0.66% half_trail=0.90% trail10=1.14% trail15=1.15% | days=30
+second half                                      n= 2734 +10%_before_stop=13% (369) champions>=20%=139 >=50%=36 | +5%rule win=44% exp=-1.36% | exits/trade: take5=-1.38% half_trail=-1.48% trail10=-1.59% trail15=-1.74% | days=32
+== F_retest_hold+vol2x_breakout
+all                                              n=  278 +10%_before_stop=22% (62) champions>=20%=28 >=50%=5 | +5%rule win=52% exp=-0.42% | exits/trade: take5=-0.46% half_trail=-0.35% trail10=-0.24% trail15=-0.23% | days=56
+first half                                       n=  152 +10%_before_stop=28% (42) champions>=20%=21 >=50%=4 | +5%rule win=59% exp=0.31% | exits/trade: take5=0.31% half_trail=0.61% trail10=0.92% trail15=1.27% | days=27
+second half                                      n=  126 +10%_before_stop=16% (20) champions>=20%=7 >=50%=1 | +5%rule win=44% exp=-1.31% | exits/trade: take5=-1.41% half_trail=-1.53% trail10=-1.66% trail15=-2.07% | days=29
+== G_range>=48h
+all                                              n= 3773 +10%_before_stop=18% (668) champions>=20%=275 >=50%=67 | +5%rule win=50% exp=-0.72% | exits/trade: take5=-0.71% half_trail=-0.73% trail10=-0.75% trail15=-0.93% | days=61
+first half                                       n= 1889 +10%_before_stop=22% (424) champions>=20%=165 >=50%=41 | +5%rule win=57% exp=0.17% | exits/trade: take5=0.17% half_trail=0.25% trail10=0.34% trail15=0.13% | days=30
+second half                                      n= 1884 +10%_before_stop=13% (244) champions>=20%=110 >=50%=26 | +5%rule win=43% exp=-1.61% | exits/trade: take5=-1.61% half_trail=-1.73% trail10=-1.86% trail15=-2.00% | days=32
+== H_range>=48h+retest
+all                                              n= 2971 +10%_before_stop=17% (513) champions>=20%=206 >=50%=53 | +5%rule win=51% exp=-0.58% | exits/trade: take5=-0.60% half_trail=-0.61% trail10=-0.63% trail15=-0.69% | days=60
+first half                                       n= 1496 +10%_before_stop=22% (334) champions>=20%=130 >=50%=31 | +5%rule win=60% exp=0.42% | exits/trade: take5=0.42% half_trail=0.53% trail10=0.64% trail15=0.62% | days=30
+second half                                      n= 1475 +10%_before_stop=12% (179) champions>=20%=76 >=50%=22 | +5%rule win=42% exp=-1.60% | exits/trade: take5=-1.64% half_trail=-1.79% trail10=-1.94% trail15=-2.04% | days=31
+== I_live_proxy+retest
+all                                              n=   86 +10%_before_stop=28% (24) champions>=20%=12 >=50%=4 | +5%rule win=51% exp=-1.16% | exits/trade: take5=-1.31% half_trail=-1.26% trail10=-1.21% trail15=-1.48% | days=43
+first half                                       n=   43 +10%_before_stop=30% (13) champions>=20%=6 >=50%=3 | +5%rule win=53% exp=-1.25% | exits/trade: take5=-1.25% half_trail=-1.07% trail10=-0.89% trail15=-1.55% | days=20
+second half                                      n=   43 +10%_before_stop=26% (11) champions>=20%=6 >=50%=1 | +5%rule win=49% exp=-1.07% | exits/trade: take5=-1.36% half_trail=-1.46% trail10=-1.55% trail15=-1.40% | days=23
+== J_momentum3h>=3
+all                                              n= 2521 +10%_before_stop=29% (732) champions>=20%=355 >=50%=88 | +5%rule win=56% exp=-0.26% | exits/trade: take5=-0.24% half_trail=-0.16% trail10=-0.07% trail15=-0.35% | days=61
+first half                                       n= 1270 +10%_before_stop=33% (424) champions>=20%=218 >=50%=51 | +5%rule win=63% exp=0.55% | exits/trade: take5=0.55% half_trail=0.78% trail10=1.01% trail15=0.89% | days=30
+second half                                      n= 1251 +10%_before_stop=25% (308) champions>=20%=137 >=50%=37 | +5%rule win=50% exp=-1.08% | exits/trade: take5=-1.08% half_trail=-1.15% trail10=-1.21% trail15=-1.66% | days=32
+== K_momentum3h>=5
+all                                              n=  960 +10%_before_stop=34% (322) champions>=20%=200 >=50%=64 | +5%rule win=54% exp=-0.83% | exits/trade: take5=-0.81% half_trail=-0.72% trail10=-0.64% trail15=-1.27% | days=61
+first half                                       n=  452 +10%_before_stop=35% (158) champions>=20%=106 >=50%=34 | +5%rule win=56% exp=-0.43% | exits/trade: take5=-0.43% half_trail=-0.45% trail10=-0.47% trail15=-0.85% | days=29
+second half                                      n=  508 +10%_before_stop=32% (164) champions>=20%=94 >=50%=30 | +5%rule win=52% exp=-1.19% | exits/trade: take5=-1.18% half_trail=-0.99% trail10=-0.80% trail15=-1.67% | days=32
+== L_momentum3h>=2.3+vol2x
+all                                              n=  259 +10%_before_stop=27% (70) champions>=20%=43 >=50%=12 | +5%rule win=46% exp=-1.69% | exits/trade: take5=-1.64% half_trail=-1.47% trail10=-1.30% trail15=-1.40% | days=57
+first half                                       n=  135 +10%_before_stop=32% (43) champions>=20%=30 >=50%=9 | +5%rule win=51% exp=-1.11% | exits/trade: take5=-1.11% half_trail=-0.84% trail10=-0.56% trail15=0.04% | days=29
+second half                                      n=  124 +10%_before_stop=22% (27) champions>=20%=13 >=50%=3 | +5%rule win=40% exp=-2.31% | exits/trade: take5=-2.22% half_trail=-2.17% trail10=-2.12% trail15=-2.99% | days=28
+== M_momentum3h>=2.3+dist1%+body1ATR
+all                                              n= 2257 +10%_before_stop=28% (622) champions>=20%=306 >=50%=80 | +5%rule win=52% exp=-0.69% | exits/trade: take5=-0.67% half_trail=-0.55% trail10=-0.43% trail15=-0.73% | days=61
+first half                                       n= 1128 +10%_before_stop=31% (352) champions>=20%=179 >=50%=45 | +5%rule win=58% exp=0.04% | exits/trade: take5=0.04% half_trail=0.26% trail10=0.48% trail15=0.18% | days=30
+second half                                      n= 1129 +10%_before_stop=24% (270) champions>=20%=127 >=50%=35 | +5%rule win=47% exp=-1.41% | exits/trade: take5=-1.41% half_trail=-1.40% trail10=-1.39% trail15=-1.69% | days=32
+== N_momentum3h>=3+vol2x
+all                                              n=  223 +10%_before_stop=27% (60) champions>=20%=38 >=50%=12 | +5%rule win=44% exp=-1.82% | exits/trade: take5=-1.76% half_trail=-1.65% trail10=-1.53% trail15=-1.80% | days=57
+first half                                       n=  113 +10%_before_stop=31% (35) champions>=20%=26 >=50%=9 | +5%rule win=48% exp=-1.59% | exits/trade: take5=-1.59% half_trail=-1.40% trail10=-1.22% trail15=-0.78% | days=29
+second half                                      n=  110 +10%_before_stop=23% (25) champions>=20%=12 >=50%=3 | +5%rule win=41% exp=-2.05% | exits/trade: take5=-1.94% half_trail=-1.90% trail10=-1.87% trail15=-2.86% | days=28
+== O_dist1%+body1ATR
+all                                              n= 2728 +10%_before_stop=26% (702) champions>=20%=332 >=50%=87 | +5%rule win=53% exp=-0.52% | exits/trade: take5=-0.51% half_trail=-0.41% trail10=-0.30% trail15=-0.54% | days=61
+first half                                       n= 1387 +10%_before_stop=29% (409) champions>=20%=197 >=50%=49 | +5%rule win=60% exp=0.32% | exits/trade: take5=0.32% half_trail=0.50% trail10=0.68% trail15=0.51% | days=30
+second half                                      n= 1341 +10%_before_stop=22% (293) champions>=20%=135 >=50%=38 | +5%rule win=46% exp=-1.38% | exits/trade: take5=-1.40% half_trail=-1.38% trail10=-1.36% trail15=-1.66% | days=32
+== P_vol2x
+all                                              n=  398 +10%_before_stop=22% (89) champions>=20%=49 >=50%=12 | +5%rule win=49% exp=-1.03% | exits/trade: take5=-1.00% half_trail=-0.92% trail10=-0.85% trail15=-0.84% | days=58
+first half                                       n=  206 +10%_before_stop=29% (59) champions>=20%=35 >=50%=9 | +5%rule win=57% exp=-0.10% | exits/trade: take5=-0.10% half_trail=0.13% trail10=0.37% trail15=0.89% | days=30
+second half                                      n=  192 +10%_before_stop=16% (30) champions>=20%=14 >=50%=3 | +5%rule win=42% exp=-2.03% | exits/trade: take5=-1.97% half_trail=-2.07% trail10=-2.17% trail15=-2.72% | days=29
