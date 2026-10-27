@@ -78,6 +78,14 @@ export type AutoRangePineResult = {
    * the deviation window. `direction` "down" = broke below, then reclaimed.
    */
   deviations?: AutoRangeDeviation[];
+  /** Research only (backtests): every confirmed upside break in order. */
+  upsideBreakouts?: {
+    upper: number;
+    lower: number;
+    openedAt: number;
+    anchorAt: number;
+    breakoutCloseTime: number;
+  }[];
 };
 
 export type AutoRangeDeviation = {
@@ -410,6 +418,8 @@ function replayAutoRangePine(
   let previousDownside: Breakout | null = null;
   let lastBreakWasUpside = false;
   const deviations: AutoRangeDeviation[] = [];
+  // Research only: every confirmed upside break, in the order it happened.
+  const upsideBreakouts: Breakout[] = [];
 
   for (let index = 0; index < candles.length; index++) {
     const candle = candles[index]!;
@@ -521,6 +531,7 @@ function replayAutoRangePine(
           if (brokeUp) {
             previousUpside = latestUpside;
             latestUpside = frozen;
+            upsideBreakouts.push(frozen);
           } else {
             previousDownside = latestDownside;
             latestDownside = frozen;
@@ -598,5 +609,6 @@ function replayAutoRangePine(
     latestUpsideBreakout: latestUpside,
     latestDownsideBreakout: latestDownside,
     deviations,
+    upsideBreakouts,
   };
 }
