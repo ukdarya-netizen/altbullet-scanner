@@ -123,6 +123,29 @@ const SR_BIN_ATR = 0.35;
 const SR_GAP_ATR = 1.2;
 const SR_MAX_ZONES = 6;
 const ATR_PERIOD = 14;
+/**
+ * Owner 2026-10-27: a wick below a support zone, or closes below it reclaimed
+ * within 3 closed 4H candles, is a sweep — the zone stays support. Only 3
+ * consecutive 4H closes >1% below the bottom break it. Backtest 15.09–27.10
+ * (all BingX symbols, +5% / −8% rule): 772 vs 563 signals, expectancy
+ * +2.28% vs +2.07% and −1.13% vs −1.63% in the two halves.
+ */
+export const NEON_SWEEP_RECLAIM_BARS = 3;
+
+/** True when `candles` contain `bars` consecutive closes >1% below `bottom`. */
+export function hasConsecutiveClosesBelow(
+  candles: readonly { close: number }[],
+  bottom: number,
+  bars: number,
+): boolean {
+  let run = 0;
+  for (const c of candles) {
+    run = c.close < bottom * 0.99 ? run + 1 : 0;
+    if (run >= bars) return true;
+  }
+  return false;
+}
+
 /** Owner 2026-10-18: touch / bounce tolerance around a support zone. */
 const SUPPORT_TOUCH_TOLERANCE = 0.01;
 /**

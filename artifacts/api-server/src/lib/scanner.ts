@@ -253,6 +253,8 @@ import {
   evaluateAbneonSupportBounce,
   resolveFrozenZone,
   evaluateOrderBlockSupportBounce,
+  hasConsecutiveClosesBelow,
+  NEON_SWEEP_RECLAIM_BARS,
 } from "./stealth-abneon-detectors.js";
 import {
   getFrozenStealthAbneonLevel,
@@ -5974,6 +5976,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           observedAt: Date.now(),
           frozenLevel: arm?.level,
           armCandleTime: arm?.armedAt,
+          sweepReclaimBars: NEON_SWEEP_RECLAIM_BARS,
         });
       // Owner rule: volume is aggregated only. First pass has no volume; the
       // aggregated 1H volume is fetched only when a touch/armed reaction
@@ -12051,15 +12054,19 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               Number.isFinite(_neonPriceNow) &&
               _neonPriceNow > 0 &&
               _neonPriceNow < _neonSupportBounceEvent.frozenLevel * 0.995;
+            // Owner 2026-10-27: broken = 3 consecutive 4H closes >1% below
+            // the bottom; a shorter dip that is reclaimed is a sweep.
             const _neonZoneClosedBroken =
               _neonSupportBounceEvent !== null &&
               _neonZones?.zone != null &&
-              normalizeClosedBreakoutCandles(
-                klines4hPrefetch.get(symbol) ?? [],
-              ).some(
-                (c) =>
-                  c.time >= _neonSupportBounceEvent.armCandleTime &&
-                  c.close < _neonZones.zone!.bottom * 0.99,
+              hasConsecutiveClosesBelow(
+                normalizeClosedBreakoutCandles(
+                  klines4hPrefetch.get(symbol) ?? [],
+                ).filter(
+                  (c) => c.time >= _neonSupportBounceEvent.armCandleTime,
+                ),
+                _neonZones.zone.bottom,
+                NEON_SWEEP_RECLAIM_BARS,
               );
             if (_neonZoneClosedBroken && _neonSupportBounceEvent !== null) {
               // The zone is broken (closed 4H below its bottom -1%): release the dead qualified event so the

@@ -442,3 +442,12 @@ test("ABNeon support zone: touch within 1% and close back qualifies directly", (
   });
   assert.notEqual(late.status, "qualified");
 });
+
+test("ABNeon sweep rule: a zone breaks only after 3 consecutive 4H closes >1% below it", async () => {
+  const { hasConsecutiveClosesBelow, NEON_SWEEP_RECLAIM_BARS } = await import("../src/lib/stealth-abneon-detectors.js");
+  const c = (close: number) => ({ close });
+  assert.equal(NEON_SWEEP_RECLAIM_BARS, 3);
+  assert.equal(hasConsecutiveClosesBelow([c(98), c(97), c(101), c(98)], 100, 3), false, "reclaimed dip is a sweep");
+  assert.equal(hasConsecutiveClosesBelow([c(98), c(97), c(98.5)], 100, 3), true);
+  assert.equal(hasConsecutiveClosesBelow([c(99.5), c(99.5), c(99.5)], 100, 3), false, "within the 1% tolerance");
+});
