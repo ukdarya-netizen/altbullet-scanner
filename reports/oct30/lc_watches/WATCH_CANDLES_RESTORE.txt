@@ -1,0 +1,1 @@
+cat watch_candles.csv.gz.part* | gunzip > watch_candles.csv
