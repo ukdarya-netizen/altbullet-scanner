@@ -66,6 +66,34 @@ function hit10(cs: C[], from: number, entry: number): boolean | null {
   return after.length < HORIZON ? null : false;
 }
 
+/**
+ * Exit variants on the same entry (1H candles, 72h, stop -8% first, fee 0.1%):
+ *  take5      — all at +5%;
+ *  half_trail — 50% at +5%, rest: stop to entry, trailing from +10% at peak-5pp;
+ *  trail10    — stop to entry at +5%, trailing from +10% at peak-5pp, all;
+ *  trail15    — stop to entry at +5%, trailing from +15% at peak-10pp, all (CAB tracker style).
+ * An open remainder at 72h is closed at that candle's close.
+ */
+const EXITS = ["take5", "half_trail", "trail10", "trail15"] as const;
+function exitResult(cs: C[], from: number, entry: number, mode: (typeof EXITS)[number]): number | null {
+  const after = cs.slice(from + 1, from + 1 + HORIZON);
+  if (after.length < HORIZON) return null;
+  let stop = entry * (1 - STOP / 100), peak = entry, part = 0, rem = 1, be = false;
+  const act = mode === "trail15" ? 15 : 10, gap = mode === "trail15" ? 10 : 5;
+  for (const c of after) {
+    if (c.low <= stop) return part + rem * ((stop / entry - 1) * 100) - FEE;
+    if (mode === "take5" && c.high >= entry * 1.05) return 5 - FEE;
+    peak = Math.max(peak, c.high);
+    const pp = (peak / entry - 1) * 100;
+    if (mode !== "take5" && pp >= 5 && !be) {
+      be = true; stop = Math.max(stop, entry);
+      if (mode === "half_trail") { part += 0.5 * 5; rem = 0.5; }
+    }
+    if (mode !== "take5" && pp >= act) stop = Math.max(stop, entry * (1 + (pp - gap) / 100));
+  }
+  return part + rem * ((after[after.length - 1]!.close / entry - 1) * 100) - FEE;
+}
+
 /** Highest high within 72h after entry, % of entry (champion size). */
 function peak72(cs: C[], from: number, entry: number): number {
   const after = cs.slice(from + 1, from + 1 + HORIZON);
@@ -146,7 +174,7 @@ async function main() {
   const symbols: string[] = ONLY ?? ((await getJson("/openApi/swap/v2/quote/contracts")) as { symbol: string }[])
     .map((c) => c.symbol).filter((s) => s.endsWith("-USDT") && !s.startsWith("BTC-")).slice(0, LIMIT);
   mkdirSync(OUT, { recursive: true });
-  const trades: { v: string; s: string; t: number; r: number; p10: boolean; pk: number }[] = [];
+  const trades: { v: string; s: string; t: number; r: number; p10: boolean; pk: number; ex: Record<string, number> }[] = [];
   const champions = { c20: 0, c50: 0 };
   const errors: Record<string, string> = {};
   let done = 0;
@@ -174,7 +202,9 @@ async function main() {
           const r = outcome(cs, j, cs[j]!.close);
           const p10 = hit10(cs, j, cs[j]!.close);
           if (r === null || p10 === null) continue;
-          trades.push({ v: v.name, s: symbol, t: cs[j]!.time, r, p10, pk: peak72(cs, j, cs[j]!.close) });
+          const ex: Record<string, number> = {};
+          for (const m of EXITS) { const x = exitResult(cs, j, cs[j]!.close, m); if (x !== null) ex[m] = x; }
+          trades.push({ v: v.name, s: symbol, t: cs[j]!.time, r, p10, pk: peak72(cs, j, cs[j]!.close), ex });
           busyUntil = j + HORIZON; // conservative: one trade per symbol per 72h
         }
       }
@@ -187,7 +217,11 @@ async function main() {
     const w = rs.filter((r) => r.r > 0).length;
     const p10 = rs.filter((r) => r.p10).length;
     const c20 = rs.filter((r) => r.pk >= 20).length, c50 = rs.filter((r) => r.pk >= 50).length;
-    return `${name.padEnd(48)} n=${String(rs.length).padStart(5)} +10%_before_stop=${Math.round((100 * p10) / rs.length)}% (${p10}) champions>=20%=${c20} >=50%=${c50} | +5%rule win=${Math.round((100 * w) / rs.length)}% exp=${(rs.reduce((a, r) => a + r.r, 0) / rs.length).toFixed(2)}% days=${new Set(rs.map((r) => new Date(r.t).toISOString().slice(0, 10))).size}`;
+    const exits = EXITS.map((m) => {
+      const xs = rs.map((r) => r.ex[m]).filter((x): x is number => typeof x === "number");
+      return `${m}=${xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2) : "-"}%`;
+    }).join(" ");
+    return `${name.padEnd(48)} n=${String(rs.length).padStart(5)} +10%_before_stop=${Math.round((100 * p10) / rs.length)}% (${p10}) champions>=20%=${c20} >=50%=${c50} | +5%rule win=${Math.round((100 * w) / rs.length)}% exp=${(rs.reduce((a, r) => a + r.r, 0) / rs.length).toFixed(2)}% | exits/trade: ${exits} | days=${new Set(rs.map((r) => new Date(r.t).toISOString().slice(0, 10))).size}`;
   };
   const out: string[] = [`period ${new Date(from).toISOString()}..${new Date(now).toISOString()} symbols=${symbols.length} errors=${Object.keys(errors).length}`,
     `champion breakouts in the market: >=20% in 72h: ${champions.c20}, >=50%: ${champions.c50}`];
