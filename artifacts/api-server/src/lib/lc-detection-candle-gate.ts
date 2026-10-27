@@ -11,7 +11,16 @@ import { getKlinesRange } from "./bingx.js";
  * Sep<28 and Sep28+. Thresholds are not a proven edge; flow reduction is
  * accepted by the owner. Missing candle data blocks (no data, no signal).
  */
-export const LC_MIN_DETECTION_CANDLE_RANGE_PCT = 6;
+export const LC_MIN_DETECTION_CANDLE_RANGE_PCT = 5.6;
+// Owner 2026-10-27: capitulation entry. The closed detection candle must have
+// range >= 5.6% AND a red body of at least 3.5% (close <= open * (1 - 3.5%));
+// entry at once after its close (within LC_DETECTION_ENTRY_WINDOW_MS), stop -10%.
+// Replay of 3778 watches since 2026-09-01 (candles, entry at the detection
+// candle close, +10% before -10% within 72h): 260 trades, 46.5% (all watches
+// 24%), take +10% sum +818%, positive in all three thirds (+221/+258/+339),
+// without the 2026-10-15 crash day: 140 trades, 48.6%, +390%.
+export const LC_MAX_DETECTION_CANDLE_BODY_PCT = -3.5;
+export const LC_DETECTION_ENTRY_WINDOW_MS = 15 * 60 * 1000;
 // Owner 2026-10-23: only the CLOSED detection candle is judged. While it is
 // still open the watch waits (reason "detection_candle_pending", non-terminal)
 // and the gate is re-evaluated each cycle. Threshold 10% -> 6% (replay of
@@ -34,6 +43,8 @@ export type LcDetectionCandleDecision =
       reason:
         | "detection_candle_unavailable"
         | "detection_candle_too_small"
+        | "detection_candle_not_capitulation"
+        | "detection_candle_entry_window_passed"
         | "detection_candle_pending";
       rangePct: number | null;
       lowerWickPct: number | null;
@@ -76,16 +87,36 @@ export function evaluateLcDetectionCandleGate(
   const rangePct = ((c.high - c.low) / c.open) * 100;
   const lowerWickPct = ((Math.min(c.open, c.close) - c.low) / c.open) * 100;
   const bodyPct = ((c.close - c.open) / c.open) * 100;
-  if (rangePct >= LC_MIN_DETECTION_CANDLE_RANGE_PCT) {
-    return { pass: true, rangePct, lowerWickPct, bodyPct };
+  if (rangePct < LC_MIN_DETECTION_CANDLE_RANGE_PCT) {
+    return {
+      pass: false,
+      reason: "detection_candle_too_small",
+      rangePct,
+      lowerWickPct,
+      bodyPct,
+    };
   }
-  return {
-    pass: false,
-    reason: "detection_candle_too_small",
-    rangePct,
-    lowerWickPct,
-    bodyPct,
-  };
+  if (bodyPct > LC_MAX_DETECTION_CANDLE_BODY_PCT) {
+    return {
+      pass: false,
+      reason: "detection_candle_not_capitulation",
+      rangePct,
+      lowerWickPct,
+      bodyPct,
+    };
+  }
+  // The edge is the entry at the detection candle close; a late fire is a
+  // different trade, so the window is terminal.
+  if (now > c.time + M15 + LC_DETECTION_ENTRY_WINDOW_MS) {
+    return {
+      pass: false,
+      reason: "detection_candle_entry_window_passed",
+      rangePct,
+      lowerWickPct,
+      bodyPct,
+    };
+  }
+  return { pass: true, rangePct, lowerWickPct, bodyPct };
 }
 
 const cache = new Map<string, LcDetectionCandle[] | null>();

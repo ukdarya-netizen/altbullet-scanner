@@ -16798,10 +16798,17 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
           price24hPct,
           detectionCandleRangePct: lcCandleGate.rangePct,
           detectionCandleLowerWickPct: lcCandleGate.lowerWickPct,
+          detectionCandleBodyPct: lcCandleGate.bodyPct,
           minRangePct: LC_MIN_DETECTION_CANDLE_RANGE_PCT,
         });
         continue;
       }
+      // Owner 2026-10-27: a capitulation detection candle (see
+      // lc-detection-candle-gate.ts) is the entry itself: enter right after its
+      // close. The later filters (recovery hold, WI+CVD4h, spot taker, OB wait)
+      // delayed or dropped these entries and are not applied to them. BTC keeps
+      // the original rules. The no-data rule and one-position-per-coin stay.
+      const lcCapitulationEntry = lcCandleGate !== null;
 
       // Limit-style entry removed (owner order 2026-10-17): LC enters at once.
 
@@ -16815,6 +16822,7 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
       // No price fetch is needed when the liquidation concentration already
       // passes: this check runs per watch and should not slow every fire cycle.
       const needsRecoveryCheck =
+        !lcCapitulationEntry &&
         entryReason === "liq_spike" &&
         liqRatio !== null &&
         Number.isFinite(liqRatio) &&
@@ -16928,6 +16936,7 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
       //   17/47 (36%) имели WI<0  → по-прежнему блокируются combined gate
       //   avg WI у cvd4h=false сигналов = +41.5 (киты скорее покупали, несмотря на CVD4h=false)
       if (
+        !lcCapitulationEntry &&
         cvdData?.available === true &&
         cvdData.cvd4h === false &&
         _gateWi !== null &&
@@ -16961,7 +16970,10 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
       // A confirmed negative spot taker flow means aggressive sellers are
       // still in control after the liquidation wave. Missing data stays
       // fail-open so CoinGlass coverage never becomes an accidental blocker.
-      if (shouldBlockLiqCascadeSpotTaker(spotTakerData)) {
+      if (
+        !lcCapitulationEntry &&
+        shouldBlockLiqCascadeSpotTaker(spotTakerData)
+      ) {
         _pdbReject("liquidation_cascade_bg", "spot_taker_negative");
         observeLiqCandidate("rejected", "spot_taker_negative", {
           price24hPct,
@@ -17088,7 +17100,9 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
         oiChange24h: oiData?.oiChange24h ?? null,
         sentiment: "Liquidation Cascade",
         sentimentKey: "liquidation_cascade",
-        traderAction: `LONG (каскад лонг-ликвидаций исчерпан ${ageStr} назад, источник: ${reasonStr}, liqExhausted: ${exhausted}, стоп -8%)`,
+        traderAction: lcCapitulationEntry
+          ? `LONG (капитуляция после каскада лонг-ликвидаций, обнаружено ${ageStr} назад, источник: ${reasonStr}, стоп -10%)`
+          : `LONG (каскад лонг-ликвидаций исчерпан ${ageStr} назад, источник: ${reasonStr}, liqExhausted: ${exhausted}, стоп -10%)`,
         alphaScore,
         isContinuing: false,
         cumulativeOiChange: oi30m ?? 0,
@@ -17191,7 +17205,12 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
         continue;
       }
       // BTC — единственное исключение: срабатывает всегда, без ожидания OB.
-      if (LC_OB_WAIT_ENABLED && !waitRelease && symbol !== "BTC-USDT") {
+      if (
+        LC_OB_WAIT_ENABLED &&
+        !lcCapitulationEntry &&
+        !waitRelease &&
+        symbol !== "BTC-USDT"
+      ) {
         const venueResults = await fetchLcObVenueCandles(
           symbol,
           ["1h", "4h"],

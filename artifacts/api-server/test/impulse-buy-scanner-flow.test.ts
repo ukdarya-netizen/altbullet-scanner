@@ -22,6 +22,7 @@ const passingInput = {
   price24h: 0,
   price3h: 0,
   oi30m: 0.5,
+  longLiq24hUsd: 60_000,
   futVolumeMultiplier: 1.4,
   spotVolumeMultiplier: 2.5,
   fundingRate: 0,
@@ -331,4 +332,22 @@ test("small body and weak close are telemetry, not rejection reasons", () => {
   assert.equal(decision.components.strong_close, false);
   assert.ok(!decision.rejectReasons.includes("candle_body_lt_2pct"));
   assert.ok(!decision.rejectReasons.includes("close_strength_lt_65pct"));
+});
+
+test("2026-10-27 quality gate: OI30m >= 0.26% and long liquidations 24h >= $47k", () => {
+  assert.equal(evaluateImpulseBuy({ ...passingInput, oi30m: 0.26, longLiq24hUsd: 47_000 }).passes, true);
+  const lowOi = evaluateImpulseBuy({ ...passingInput, oi30m: 0.25 });
+  assert.equal(lowOi.passes, false);
+  assert.ok(lowOi.rejectReasons.includes("oi30m_below_0_26pct"));
+  const lowLiq = evaluateImpulseBuy({ ...passingInput, longLiq24hUsd: 46_999 });
+  assert.equal(lowLiq.passes, false);
+  assert.ok(lowLiq.rejectReasons.includes("long_liq24h_below_47k"));
+  const noLiq = evaluateImpulseBuy({ ...passingInput, longLiq24hUsd: null });
+  assert.equal(noLiq.passes, false);
+  assert.ok(noLiq.rejectReasons.includes("long_liq24h_unavailable"));
+});
+
+test("scanner passes decision-time long liquidations 24h into Impulse Buy", () => {
+  const source = readFileSync(resolve(process.cwd(), "src/lib/scanner.ts"), "utf8");
+  assert.match(source, /longLiq24hUsd: _impulseLongLiq24h/);
 });

@@ -449,6 +449,11 @@ export interface ImpulseBuyInput {
   cvd4h?: boolean | null;
   /** Futures taker net-buy %; an explicit null (unavailable) blocks the signal. */
   futTakerNetBuyPct?: number | null;
+  /**
+   * Aggregated long liquidations over 24h (USD) at decision time; an explicit
+   * null (unavailable) blocks the signal, undefined (not supplied) is ignored.
+   */
+  longLiq24hUsd?: number | null;
 }
 
 export interface ImpulseBuyDecision {
@@ -562,6 +567,10 @@ export function resolveImpulseBuyScannerFlow(
   };
 }
 
+/** 2026-10-27 (owner): Impulse Buy entry quality gate thresholds. */
+export const IMPULSE_BUY_MIN_OI30M_PCT = 0.26;
+export const IMPULSE_BUY_MIN_LONG_LIQ24H_USD = 47_000;
+
 /**
  * Impulse Buy baseline. Every input is captured at decision time:
  * no post-entry enrichment is allowed to influence whether the pattern fires.
@@ -674,6 +683,25 @@ export function evaluateImpulseBuy(input: ImpulseBuyInput): ImpulseBuyDecision {
     input.oi1h > 20
   ) {
     rejectReasons.push("oi1h_above_20pct");
+  }
+  // 2026-10-27 (owner): entry quality gate. 204 Impulse Buy signals since
+  // Sep 1, candle-labelled (+10% before stop, 72h): all 37%, OI30m >= 0.26%
+  // 56%, OI30m >= 0.26% AND long liquidations 24h >= $47k 68% (38 trades,
+  // positive in all three chronological thirds). Unavailable data is rejected.
+  if (
+    isKnown(input.oi30m) &&
+    input.oi30m < IMPULSE_BUY_MIN_OI30M_PCT
+  ) {
+    rejectReasons.push("oi30m_below_0_26pct");
+  }
+  if (input.longLiq24hUsd === null) {
+    rejectReasons.push("long_liq24h_unavailable");
+  } else if (
+    input.longLiq24hUsd !== undefined &&
+    (!Number.isFinite(input.longLiq24hUsd) ||
+      input.longLiq24hUsd < IMPULSE_BUY_MIN_LONG_LIQ24H_USD)
+  ) {
+    rejectReasons.push("long_liq24h_below_47k");
   }
   // 2026-10-11 (owner): Spot Volume must be known and >= 2x; no upper cap.
   // Rejected-decision outcomes: 2-4x reached +10% first in 42% of cases vs

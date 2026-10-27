@@ -87,6 +87,9 @@ export const FINAL_GATE_REASON_PREFIXES = {
     "volume_placeholder_1x",
     "funding_below_minus_0_1pct",
     "oi1h_above_20pct",
+    "oi30m_below_0_26pct",
+    "long_liq24h_unavailable",
+    "long_liq24h_below_47k",
     "spot_volume_unavailable",
     "spot_volume_below_2x",
     // retired (history keeps the old reasons):

@@ -8810,6 +8810,12 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             let _impulseCvd30m = _plmEntry?.lastCvd30m ?? null;
             let _impulseCvd1h = _plmEntry?.lastCvd1h ?? null;
             let _impulseCvd4h = _plmEntry?.lastCvd4h ?? null;
+            // Long liquidations 24h at decision (same batch cache as the entry
+            // snapshot entry_liq_long24h; 0 there = no data).
+            const _impulseLongLiq24h: number | null =
+              _impulseLiqAtDecision && _impulseLiqAtDecision.longLiq24h > 0
+                ? _impulseLiqAtDecision.longLiq24h
+                : null;
             const _buildImpulseInput = (takerCvdMeasured = false) => ({
               candleOpen: parseFloat(_closed30m?.open ?? "") || 0,
               candleHigh: parseFloat(_closed30m?.high ?? "") || 0,
@@ -8835,6 +8841,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               cvd1h: _impulseCvd1h,
               cvd4h: _impulseCvd4h,
               futTakerNetBuyPct: _impulseFutTakerNetBuyPct,
+              longLiq24hUsd: _impulseLongLiq24h,
             });
             let _impulseDecision = evaluateImpulseBuy(_buildImpulseInput());
             if (
