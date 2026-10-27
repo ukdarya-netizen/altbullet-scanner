@@ -1,0 +1,4 @@
+Impulse Buy rejects from scan_reject_log, production, read-only. No analysis.
+- ib_rejects.csv.gz: all rows (71784, 553 symbols). Data in scan_reject_log starts 2026-10-24 06:30 UTC. reasons = reason string, joined with '+'. price_source: decision_snapshot (9600) / bingx_15m_last_closed_close (62147) / unavailable (37). has_selected_reason=1 if any of funding_below_minus_0_1pct, p24h_5_to_10pct, price3h_ge_20pct, oi1h_above_20pct, spot_volume_below_2x, volume_lt_1_5x, impulse_spot_taker_netbuy_le_10pct is among reasons (11251 rows).
+- ib_candles.csv.gz.partNN: concatenate parts, gunzip. BingX 15m candles for has_selected_reason=1 rows (1693886 rows), keyed by reject_id, from the candle containing cycle_at up to +72h, closed candles only (rows from the last 72h have fewer).
+- Symbols BingX no longer lists have no candles/price.
