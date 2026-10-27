@@ -21,6 +21,8 @@
  * Run (from artifacts/api-server):
  *   npx tsx scripts/neon-sweep-backtest.ts --days 42 --out ../../reports/oct30/neon_sweep
  * Optional: --symbols BULLA-USDT,AIN-USDT  --limit 300
+ * Feature mode (live k=3 rule vs 1H-only confirmation, entry-time features):
+ *   npx tsx scripts/neon-sweep-backtest.ts --days 100 --features 1 --out ../../reports/full/neon_features
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -48,11 +50,19 @@ const OUT = args.get("out") ?? "neon_sweep";
 const LIMIT = Number(args.get("limit") ?? 10_000);
 const ONLY = args.get("symbols")?.split(",").filter(Boolean) ?? null;
 
-const VARIANTS: { name: string; sweep?: number }[] = [
-  { name: "current" },
-  { name: "sweep_k2", sweep: 2 },
-  { name: "sweep_k3", sweep: 3 },
-];
+// --features: live rule (sweep k=3) and the same rule confirmed only on a
+// closed 1H candle (no 15m trigger); each trade gets entry-time features.
+const FEATURES = args.has("features");
+const VARIANTS: { name: string; sweep?: number; h1Only?: boolean }[] = FEATURES
+  ? [
+      { name: "live_k3", sweep: 3 },
+      { name: "live_k3_h1only", sweep: 3, h1Only: true },
+    ]
+  : [
+      { name: "current" },
+      { name: "sweep_k2", sweep: 2 },
+      { name: "sweep_k3", sweep: 3 },
+    ];
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -118,7 +128,67 @@ type Signal = {
   netPct: number | null;
   hit10: boolean | null;
   peak: number;
+  /** Entry-time features (only data known at the trigger close). */
+  feat?: Record<string, number | null>;
 };
+
+function pct(a: number, b: number): number | null {
+  return b > 0 && Number.isFinite(a) && Number.isFinite(b) ? (a / b - 1) * 100 : null;
+}
+
+function ema(values: number[], n: number): number | null {
+  if (values.length < n) return null;
+  const k = 2 / (n + 1);
+  let e = values.slice(0, n).reduce((a, b) => a + b, 0) / n;
+  for (const v of values.slice(n)) e = v * k + e * (1 - k);
+  return e;
+}
+
+function features(
+  trig: ClosedDetectorCandle,
+  res: { frozenLevel?: number | null; volumeEvidence?: { ratio: number | null } },
+  h4: ClosedDetectorCandle[],
+  h1: ClosedDetectorCandle[],
+  t: number,
+): Record<string, number | null> {
+  const c4 = h4.filter((c) => c.time + H4 <= t);
+  const c1 = h1.filter((c) => c.time + H1 <= t);
+  const close = trig.close;
+  const at = (arr: ClosedDetectorCandle[], ms: number, step: number) =>
+    arr.filter((c) => c.time + step <= t - ms).at(-1)?.close ?? Number.NaN;
+  const last180 = c4.slice(-180); // 30 days of 4H
+  const hi30 = last180.length ? Math.max(...last180.map((c) => c.high)) : Number.NaN;
+  const lo30 = last180.length ? Math.min(...last180.map((c) => c.low)) : Number.NaN;
+  const last15 = c4.slice(-15);
+  const tr = last15.map((c, i) =>
+    i === 0
+      ? c.high - c.low
+      : Math.max(c.high - c.low, Math.abs(c.high - last15[i - 1]!.close), Math.abs(c.low - last15[i - 1]!.close)),
+  );
+  const atr = tr.length ? tr.reduce((a, b) => a + b, 0) / tr.length : Number.NaN;
+  const e50 = ema(c4.map((c) => c.close), 50);
+  const e200 = ema(c4.map((c) => c.close), 200);
+  const vol24 = c1.slice(-24).reduce((a, c) => a + (c.volumeUsd ?? 0), 0);
+  const vol7d = c1.slice(-168).reduce((a, c) => a + (c.volumeUsd ?? 0), 0) / 7;
+  return {
+    entryAboveLevelPct: res.frozenLevel ? pct(close, res.frozenLevel) : null,
+    trigBodyPct: pct(trig.close, trig.open),
+    trigRangePct: trig.open > 0 ? ((trig.high - trig.low) / trig.open) * 100 : null,
+    trigClosePos: trig.high > trig.low ? (trig.close - trig.low) / (trig.high - trig.low) : null,
+    trigVolRatio: res.volumeEvidence?.ratio ?? null,
+    price1hPct: pct(close, at(c1, H1, H1)),
+    price4hPct: pct(close, at(c1, 4 * H1, H1)),
+    price24hPct: pct(close, at(c1, 24 * H1, H1)),
+    price7dPct: pct(close, at(c4, 7 * 24 * H1, H4)),
+    fromHigh30dPct: pct(close, hi30),
+    fromLow30dPct: pct(close, lo30),
+    atr4hPct: Number.isFinite(atr) && close > 0 ? (atr / close) * 100 : null,
+    vsEma50_4hPct: e50 ? pct(close, e50) : null,
+    vsEma200_4hPct: e200 ? pct(close, e200) : null,
+    vol24hVs7dAvg: vol7d > 0 ? vol24 / vol7d : null,
+    vol24hUsd: vol24,
+  };
+}
 
 /** Owner 2026-10-27 target: +10% before the -8% stop within 72h; and the 72h peak. */
 function target10(m15: ClosedDetectorCandle[], from: number, entry: number): { hit10: boolean | null; peak: number } {
@@ -160,7 +230,7 @@ function labelTrade(
 
 function simulate(
   symbol: string,
-  variant: { name: string; sweep?: number },
+  variant: { name: string; sweep?: number; h1Only?: boolean },
   h4: ClosedDetectorCandle[],
   h1: ClosedDetectorCandle[],
   m15: ClosedDetectorCandle[],
@@ -179,7 +249,10 @@ function simulate(
       // Production keeps ~600 bars of 4H history (zones use the last 600).
       candles4h: h4.filter((c) => c.time + H4 <= t && c.time >= t - 640 * H4),
       candles1h: h1.filter((c) => c.time + H1 <= t && c.time >= t - 30 * H1),
-      candles15m: arm ? m15.filter((c) => c.time + M15 <= t && c.time >= t - 30 * M15) : undefined,
+      candles15m:
+        arm && !variant.h1Only
+          ? m15.filter((c) => c.time + M15 <= t && c.time >= t - 30 * M15)
+          : undefined,
       observedAt: t,
       marketCapUsd: null,
       ...(arm ? { frozenLevel: arm.level, armCandleTime: arm.time } : {}),
@@ -206,6 +279,7 @@ function simulate(
         netPct: lab.netPct,
         hit10: tg.hit10,
         peak: tg.peak,
+        ...(FEATURES && trig ? { feat: features(trig, res, h4, h1, t) } : {}),
       });
       busyUntil = lab.resolvedAt;
     } else if (res.status === "armed" && res.frozenLevel != null && res.armCandleTime != null) {
@@ -233,17 +307,17 @@ function summarize(signals: Signal[], from: number, now: number): string {
     );
   };
   const key = (s: Signal) => `${s.symbol}|${s.triggerCandleTime}`;
-  const base = new Set(signals.filter((s) => s.variant === "current").map(key));
+  const base = new Set(signals.filter((s) => s.variant === VARIANTS[0]!.name).map(key));
   for (const v of VARIANTS) {
     const rs = signals.filter((s) => s.variant === v.name);
     lines.push(`== ${v.name}`);
     row("all", rs);
     row("first half", rs.filter((s) => s.observedAt < mid));
     row("second half", rs.filter((s) => s.observedAt >= mid));
-    if (v.name !== "current") {
+    if (v.name !== VARIANTS[0]!.name) {
       const own = new Set(rs.map(key));
       const added = rs.filter((s) => !base.has(key(s)));
-      const removed = signals.filter((s) => s.variant === "current" && !own.has(key(s)));
+      const removed = signals.filter((s) => s.variant === VARIANTS[0]!.name && !own.has(key(s)));
       row("ADDED vs current", added);
       row("ADDED first half", added.filter((s) => s.observedAt < mid));
       row("ADDED second half", added.filter((s) => s.observedAt >= mid));
@@ -285,10 +359,12 @@ async function main() {
     done++;
     if (done % 25 === 0) console.error(`${done}/${symbols.length} symbols, ${all.length} signals`);
   }
-  const header = "variant,symbol,observed_at,trigger_candle,reason,frozen_level,entry,label,net_pct,hit10,peak72";
+  const featKeys = FEATURES ? Object.keys(all.find((s) => s.feat)?.feat ?? {}) : [];
+  const header = ["variant,symbol,observed_at,trigger_candle,reason,frozen_level,entry,label,net_pct,hit10,peak72", ...featKeys].join(",");
+  const fmt = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? "" : String(+v.toFixed(4)));
   writeFileSync(
     join(OUT, "signals.csv"),
-    [header, ...all.map((s) => [s.variant, s.symbol, new Date(s.observedAt).toISOString(), new Date(s.triggerCandleTime).toISOString(), s.reason, s.frozenLevel, s.entry, s.label, s.netPct ?? "", s.hit10 === null ? "" : s.hit10 ? 1 : 0, s.peak.toFixed(2)].join(","))].join("\n"),
+    [header, ...all.map((s) => [s.variant, s.symbol, new Date(s.observedAt).toISOString(), new Date(s.triggerCandleTime).toISOString(), s.reason, s.frozenLevel, s.entry, s.label, s.netPct ?? "", s.hit10 === null ? "" : s.hit10 ? 1 : 0, s.peak.toFixed(2), ...featKeys.map((k) => fmt(s.feat?.[k]))].join(","))].join("\n"),
   );
   writeFileSync(join(OUT, "errors.json"), JSON.stringify(errors, null, 1));
   const summary = `period ${new Date(from).toISOString()} .. ${new Date(now).toISOString()}, symbols ${symbols.length}, errors ${Object.keys(errors).length}\n` + summarize(all, from, now);
