@@ -148,6 +148,53 @@ function zoneUndercutAfterPivot(
   return candles.slice(pivotAt + 1).some((c) => c.low < zone.bottom);
 }
 
+/**
+ * Research variant (off by default, live behaviour unchanged): a zone dies only
+ * on a breakdown — `reclaimBars` consecutive closed 4H candles closing more than
+ * 1% below its bottom. A wick below, or closes below that are reclaimed within
+ * `reclaimBars` candles, is a sweep and the zone stays support.
+ */
+function zoneBrokenAfterPivot(
+  candles: readonly ClosedDetectorCandle[],
+  zone: SupportZone,
+  reclaimBars: number,
+): boolean {
+  let pivotAt = -1;
+  for (let i = SR_PIVOT_LENGTH; i + SR_PIVOT_LENGTH < candles.length; i++) {
+    const c = candles[i]!;
+    if (c.low < zone.bottom || c.low > zone.top) continue;
+    let isLow = true;
+    for (let j = i - SR_PIVOT_LENGTH; j <= i + SR_PIVOT_LENGTH; j++) {
+      if (j !== i && candles[j]!.low < c.low) isLow = false;
+    }
+    if (isLow) pivotAt = i;
+  }
+  if (pivotAt < 0) return false;
+  return hasBreakdownRun(candles.slice(pivotAt + 1), zone, reclaimBars);
+}
+
+function hasBreakdownRun(
+  candles: readonly ClosedDetectorCandle[],
+  zone: SupportZone,
+  reclaimBars: number,
+): boolean {
+  const below = zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE);
+  let run = 0;
+  for (const c of candles) {
+    run = c.close < below ? run + 1 : 0;
+    if (run >= reclaimBars) return true;
+  }
+  return false;
+}
+
+/** Sweep touch: dipped to/through the zone and closed back at/above its bottom. */
+function sweepTouchesZone(candle: ClosedDetectorCandle, zone: SupportZone): boolean {
+  return (
+    candle.low <= zone.top * (1 + SUPPORT_TOUCH_TOLERANCE) &&
+    candle.close >= zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE)
+  );
+}
+
 export type SupportZone = {
   center: number;
   top: number;
@@ -323,7 +370,10 @@ export function evaluateAbneonSupportBounce(input: {
   observedAt: number;
   frozenLevel?: number;
   armCandleTime?: number;
+  /** Research only (backtest): treat wicks/short closes below a zone as sweeps. */
+  sweepReclaimBars?: number;
 }): ShadowDetectorResult<AbneonShadowMethod> {
+  const sweep = input.sweepReclaimBars;
   const h4 = closed(input.candles4h, H4, input.observedAt);
   const h1 = closed(input.candles1h, H1, input.observedAt);
   if (h1.length < VOLUME_LOOKBACK + 1)
@@ -344,7 +394,15 @@ export function evaluateAbneonSupportBounce(input: {
     }
     const zone = resolveFrozenZone(h4, arm, frozenLevel);
     const brokenBelow = zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE);
-    if (h4.some((c) => c.time >= arm && c.close < brokenBelow)) {
+    if (
+      sweep != null
+        ? hasBreakdownRun(
+            h4.filter((c) => c.time >= arm),
+            zone,
+            sweep,
+          )
+        : h4.some((c) => c.time >= arm && c.close < brokenBelow)
+    ) {
       return {
         method: "abneon_support_bounce",
         status: "terminal",
@@ -371,8 +429,9 @@ export function evaluateAbneonSupportBounce(input: {
         (k) =>
           k.time + H1 > arm &&
           k.time <= (reaction?.time ?? -1) &&
-          k.low >= zone.bottom &&
-          k.low <= zone.top + atr4h,
+          (sweep != null
+            ? k.low <= zone.top + atr4h && k.close >= zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE)
+            : k.low >= zone.bottom && k.low <= zone.top + atr4h),
       );
     const qualified =
       isLater &&
@@ -400,8 +459,10 @@ export function evaluateAbneonSupportBounce(input: {
           h15.some(
             (k) =>
               k.time + M15 > arm &&
-              k.low >= zone.bottom &&
-              k.low <= zone.top + atr4h,
+              (sweep != null
+                ? k.low <= zone.top + atr4h &&
+                  k.close >= zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE)
+                : k.low >= zone.bottom && k.low <= zone.top + atr4h),
           );
         if (
           touch15 &&
@@ -447,8 +508,10 @@ export function evaluateAbneonSupportBounce(input: {
     return empty("abneon_support_bounce", "insufficient_closed_candles");
   // Owner 2026-10-22 (SOPH): no support under a falling price — drop zones
   // that price has already traded through after their latest pivot.
-  const zones = computeSupportZones(h4).filter(
-    (z) => !zoneUndercutAfterPivot(h4, z),
+  const zones = computeSupportZones(h4).filter((z) =>
+    sweep != null
+      ? !zoneBrokenAfterPivot(h4, z, sweep)
+      : !zoneUndercutAfterPivot(h4, z),
   );
   if (zones.length === 0)
     return empty("abneon_support_bounce", "no_retested_support");
@@ -457,14 +520,29 @@ export function evaluateAbneonSupportBounce(input: {
   // reaction itself; waiting for the next 4H close would enter far too late.
   const lastH1 = latest(h1);
   if (lastH1 && lastH1.close > lastH1.open) {
-    const direct = nearestTouchedZone(
+    const direct = (
+      sweep != null
+        ? zones
+            .filter((z) => sweepTouchesZone(lastH1, z))
+            .sort(
+              (a, b) =>
+                Math.abs(lastH1.low - a.center) / a.center -
+                Math.abs(lastH1.low - b.center) / b.center,
+            )
+            .filter(
+              (z) =>
+                lastH1.close <= z.top * (1 + SUPPORT_TOUCH_TOLERANCE) &&
+                lastH1.open >= z.bottom * (1 - SUPPORT_TOUCH_TOLERANCE),
+            )[0]
+        : undefined
+    ) ?? (sweep != null ? undefined : nearestTouchedZone(
       zones,
       lastH1.low,
       (z) =>
         lastH1.close >= z.bottom &&
         lastH1.close <= z.top * (1 + SUPPORT_TOUCH_TOLERANCE) &&
         lastH1.open >= z.bottom * (1 - SUPPORT_TOUCH_TOLERANCE),
-    );
+    ));
     if (direct) {
       const evidence = volumeEvidence(h1, h1.length - 1);
       const volUsd = usd(lastH1);
@@ -488,11 +566,20 @@ export function evaluateAbneonSupportBounce(input: {
     }
   }
   // A close below the zone is a breakdown, not a tested zone.
-  const zone = nearestTouchedZone(
-    zones,
-    arm.low,
-    (z) => arm.close >= z.bottom * (1 - SUPPORT_TOUCH_TOLERANCE),
-  );
+  const zone =
+    sweep != null
+      ? zones
+          .filter((z) => sweepTouchesZone(arm, z))
+          .sort(
+            (a, b) =>
+              Math.abs(arm.low - a.center) / a.center -
+              Math.abs(arm.low - b.center) / b.center,
+          )[0]
+      : nearestTouchedZone(
+          zones,
+          arm.low,
+          (z) => arm.close >= z.bottom * (1 - SUPPORT_TOUCH_TOLERANCE),
+        );
   if (!zone) {
     return empty("abneon_support_bounce", "support_not_reached");
   }
