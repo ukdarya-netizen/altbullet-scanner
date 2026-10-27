@@ -12,7 +12,7 @@ const now = T + 2 * M;
 test("passes only a capitulation candle: range >= 5.6% and red body >= 3.5%", () => {
   // range 6%, body -4%
   assert.equal(
-    evaluateLcDetectionCandleGate(c(100, 100.5, 94.5, 96), T + 60_000, now).pass,
+    evaluateLcDetectionCandleGate(c(100, 100.5, 94, 96.2), T + 60_000, now).pass,
     true,
   );
   // range 5.61%, body -3.5%
@@ -31,10 +31,10 @@ test("passes only a capitulation candle: range >= 5.6% and red body >= 3.5%", ()
   assert.equal(!small.pass && small.reason, "detection_candle_too_small");
 });
 test("entry only within 15 minutes after the detection candle close", () => {
-  const late = evaluateLcDetectionCandleGate(c(100, 100.5, 94.5, 96), T + 60_000, T + 2 * M + 1);
+  const late = evaluateLcDetectionCandleGate(c(100, 100.5, 94, 96.2), T + 60_000, T + 2 * M + 1);
   assert.equal(!late.pass && late.reason, "detection_candle_entry_window_passed");
   assert.equal(
-    evaluateLcDetectionCandleGate(c(100, 100.5, 94.5, 96), T + 60_000, T + 2 * M).pass,
+    evaluateLcDetectionCandleGate(c(100, 100.5, 94, 96.2), T + 60_000, T + 2 * M).pass,
     true,
   );
 });
@@ -56,4 +56,12 @@ test("small candle is rejected; missing or unclosed candle blocks", () => {
     T + 60_000,
   );
   assert.equal(!open.pass && open.reason, "detection_candle_pending");
+});
+
+test("the bottom must be bought back: close >= 31% of the range above the low", () => {
+  // range 6%, body -5.5%, close at 8% of range above low
+  const atLow = evaluateLcDetectionCandleGate(c(100, 100, 94, 94.5), T + 60_000, now);
+  assert.equal(!atLow.pass && atLow.reason, "detection_candle_bottom_not_bought");
+  // range 6%, body -4%, close at 33% of range above low
+  assert.equal(evaluateLcDetectionCandleGate(c(100, 100, 94, 96), T + 60_000, now).pass, true);
 });
