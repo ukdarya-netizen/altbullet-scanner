@@ -3628,8 +3628,10 @@ async function runStartupMigration() {
     await db.execute(
       drizzleSql`CREATE INDEX IF NOT EXISTS scan_reject_log_cycle_idx ON scan_reject_log (cycle_at)`,
     );
+    // Owner 2026-10-27: rejections are the evidence for every gate review
+    // (labelled against later candles); 7 days lost them before analysis.
     await db.execute(
-      drizzleSql`DELETE FROM scan_reject_log WHERE cycle_at < NOW() - INTERVAL '7 days'`,
+      drizzleSql`DELETE FROM scan_reject_log WHERE cycle_at < NOW() - INTERVAL '30 days'`,
     );
 
     // Futures vs Spot Volume (CoinGlass /api/futures_spot_volume_ratio, Binance+OKX+Bybit)
