@@ -104,7 +104,13 @@ const live = (cs: C[], e: Ev) => {
   const height = (e.upper / e.lower - 1) * 100;
   return a !== null && v !== null && c.close >= e.upper * 1.01 && c.close - c.open >= a && v >= 2 && height > 4.5;
 };
-const mom = (cs: C[], i: number) => i >= 3 && (cs[i]!.close / cs[i - 3]!.close - 1) * 100 >= 2.3;
+const momAt = (cs: C[], i: number, pct: number) => i >= 3 && (cs[i]!.close / cs[i - 3]!.close - 1) * 100 >= pct;
+const mom = (cs: C[], i: number) => momAt(cs, i, 2.3);
+const bodyDist = (cs: C[], e: Ev) => {
+  const c = cs[e.k]!, a = atr14(cs, e.k);
+  return a !== null && c.close >= e.upper * 1.01 && c.close - c.open >= a;
+};
+const vol2 = (cs: C[], e: Ev) => (volRatio(cs, e.k) ?? 0) >= 2;
 const longRange = (e: Ev, cs: C[]) => cs[e.k]!.time - e.anchorAt >= 48 * H1;
 const confirm2 = (cs: C[], e: Ev) => (cs[e.k + 1] && cs[e.k + 1]!.close > e.upper ? e.k + 1 : null);
 const retest = (cs: C[], e: Ev) => {
@@ -126,6 +132,13 @@ const VARIANTS: Variant[] = [
   { name: "G_range>=48h", entry: (cs, e) => (longRange(e, cs) ? e.k : null) },
   { name: "H_range>=48h+retest", entry: (cs, e) => (longRange(e, cs) ? retest(cs, e) : null) },
   { name: "I_live_proxy+retest", entry: (cs, e) => (live(cs, e) ? retest(cs, e) : null) },
+  { name: "J_momentum3h>=3", entry: (cs, e) => (momAt(cs, e.k, 3) ? e.k : null) },
+  { name: "K_momentum3h>=5", entry: (cs, e) => (momAt(cs, e.k, 5) ? e.k : null) },
+  { name: "L_momentum3h>=2.3+vol2x", entry: (cs, e) => (mom(cs, e.k) && vol2(cs, e) ? e.k : null) },
+  { name: "M_momentum3h>=2.3+dist1%+body1ATR", entry: (cs, e) => (mom(cs, e.k) && bodyDist(cs, e) ? e.k : null) },
+  { name: "N_momentum3h>=3+vol2x", entry: (cs, e) => (momAt(cs, e.k, 3) && vol2(cs, e) ? e.k : null) },
+  { name: "O_dist1%+body1ATR", entry: (cs, e) => (bodyDist(cs, e) ? e.k : null) },
+  { name: "P_vol2x", entry: (cs, e) => (vol2(cs, e) ? e.k : null) },
 ];
 
 async function main() {
