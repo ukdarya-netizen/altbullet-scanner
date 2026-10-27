@@ -1,0 +1,21 @@
+period 2026-09-15T13:23:02.081Z .. 2026-10-27T13:23:02.081Z, symbols 1254, errors 86
+== current
+all                                      +10%_before_stop=24% (199/826) peaks>=20%=91 | n= 562 win=67% exp=0.60% censored=270 days=43 symbols=248
+first half                               +10%_before_stop=34% (158/469) peaks>=20%=68 | n= 342 win=78% exp=2.05% censored=127 days=20 symbols=177
+second half                              +10%_before_stop=11% (41/357) peaks>=20%=23 | n= 220 win=50% exp=-1.66% censored=143 days=23 symbols=194
+== sweep_k2
+all                                      +10%_before_stop=26% (281/1062) peaks>=20%=133 | n= 743 win=68% exp=0.79% censored=327 days=43 symbols=268
+first half                               +10%_before_stop=37% (216/590) peaks>=20%=95 | n= 435 win=80% exp=2.33% censored=155 days=21 symbols=199
+second half                              +10%_before_stop=14% (65/472) peaks>=20%=38 | n= 308 win=52% exp=-1.39% censored=172 days=23 symbols=207
+ADDED vs current                         +10%_before_stop=29% (115/398) peaks>=20%=58 | n= 273 win=72% exp=1.23% censored=127 days=43 symbols=182
+ADDED first half                         +10%_before_stop=39% (83/211) peaks>=20%=39 | n= 156 win=84% exp=2.82% censored=55 days=21 symbols=127
+ADDED second half                        +10%_before_stop=17% (32/187) peaks>=20%=19 | n= 117 win=56% exp=-0.88% censored=72 days=23 symbols=120
+REMOVED vs current                       +10%_before_stop=20% (33/163) peaks>=20%=16 | n=  93 win=70% exp=0.99% censored=70 days=43 symbols=98
+== sweep_k3
+all                                      +10%_before_stop=27% (296/1099) peaks>=20%=131 | n= 774 win=68% exp=0.77% censored=333 days=43 symbols=274
+first half                               +10%_before_stop=37% (220/602) peaks>=20%=90 | n= 444 win=79% exp=2.21% censored=158 days=21 symbols=204
+second half                              +10%_before_stop=15% (76/497) peaks>=20%=41 | n= 330 win=53% exp=-1.17% censored=175 days=23 symbols=214
+ADDED vs current                         +10%_before_stop=29% (133/456) peaks>=20%=60 | n= 316 win=72% exp=1.20% censored=142 days=43 symbols=193
+ADDED first half                         +10%_before_stop=40% (92/231) peaks>=20%=38 | n= 172 win=83% exp=2.63% censored=59 days=21 symbols=138
+ADDED second half                        +10%_before_stop=18% (41/225) peaks>=20%=22 | n= 144 win=58% exp=-0.52% censored=83 days=23 symbols=133
+REMOVED vs current                       +10%_before_stop=20% (36/184) peaks>=20%=20 | n= 105 win=71% exp=1.19% censored=79 days=42 symbols=100
