@@ -1,0 +1,2 @@
+Candles: if a file is split into .partNN, restore with: cat X.csv.gz.part* | gunzip > X.csv
+Ids with no candles (BingX returned an empty response or "offline"): candles_errors.json
