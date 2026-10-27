@@ -66,6 +66,12 @@ function hit10(cs: C[], from: number, entry: number): boolean | null {
   return after.length < HORIZON ? null : false;
 }
 
+/** Highest high within 72h after entry, % of entry (champion size). */
+function peak72(cs: C[], from: number, entry: number): number {
+  const after = cs.slice(from + 1, from + 1 + HORIZON);
+  return after.length ? (Math.max(...after.map((c) => c.high)) / entry - 1) * 100 : 0;
+}
+
 function outcome(cs: C[], from: number, entry: number): number | null {
   const after = cs.slice(from + 1, from + 1 + HORIZON);
   for (const c of after) {
@@ -127,7 +133,8 @@ async function main() {
   const symbols: string[] = ONLY ?? ((await getJson("/openApi/swap/v2/quote/contracts")) as { symbol: string }[])
     .map((c) => c.symbol).filter((s) => s.endsWith("-USDT") && !s.startsWith("BTC-")).slice(0, LIMIT);
   mkdirSync(OUT, { recursive: true });
-  const trades: { v: string; s: string; t: number; r: number; p10: boolean }[] = [];
+  const trades: { v: string; s: string; t: number; r: number; p10: boolean; pk: number }[] = [];
+  const champions = { c20: 0, c50: 0 };
   const errors: Record<string, string> = {};
   let done = 0;
   for (const symbol of symbols) {
@@ -139,6 +146,13 @@ async function main() {
       const evs: Ev[] = (res.upsideBreakouts ?? [])
         .map((b) => ({ upper: b.upper, lower: b.lower, anchorAt: b.anchorAt, k: idx.get(b.breakoutCloseTime - H1) ?? -1 }))
         .filter((e) => e.k >= 0 && cs[e.k]!.time >= from);
+      // Champions: breakouts whose price ran +20% / +50% within 72h of the break.
+      for (const e of evs) {
+        if (e.k + HORIZON >= cs.length) continue;
+        const pk = peak72(cs, e.k, cs[e.k]!.close);
+        if (pk >= 20) champions.c20++;
+        if (pk >= 50) champions.c50++;
+      }
       for (const v of VARIANTS) {
         let busyUntil = -1;
         for (const e of evs) {
@@ -147,7 +161,7 @@ async function main() {
           const r = outcome(cs, j, cs[j]!.close);
           const p10 = hit10(cs, j, cs[j]!.close);
           if (r === null || p10 === null) continue;
-          trades.push({ v: v.name, s: symbol, t: cs[j]!.time, r, p10 });
+          trades.push({ v: v.name, s: symbol, t: cs[j]!.time, r, p10, pk: peak72(cs, j, cs[j]!.close) });
           busyUntil = j + HORIZON; // conservative: one trade per symbol per 72h
         }
       }
@@ -159,9 +173,11 @@ async function main() {
     if (!rs.length) return `${name.padEnd(48)} n=0`;
     const w = rs.filter((r) => r.r > 0).length;
     const p10 = rs.filter((r) => r.p10).length;
-    return `${name.padEnd(48)} n=${String(rs.length).padStart(5)} +10%_before_stop=${Math.round((100 * p10) / rs.length)}% (${p10}) | +5%rule win=${Math.round((100 * w) / rs.length)}% exp=${(rs.reduce((a, r) => a + r.r, 0) / rs.length).toFixed(2)}% days=${new Set(rs.map((r) => new Date(r.t).toISOString().slice(0, 10))).size}`;
+    const c20 = rs.filter((r) => r.pk >= 20).length, c50 = rs.filter((r) => r.pk >= 50).length;
+    return `${name.padEnd(48)} n=${String(rs.length).padStart(5)} +10%_before_stop=${Math.round((100 * p10) / rs.length)}% (${p10}) champions>=20%=${c20} >=50%=${c50} | +5%rule win=${Math.round((100 * w) / rs.length)}% exp=${(rs.reduce((a, r) => a + r.r, 0) / rs.length).toFixed(2)}% days=${new Set(rs.map((r) => new Date(r.t).toISOString().slice(0, 10))).size}`;
   };
-  const out: string[] = [`period ${new Date(from).toISOString()}..${new Date(now).toISOString()} symbols=${symbols.length} errors=${Object.keys(errors).length}`];
+  const out: string[] = [`period ${new Date(from).toISOString()}..${new Date(now).toISOString()} symbols=${symbols.length} errors=${Object.keys(errors).length}`,
+    `champion breakouts in the market: >=20% in 72h: ${champions.c20}, >=50%: ${champions.c50}`];
   for (const v of VARIANTS) {
     const rs = trades.filter((t) => t.v === v.name);
     out.push(`== ${v.name}`, line("all", rs), line("first half", rs.filter((t) => t.t < mid)), line("second half", rs.filter((t) => t.t >= mid)));
