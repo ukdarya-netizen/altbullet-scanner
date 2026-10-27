@@ -1,0 +1,21 @@
+period 2026-09-15T05:29:52.844Z .. 2026-10-27T05:29:52.844Z, symbols 1244, errors 261
+== current
+all                                      n= 563 win=67% exp=0.63% censored=269 days=43 symbols=249
+first half                               n= 344 win=78% exp=2.07% censored=128 days=20 symbols=180
+second half                              n= 219 win=50% exp=-1.63% censored=141 days=24 symbols=193
+== sweep_k2
+all                                      n= 742 win=69% exp=0.84% censored=336 days=43 symbols=271
+first half                               n= 434 win=81% exp=2.38% censored=164 days=20 symbols=205
+second half                              n= 308 win=52% exp=-1.35% censored=172 days=24 symbols=206
+ADDED vs current                         n= 270 win=72% exp=1.29% censored=134 days=43 symbols=183
+ADDED first half                         n= 151 win=85% exp=3.01% censored=61 days=20 symbols=129
+ADDED second half                        n= 119 win=55% exp=-0.89% censored=73 days=24 symbols=118
+REMOVED vs current                       n=  92 win=70% exp=0.94% censored=67 days=43 symbols=99
+== sweep_k3
+all                                      n= 772 win=69% exp=0.82% censored=341 days=43 symbols=277
+first half                               n= 442 win=80% exp=2.28% censored=166 days=20 symbols=209
+second half                              n= 330 win=54% exp=-1.13% censored=175 days=24 symbols=213
+ADDED vs current                         n= 311 win=72% exp=1.26% censored=148 days=43 symbols=194
+ADDED first half                         n= 165 win=84% exp=2.85% censored=64 days=20 symbols=137
+ADDED second half                        n= 146 win=58% exp=-0.53% censored=84 days=24 symbols=131
+REMOVED vs current                       n= 103 win=71% exp=1.11% censored=76 days=42 symbols=101
