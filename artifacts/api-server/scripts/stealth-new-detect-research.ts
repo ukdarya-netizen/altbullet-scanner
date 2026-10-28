@@ -20,6 +20,8 @@
  *  fx8_t5 / fx8_t10   take +5 / +10 before a fixed -8% stop (else close at 72h)
  *  st_t5 / st_t10     same with a structural stop: lowest low of the 24 candles
  *                     before the event - 0.5%; stop_struct_pct = its distance
+ *  r_level_* / r_candle_*  breakout-trader exits in R (see rTrade): stop at the
+ *                     broken 24H high - 1% or under the breakout candle; trail / 2R / 3R
  *  peak72_pct, close72_pct, hrs_to_peak, mae_before_peak_pct (worst low before the peak)
  *
  * Public BingX klines only. No DB, no secrets. Volume = BingX quote volume.
@@ -108,6 +110,29 @@ function trade(cs: C[], i: number, entry: number, stop: number, take: number): n
   return pct(after[after.length - 1]!.close, entry) - FEE;
 }
 
+/**
+ * Breakout-trader exit, result in R (1R = entry - stop): stop at the broken
+ * level - 1% (prev 24H high) or under the breakout candle; mode "trail" moves
+ * the stop to entry at +1R and then trails 1R below the peak; "tN" takes
+ * everything at +N R. 72h, stop first in a candle, fee 0.1% (in R).
+ */
+function rTrade(cs: C[], i: number, entry: number, stop0: number, mode: "trail" | "t2" | "t3"): number | null {
+  const risk = entry - stop0;
+  if (!(risk > entry * 0.003)) return null;
+  const after = cs.slice(i + 1, i + 1 + HORIZON);
+  if (after.length < HORIZON) return null;
+  const feeR = (entry * FEE / 100) / risk;
+  let stop = stop0, peak = entry;
+  const take = mode === "t2" ? entry + 2 * risk : mode === "t3" ? entry + 3 * risk : Infinity;
+  for (const c of after) {
+    if (c.low <= stop) return (stop - entry) / risk - feeR;
+    if (c.high >= take) return (take - entry) / risk - feeR;
+    peak = Math.max(peak, c.high);
+    if (mode === "trail" && peak >= entry + risk) stop = Math.max(stop, entry, peak - risk);
+  }
+  return (after[after.length - 1]!.close - entry) / risk - feeR;
+}
+
 const F = (v: number) => (Number.isFinite(v) ? String(+v.toFixed(4)) : "");
 
 async function main() {
@@ -132,6 +157,8 @@ async function main() {
     "vs_ema50_pct", "vs_ema200_pct", "ema50_slope24_pct", "from_high30d_pct", "from_low30d_pct",
     "new24h_highs_prev24", "hours_since_prev_event",
     // outcomes
+    "risk_level_pct", "r_level_trail", "r_level_t2", "r_level_t3",
+    "risk_candle_pct", "r_candle_trail", "r_candle_t2", "r_candle_t3",
     "stop_struct_pct", "fx8_t5", "fx8_t10", "st_t5", "st_t10", "peak72_pct", "close72_pct", "hrs_to_peak", "mae_before_peak_pct",
   ];
   ev.write(cols.join(",") + "\n");
@@ -205,6 +232,10 @@ async function main() {
           F(pct(c.close, e50[i]!)), F(pct(c.close, e200[i]!)), F(pct(e50[i]!, e50[i - 24]!)),
           F(pct(c.close, maxHigh(cs, i - 720, i))), F(pct(c.close, minLow(cs, i - 720, i))),
           isNew24.slice(i - 24, i).filter(Boolean).length, Number.isFinite(lastEvent) ? i - lastEvent : "",
+          F(pct(prevHigh24 * 0.99, c.close)),
+          F(rTrade(cs, i, c.close, prevHigh24 * 0.99, "trail") ?? NaN), F(rTrade(cs, i, c.close, prevHigh24 * 0.99, "t2") ?? NaN), F(rTrade(cs, i, c.close, prevHigh24 * 0.99, "t3") ?? NaN),
+          F(pct(c.low * 0.998, c.close)),
+          F(rTrade(cs, i, c.close, c.low * 0.998, "trail") ?? NaN), F(rTrade(cs, i, c.close, c.low * 0.998, "t2") ?? NaN), F(rTrade(cs, i, c.close, c.low * 0.998, "t3") ?? NaN),
           F(pct(stopStruct, c.close)),
           F(trade(cs, i, c.close, c.close * 0.92, 5) ?? NaN), F(trade(cs, i, c.close, c.close * 0.92, 10) ?? NaN),
           F(trade(cs, i, c.close, stopStruct, 5) ?? NaN), F(trade(cs, i, c.close, stopStruct, 10) ?? NaN),
