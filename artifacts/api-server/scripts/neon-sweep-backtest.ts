@@ -23,11 +23,19 @@
  * Optional: --symbols BULLA-USDT,AIN-USDT  --limit 300
  * Feature mode (live k=3 rule vs 1H-only confirmation, entry-time features):
  *   npx tsx scripts/neon-sweep-backtest.ts --days 100 --features 1 --out ../../reports/full/neon_features
+ * Exit mode (feature mode + zone features + exit outcomes for several stops):
+ *   npx tsx scripts/neon-sweep-backtest.ts --days 100 --features 1 --exits 1 --out ../../reports/full/neon_exits
+ *   Stops: fixed -8% (fx8), fixed -10% (fx10), zone bottom -1% (zb), zone top
+ *   (frozen level) -1% (zt), trigger candle low -0.5% (tl). Per stop: take +10 /
+ *   +15 / +20 %, tracker (B.U. at +8%, trailing from +15% at 10 pp), R exits
+ *   (rtr: B.U. at +1R then 1R trailing; r2/r3: all at +2R/+3R). 15m candles,
+ *   72h, stop first in a candle, fee 0.1%; remainder closed at the 72h close.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   evaluateAbneonSupportBounce,
+  resolveFrozenZone,
   type ClosedDetectorCandle,
 } from "../src/lib/stealth-abneon-detectors.js";
 
@@ -53,6 +61,7 @@ const ONLY = args.get("symbols")?.split(",").filter(Boolean) ?? null;
 // --features: live rule (sweep k=3) and the same rule confirmed only on a
 // closed 1H candle (no 15m trigger); each trade gets entry-time features.
 const FEATURES = args.has("features");
+const EXITS = args.has("exits");
 const VARIANTS: { name: string; sweep?: number; h1Only?: boolean }[] = FEATURES
   ? [
       { name: "live_k3", sweep: 3 },
@@ -130,7 +139,70 @@ type Signal = {
   peak: number;
   /** Entry-time features (only data known at the trigger close). */
   feat?: Record<string, number | null>;
+  /** Exit outcomes (EXITS mode). */
+  ex?: Record<string, number | null>;
 };
+
+type ExitMode = "t10" | "t15" | "t20" | "trk" | "rtr" | "r2" | "r3";
+const EXIT_MODES: ExitMode[] = ["t10", "t15", "t20", "trk", "rtr", "r2", "r3"];
+
+/** % result of one exit mode from `from` for 72h; null when 72h not complete. */
+function exitPct(
+  m15: ClosedDetectorCandle[],
+  from: number,
+  entry: number,
+  stop0: number,
+  mode: ExitMode,
+): number | null {
+  if (!(stop0 > 0 && stop0 < entry)) return null;
+  if (from + HORIZON_MS > Date.now()) return null;
+  const risk = entry - stop0;
+  const take =
+    mode === "t10" ? entry * 1.1 : mode === "t15" ? entry * 1.15 : mode === "t20" ? entry * 1.2
+      : mode === "r2" ? entry + 2 * risk : mode === "r3" ? entry + 3 * risk : Infinity;
+  let stop = stop0;
+  let peak = entry;
+  let last: ClosedDetectorCandle | null = null;
+  for (const c of m15) {
+    if (c.time < from) continue;
+    if (c.time >= from + HORIZON_MS) break;
+    last = c;
+    if (c.low <= stop) return (stop / entry - 1) * 100 - FEE;
+    if (c.high >= take) return (take / entry - 1) * 100 - FEE;
+    peak = Math.max(peak, c.high);
+    const pp = (peak / entry - 1) * 100;
+    if (mode === "trk") {
+      if (pp >= 8) stop = Math.max(stop, entry);
+      if (pp >= 15) stop = Math.max(stop, entry * (1 + (pp - 10) / 100));
+    } else if (mode === "rtr" && peak >= entry + risk) {
+      stop = Math.max(stop, entry, peak - risk);
+    }
+  }
+  return last ? (last.close / entry - 1) * 100 - FEE : null;
+}
+
+function exitOutcomes(
+  m15: ClosedDetectorCandle[],
+  from: number,
+  entry: number,
+  stops: Record<string, number | null>,
+): Record<string, number | null> {
+  const out: Record<string, number | null> = {};
+  for (const [name, stop] of Object.entries(stops)) {
+    out[`risk_${name}`] = stop != null && stop > 0 ? ((entry - stop) / entry) * 100 : null;
+    for (const mode of EXIT_MODES) {
+      out[`${name}_${mode}`] = stop == null ? null : exitPct(m15, from, entry, stop, mode);
+    }
+  }
+  let close72: number | null = null;
+  for (const c of m15) {
+    if (c.time < from) continue;
+    if (c.time >= from + HORIZON_MS) break;
+    close72 = (c.close / entry - 1) * 100;
+  }
+  out.close72 = from + HORIZON_MS > Date.now() ? null : close72;
+  return out;
+}
 
 function pct(a: number, b: number): number | null {
   return b > 0 && Number.isFinite(a) && Number.isFinite(b) ? (a / b - 1) * 100 : null;
@@ -267,6 +339,29 @@ function simulate(
       if (entry == null) continue;
       const lab = labelTrade(m15, t, entry, now);
       const tg = target10(m15, t, entry);
+      let ex: Record<string, number | null> | undefined;
+      let zoneFeat: Record<string, number | null> = {};
+      if (EXITS && trig && res.frozenLevel != null && res.armCandleTime != null) {
+        const zone = resolveFrozenZone(
+          h4.filter((c) => c.time + H4 <= t),
+          res.armCandleTime,
+          res.frozenLevel,
+        );
+        zoneFeat = {
+          zoneHeightPct: pct(zone.top, zone.bottom),
+          zoneCount: zone.count,
+          entryAboveZoneBottomPct: pct(entry, zone.bottom),
+          armAgeHours: (t - res.armCandleTime) / H1,
+          trigLowVsZoneTopPct: pct(trig.low, zone.top),
+        };
+        ex = exitOutcomes(m15, t, entry, {
+          fx8: entry * 0.92,
+          fx10: entry * 0.9,
+          zb: zone.bottom * 0.99,
+          zt: zone.top * 0.99,
+          tl: trig.low * 0.995,
+        });
+      }
       out.push({
         variant: variant.name,
         symbol,
@@ -279,7 +374,8 @@ function simulate(
         netPct: lab.netPct,
         hit10: tg.hit10,
         peak: tg.peak,
-        ...(FEATURES && trig ? { feat: features(trig, res, h4, h1, t) } : {}),
+        ...(FEATURES && trig ? { feat: { ...features(trig, res, h4, h1, t), ...zoneFeat } } : {}),
+        ...(ex ? { ex } : {}),
       });
       busyUntil = lab.resolvedAt;
     } else if (res.status === "armed" && res.frozenLevel != null && res.armCandleTime != null) {
@@ -359,12 +455,15 @@ async function main() {
     done++;
     if (done % 25 === 0) console.error(`${done}/${symbols.length} symbols, ${all.length} signals`);
   }
-  const featKeys = FEATURES ? Object.keys(all.find((s) => s.feat)?.feat ?? {}) : [];
-  const header = ["variant,symbol,observed_at,trigger_candle,reason,frozen_level,entry,label,net_pct,hit10,peak72", ...featKeys].join(",");
+  const featKeys = FEATURES
+    ? [...new Set(all.flatMap((s) => Object.keys(s.feat ?? {})))]
+    : [];
+  const exKeys = EXITS ? Object.keys(all.find((s) => s.ex)?.ex ?? {}) : [];
+  const header = ["variant,symbol,observed_at,trigger_candle,reason,frozen_level,entry,label,net_pct,hit10,peak72", ...featKeys, ...exKeys].join(",");
   const fmt = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? "" : String(+v.toFixed(4)));
   writeFileSync(
     join(OUT, "signals.csv"),
-    [header, ...all.map((s) => [s.variant, s.symbol, new Date(s.observedAt).toISOString(), new Date(s.triggerCandleTime).toISOString(), s.reason, s.frozenLevel, s.entry, s.label, s.netPct ?? "", s.hit10 === null ? "" : s.hit10 ? 1 : 0, s.peak.toFixed(2), ...featKeys.map((k) => fmt(s.feat?.[k]))].join(","))].join("\n"),
+    [header, ...all.map((s) => [s.variant, s.symbol, new Date(s.observedAt).toISOString(), new Date(s.triggerCandleTime).toISOString(), s.reason, s.frozenLevel, s.entry, s.label, s.netPct ?? "", s.hit10 === null ? "" : s.hit10 ? 1 : 0, s.peak.toFixed(2), ...featKeys.map((k) => fmt(s.feat?.[k])), ...exKeys.map((k) => fmt(s.ex?.[k]))].join(","))].join("\n"),
   );
   writeFileSync(join(OUT, "errors.json"), JSON.stringify(errors, null, 1));
   const summary = `period ${new Date(from).toISOString()} .. ${new Date(now).toISOString()}, symbols ${symbols.length}, errors ${Object.keys(errors).length}\n` + summarize(all, from, now);
