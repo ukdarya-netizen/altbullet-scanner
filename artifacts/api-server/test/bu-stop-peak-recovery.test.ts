@@ -86,8 +86,12 @@ describe("BE protection recovery from durable peak", () => {
     );
   });
 
-  test("Stealth and Neon Support never promote to a profit stop", () => {
-    for (const sentimentKey of ["stealth_breakout", "neon_support_bounce"]) {
+  test("Stealth, Neon Support and LC never promote to a profit stop", () => {
+    for (const sentimentKey of [
+      "stealth_breakout",
+      "neon_support_bounce",
+      "liquidation_cascade",
+    ]) {
       assert.equal(
         resolveBuStopProtection({
           sentimentKey,
@@ -103,7 +107,6 @@ describe("BE protection recovery from durable peak", () => {
     for (const sentimentKey of [
       "bullish_accumulation",
       "balanced_grind",
-      "liquidation_cascade",
       "price_led_momentum",
       "impulse_buy",
     ]) {

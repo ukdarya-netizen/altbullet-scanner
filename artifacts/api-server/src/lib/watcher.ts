@@ -17341,8 +17341,8 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
         sentiment: "Liquidation Cascade",
         sentimentKey: "liquidation_cascade",
         traderAction: lcCapitulationEntry
-          ? `LONG (капитуляция после каскада лонг-ликвидаций, обнаружено ${ageStr} назад, источник: ${reasonStr}, стоп -10%)`
-          : `LONG (каскад лонг-ликвидаций исчерпан ${ageStr} назад, источник: ${reasonStr}, liqExhausted: ${exhausted}, стоп -10%)`,
+          ? `LONG (капитуляция после каскада лонг-ликвидаций, обнаружено ${ageStr} назад, источник: ${reasonStr}, стоп -10%, Б/У с +8%, трейлинг с +15% на 10 п.п.)`
+          : `LONG (каскад лонг-ликвидаций исчерпан ${ageStr} назад, источник: ${reasonStr}, liqExhausted: ${exhausted}, стоп -10%, Б/У с +8%, трейлинг с +15% на 10 п.п.)`,
         alphaScore,
         isContinuing: false,
         cumulativeOiChange: oi30m ?? 0,

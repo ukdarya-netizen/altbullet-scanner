@@ -215,9 +215,13 @@ export function getBuStopMilestone(
   // (28-trade 15m replay: B.U. at +8 beat +5; not decision-grade, revisit).
   // Owner decision 2026-10-25: Neon Support also moves to B.U. only after +8%
   // (46-row no-wait replay: B.U. +8 -15.9 vs +5 -33.2; small sample, revisit).
+  // Owner decision 2026-10-28: Liquidation Cascade B.U. at +8%, then the
+  // ordinary trailing from +15% at 10 pp, no +10% → +5% promotion
+  // (174 signals on the live candle rule: +844% vs +795% current).
   if (
     sentimentKey === "stealth_breakout" ||
-    sentimentKey === "neon_support_bounce"
+    sentimentKey === "neon_support_bounce" ||
+    sentimentKey === "liquidation_cascade"
   ) {
     return 8;
   }
@@ -234,7 +238,8 @@ export function hasNoProfitStopPromotion(
 ): boolean {
   return (
     sentimentKey === "stealth_breakout" ||
-    sentimentKey === "neon_support_bounce"
+    sentimentKey === "neon_support_bounce" ||
+    sentimentKey === "liquidation_cascade"
   );
 }
 
