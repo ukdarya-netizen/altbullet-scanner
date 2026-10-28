@@ -1,0 +1,1 @@
+period 2026-07-20T10:30:27.940Z..2026-10-28T10:30:27.940Z symbols=1255 errors=301 events=73202 champions=3930
