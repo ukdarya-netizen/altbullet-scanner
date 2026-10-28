@@ -1,4 +1,13 @@
 @import "tailwindcss";
+/* Brand fonts (self-hosted): Exo 2 — UI and the italic logo style; Space Mono — numbers. */
+@import "@fontsource/exo-2/400.css";
+@import "@fontsource/exo-2/500.css";
+@import "@fontsource/exo-2/600.css";
+@import "@fontsource/exo-2/700.css";
+@import "@fontsource/exo-2/800-italic.css";
+@import "@fontsource/exo-2/900-italic.css";
+@import "@fontsource/space-mono/400.css";
+@import "@fontsource/space-mono/700.css";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
@@ -62,56 +71,62 @@
 
 :root,
 .dark {
-  --background: 230 27% 5%;
-  --foreground: 216 27% 92%;
-  --border: 235 18% 19%;
-  --card: 231 23% 8%;
-  --card-foreground: 216 27% 92%;
-  --card-border: 235 18% 19%;
-  --sidebar: 232 27% 7%;
-  --sidebar-foreground: 216 18% 82%;
-  --sidebar-border: 235 18% 17%;
+  /* Palette from the brand avatar: night-city navy, neon violet, electric
+     cyan and "BULLET" green. */
+  --background: 248 45% 4%;
+  --foreground: 220 40% 94%;
+  --border: 258 38% 20%;
+  --card: 250 40% 7%;
+  --card-foreground: 220 40% 94%;
+  --card-border: 258 38% 20%;
+  --sidebar: 252 45% 5%;
+  --sidebar-foreground: 220 25% 84%;
+  --sidebar-border: 258 38% 17%;
   --sidebar-primary: 0 0% 100%;
   --sidebar-primary-foreground: 0 0% 0%;
-  --sidebar-accent: 230 20% 14%;
+  --sidebar-accent: 260 35% 13%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-ring: 0 0% 30%;
-  --popover: 231 23% 8%;
-  --popover-foreground: 216 27% 92%;
-  --popover-border: 235 18% 19%;
+  --sidebar-ring: 270 90% 66%;
+  --popover: 250 42% 8%;
+  --popover-foreground: 220 40% 94%;
+  --popover-border: 262 45% 26%;
 
-  --primary: 189 77% 59%;
-  --primary-foreground: 230 35% 8%;
+  --primary: 186 95% 56%;
+  --primary-foreground: 248 50% 6%;
 
-  --secondary: 233 20% 15%;
-  --secondary-foreground: 216 27% 92%;
+  --secondary: 258 32% 14%;
+  --secondary-foreground: 220 40% 94%;
 
-  --muted: 232 18% 13%;
-  --muted-foreground: 220 12% 65%;
+  --muted: 256 30% 12%;
+  --muted-foreground: 228 18% 66%;
 
-  --accent: 189 77% 59%;
-  --accent-foreground: 230 35% 8%;
+  --accent: 272 92% 68%;
+  --accent-foreground: 248 50% 6%;
 
-  --destructive: 0 100% 60%;
+  --destructive: 352 95% 62%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 233 20% 18%;
-  --ring: 189 77% 59%;
+  --input: 258 30% 17%;
+  --ring: 272 92% 68%;
 
-  --chart-1: 189 77% 59%;
-  --chart-2: 120 100% 45%;
-  --chart-3: 40 100% 50%;
-  --chart-4: 269 72% 65%;
-  --chart-5: 0 100% 60%;
+  --chart-1: 186 95% 56%;
+  --chart-2: 140 100% 55%;
+  --chart-3: 40 100% 55%;
+  --chart-4: 272 92% 68%;
+  --chart-5: 352 95% 62%;
+
+  --neon-violet: 272 92% 68%;
+  --neon-cyan: 186 95% 56%;
+  --neon-green: 140 100% 55%;
 
   --app-font-sans:
-    "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+    "Exo 2", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono:
     "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
-  --radius: 0rem;
+  --radius: 0.375rem;
 }
 
 @layer base {
@@ -120,6 +135,47 @@
   }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    /* Numbers keep their width in tables after leaving the all-mono font. */
+    font-variant-numeric: tabular-nums;
+    background-image:
+      radial-gradient(60rem 36rem at 0% -10%, hsl(272 92% 60% / 0.13), transparent 60%),
+      radial-gradient(50rem 30rem at 100% 110%, hsl(186 95% 50% / 0.10), transparent 60%),
+      linear-gradient(hsl(258 40% 30% / 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(258 40% 30% / 0.07) 1px, transparent 1px);
+    background-size: auto, auto, 32px 32px, 32px 32px;
+    background-attachment: fixed;
+  }
+  h1, h2, h3 {
+    letter-spacing: 0.01em;
+  }
+}
+
+@layer components {
+  /* Logo-style headline: heavy italic Exo 2 with the chrome-blue gradient. */
+  .brand-title {
+    font-family: var(--app-font-sans);
+    font-style: italic;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    background: linear-gradient(180deg, #f2f7ff 0%, #a9c8ff 45%, #5b8cff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 6px hsl(222 100% 70% / 0.35));
+  }
+  .brand-bullet {
+    font-family: var(--app-font-sans);
+    font-style: italic;
+    font-weight: 900;
+    letter-spacing: 0.03em;
+    color: hsl(var(--neon-green));
+    text-shadow:
+      0 0 6px hsl(var(--neon-green) / 0.55),
+      0 0 18px hsl(var(--neon-green) / 0.25);
+  }
+  /* Thin violet→cyan neon edge used for the header bar and active items. */
+  .neon-edge {
+    border-image: linear-gradient(90deg, hsl(var(--neon-violet)), hsl(var(--neon-cyan))) 1;
   }
 }
 

@@ -1,3 +1,4 @@
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -21,7 +22,6 @@ const Register = lazy(() => import("@/pages/register"));
 const ResetPassword = lazy(() => import("@/pages/reset-password"));
 const Users = lazy(() => import("@/pages/users"));
 const NotFound = lazy(() => import("@/pages/not-found"));
-import { lazy, Suspense, useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
