@@ -304,6 +304,16 @@ function StealthLevelSourceBadge({
   entryPath?: string | null;
 }) {
   if (sentimentKey !== "stealth_breakout") return null;
+  if (source === "fresh_24h_high") {
+    return (
+      <span
+        className="mt-1 inline-flex rounded border border-amber-400/40 bg-amber-400/10 px-1 py-0.5 text-[9px] font-medium leading-none text-amber-300"
+        title="Экспериментальный паттерн: свежий пробой 24ч-хая на закрытой 1H свече; стоп под уровнем, Б/У на +1R, трейлинг 1R"
+      >
+        🧪 Эксперимент · пробой 24ч-хая 1H
+      </span>
+    );
+  }
   const isRange = source === "auto_range_4h" || source === "auto_range_1h";
   if (
     !isRange &&

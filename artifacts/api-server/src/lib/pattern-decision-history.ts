@@ -100,7 +100,7 @@ export const FINAL_GATE_REASON_PREFIXES = {
     "cvd_complete_not_all_bullish",
   ],
   balanced_grind: ["p24h_"],
-  stealth_breakout: ["armed_"],
+  stealth_breakout: ["armed_", "stealth_fh_"],
   bullish_accumulation: [
     "late_entry_price3h",
     "oi1h_negative",

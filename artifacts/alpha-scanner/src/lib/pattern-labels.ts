@@ -80,7 +80,7 @@ export const PATTERN_LABELS: Record<string, string> = {
   bullish_accumulation:
     "📊 Бычье накопление · Bullish Accum #bullish_accumulation",
   balanced_grind: "🟡 Умеренный широкий рост · Balanced Grind #balanced_grind",
-  stealth_breakout: "🔵 Stealth Breakout — Пробой тихой зоны #stealth_breakout",
+  stealth_breakout: "🔵 Stealth Breakout 🧪 эксперимент — Пробой 24ч-хая #stealth_breakout",
   neon_support_bounce:
     "🩷 Neon Support — Отскок от поддержки #neon_support_bounce",
   price_led_momentum:
@@ -94,7 +94,7 @@ export const PATTERN_LABELS: Record<string, string> = {
 };
 
 export const STEALTH_PATTERN_TG_LABEL =
-  "🔵 Stealth Breakout — Пробой тихой зоны";
+  "🔵 Stealth Breakout 🧪 эксперимент — Пробой 24ч-хая";
 
 export function getPatternLabel(key: string | null | undefined): string {
   if (!key) return "—";

@@ -14,6 +14,10 @@ import {
   refreshAggregatedVolume24h,
 } from "./coinglass_vol24h.js";
 import { runStealthRangeReentries } from "./stealth-range-reentry.js";
+import {
+  STEALTH_FRESH_HIGH_METHOD,
+  resolveFreshHighProtectionLevel,
+} from "./stealth-fresh-high.js";
 import { maybeRecordStealthHourlySnapshot } from "./stealth-hourly-snapshots.js";
 import {
   evaluateLcDetectionCandleGate,
@@ -2322,6 +2326,7 @@ export async function trackSignal(params: {
   stealthDetectionMethod?:
     | "quiet_zone_breakout"
     | "abneon_support_bounce"
+    | "fresh_24h_high_breakout"
     | null;
   alphaScore?: number | null;
   entryPrice: number;
@@ -2369,6 +2374,8 @@ export async function trackSignal(params: {
   entryLiqReason?: string | null;
   /** Preserve the original fire time when repairing a delivered orphan signal. */
   detectedAt?: Date;
+  /** Absolute initial stop (Stealth fresh-24H-high); overrides the pattern stop. */
+  fixedStopPrice?: number | null;
 }): Promise<"new" | "reentry" | "skip" | false> {
   if (isSignalSymbolExcluded(params.symbol)) {
     logger.info(
@@ -3022,11 +3029,25 @@ export async function trackSignal(params: {
     }
 
     // Персональный стоп/тейки по Liquidation Heatmap (fail-open → паттерн-стоп или -10%)
-    const liqFields = await computeLiqStopFields(
-      params.symbol,
-      params.entryPrice,
-      params.sentimentKey,
-    );
+    const liqFields =
+      params.fixedStopPrice != null &&
+      params.fixedStopPrice > 0 &&
+      params.fixedStopPrice < params.entryPrice
+        ? {
+            // Stealth fresh-24H-high: the stop is the broken level - 1%.
+            stopLossPrice: params.fixedStopPrice,
+            stopLossPct:
+              ((params.entryPrice - params.fixedStopPrice) /
+                params.entryPrice) *
+              100,
+            stopSource: "pattern" as const,
+            takeTargets: null,
+          }
+        : await computeLiqStopFields(
+            params.symbol,
+            params.entryPrice,
+            params.sentimentKey,
+          );
     const [entryVolumeContext, rangeDeviationContext] = await Promise.all([
       captureEntryVolumeContext(params.symbol),
       captureRangeDeviation(params.symbol, params.entryPrice),
@@ -7303,6 +7324,198 @@ async function closeRealtimeBitcoinBreakeven(input: {
     "BTC breakeven reached after realtime +1% peak",
   );
   return true;
+}
+
+/**
+ * Stealth fresh-24H-high (🧪 experimental) protection in R: the initial stop
+ * (stop_loss_price) is handled by the ordinary stop path; once the peak reaches
+ * +1R the stop is max(entry, peak - 1R). Closes at that level: B.U. at entry,
+ * profit above it. Same claim/broadcast/close-snapshot path as trailing.
+ */
+export async function runStealthFreshHighProtection(
+  getPrice: (symbol: string) => Promise<number | null>,
+): Promise<number> {
+  const open = await db
+    .select()
+    .from(trackedSignalsTable)
+    .where(
+      and(
+        eq(trackedSignalsTable.sentimentKey, "stealth_breakout"),
+        eq(trackedSignalsTable.stealthDetectionMethod, STEALTH_FRESH_HIGH_METHOD),
+        inArray(trackedSignalsTable.status, ["active", "in_run"]),
+      ),
+    );
+  let closed = 0;
+  for (const tracked of open) {
+    if (tracked.isShort === true) continue;
+    const initialStop = tracked.stopLossPrice;
+    if (initialStop == null || !(initialStop > 0)) continue;
+    const currentPrice = await getPrice(tracked.symbol).catch(() => null);
+    if (currentPrice === null || !(currentPrice > 0)) continue;
+    const peakPrice = Math.max(
+      tracked.peakPrice ?? tracked.entryPrice,
+      currentPrice,
+    );
+    const level = resolveFreshHighProtectionLevel({
+      entryPrice: tracked.entryPrice,
+      initialStopPrice: initialStop,
+      peakPrice,
+    });
+    if (peakPrice > (tracked.peakPrice ?? tracked.entryPrice)) {
+      await dbWriteBestEffort("trackedSignal/fresh-high-peak", () =>
+        db
+          .update(trackedSignalsTable)
+          .set({ peakPrice: maxPeakPriceSql(peakPrice) })
+          .where(eq(trackedSignalsTable.id, tracked.id)),
+      );
+    }
+    // Study horizon: 72h from entry, closed at the observed price.
+    if (
+      Date.now() - tracked.detectedAt.getTime() >=
+        STEALTH_FH_MAX_AGE_MS &&
+      (level === null || currentPrice > level)
+    ) {
+      const pnl = computePnl(tracked, currentPrice);
+      const status =
+        level !== null && pnl > 0
+          ? "profit"
+          : classifyTimeoutExit({
+              pnlPercent: pnl,
+              protectedBe: false,
+              trailingActive: false,
+            });
+      const peakPnl = computePeakPnl({ ...tracked, peakPrice });
+      const health = await _fetchSignalHealth(
+        tracked.symbol,
+        currentPrice,
+      ).catch(() => null);
+      const at = new Date();
+      const delivery = await broadcastPhotoAfterClaim(
+        status === "stop_loss" ? STOPLOSS_IMG : EXPIRED_IMG,
+        status === "profit"
+          ? msgTimeoutTakeProfit(
+              { ...tracked, peakPrice },
+              currentPrice,
+              pnl,
+              health,
+              false,
+            )
+          : status === "stop_loss"
+            ? msgBreakevenAsStopLoss(tracked, currentPrice, pnl, health)
+            : msgExpired(tracked, currentPrice, pnl, health),
+        `position:${tracked.id}:timeout:${status}`,
+        async (tx) => {
+          const claimed = await tx
+            .update(trackedSignalsTable)
+            .set({
+              status,
+              exitPrice: currentPrice,
+              pnlPercent: pnl,
+              peakPrice: maxPeakPriceSql(peakPrice),
+              closedAt: at,
+              updatedAt: at,
+            })
+            .where(
+              and(
+                eq(trackedSignalsTable.id, tracked.id),
+                inArray(trackedSignalsTable.status, ["active", "in_run"]),
+              ),
+            )
+            .returning({ id: trackedSignalsTable.id });
+          return claimed.length > 0;
+        },
+      );
+      if (delivery.claimed) {
+        closed++;
+        void _writeExitMetrics(tracked.id, tracked.symbol);
+        await recordCloseSnapshot(
+          { ...tracked, peakPrice },
+          currentPrice,
+          pnl,
+          peakPnl,
+          status,
+        );
+        logger.info(
+          { signalId: tracked.id, symbol: tracked.symbol, status, pnl },
+          "🧪 Stealth fresh-high 72h lifetime close",
+        );
+      }
+      continue;
+    }
+    if (level === null || currentPrice > level) continue;
+    const isBreakeven = level <= tracked.entryPrice;
+    const exitPrice = isBreakeven ? tracked.entryPrice : level;
+    const exitPnl = ((exitPrice - tracked.entryPrice) / tracked.entryPrice) * 100;
+    const peakPnl = computePeakPnl({ ...tracked, peakPrice });
+    const closedAt = new Date();
+    const health = isBreakeven
+      ? null
+      : await fetchMilestoneHealth(tracked.symbol, currentPrice).catch(
+          () => null,
+        );
+    const delivery = await broadcastPhotoAfterClaim(
+      isBreakeven ? BU_STOP_IMG : TRAILING_STOP_IMG,
+      isBreakeven
+        ? msgBUStop({ ...tracked, peakPrice }, exitPrice, 0, null)
+        : msgTrailingStopHit(
+            { ...tracked, peakPrice },
+            currentPrice,
+            peakPnl,
+            exitPnl,
+            health,
+          ),
+      `position:${tracked.id}:${isBreakeven ? "bu_stop" : "profit"}:fresh_high_r`,
+      async (tx) => {
+        const claimed = await tx
+          .update(trackedSignalsTable)
+          .set({
+            status: isBreakeven ? "bu_stop" : "profit",
+            exitPrice,
+            pnlPercent: exitPnl,
+            peakPrice: maxPeakPriceSql(peakPrice),
+            ...(isBreakeven
+              ? {}
+              : {
+                  trailingStopLevel: maxTrailingStopLevelSql(level),
+                  trailingStopArmedAt: trailingStopArmedAtSql(level, closedAt),
+                }),
+            closedAt,
+            updatedAt: closedAt,
+          })
+          .where(
+            and(
+              eq(trackedSignalsTable.id, tracked.id),
+              inArray(trackedSignalsTable.status, ["active", "in_run"]),
+            ),
+          )
+          .returning({ id: trackedSignalsTable.id });
+        return claimed.length > 0;
+      },
+    );
+    if (!delivery.claimed) continue;
+    closed++;
+    void _writeExitMetrics(tracked.id, tracked.symbol);
+    await recordCloseSnapshot(
+      { ...tracked, peakPrice },
+      exitPrice,
+      exitPnl,
+      peakPnl,
+      isBreakeven ? "bu_stop" : "profit",
+    );
+    logger.info(
+      {
+        signalId: tracked.id,
+        symbol: tracked.symbol,
+        currentPrice,
+        level,
+        exitPnl,
+        peakPnl,
+        queued: delivery.queued,
+      },
+      "🧪 Stealth fresh-high R protection hit — position closed",
+    );
+  }
+  return closed;
 }
 
 async function recordTrailingShadowObservations(
@@ -13169,6 +13382,9 @@ async function runSubscriptionExpiryJob(): Promise<void> {
 let cycleTimer: NodeJS.Timeout | null = null;
 let fastTimer: NodeJS.Timeout | null = null;
 let stealthReentryTimer: NodeJS.Timeout | null = null;
+let stealthFreshHighProtectionTimer: NodeJS.Timeout | null = null;
+const STEALTH_FH_PROTECTION_INTERVAL_MS = 20_000;
+const STEALTH_FH_MAX_AGE_MS = 72 * 60 * 60 * 1000;
 let oiWatchTimer: NodeJS.Timeout | null = null; // независимый таймер OI Watch (не блокирует fast-цикл)
 let signalOutcomesTimer: NodeJS.Timeout | null = null;
 let postCloseFollowupTimer: NodeJS.Timeout | null = null;
@@ -15054,6 +15270,30 @@ export function startWatcher(): void {
     }
   };
   stealthReentryTimer = setTimeout(runStealthReentry, FAST_CYCLE_MS);
+
+  // Stealth fresh-24H-high (🧪 experimental): +1R → B.U., then 1R trailing.
+  const runStealthFreshHighProtectionTick = async () => {
+    if (!stealthFreshHighProtectionTimer) return;
+    try {
+      await runStealthFreshHighProtection(async (symbol) => {
+        const t = await getFutureTicker(symbol);
+        const p = t ? Number.parseFloat(t.lastPrice) : NaN;
+        return Number.isFinite(p) && p > 0 ? p : null;
+      });
+    } catch (err) {
+      logger.error({ err }, "Stealth fresh-high protection cycle error");
+    }
+    if (stealthFreshHighProtectionTimer) {
+      stealthFreshHighProtectionTimer = setTimeout(
+        runStealthFreshHighProtectionTick,
+        STEALTH_FH_PROTECTION_INTERVAL_MS,
+      );
+    }
+  };
+  stealthFreshHighProtectionTimer = setTimeout(
+    runStealthFreshHighProtectionTick,
+    STEALTH_FH_PROTECTION_INTERVAL_MS,
+  );
   logger.info(
     { intervalMin: FAST_CYCLE_MS / 60000 },
     "Fast cycle started (active + in_run, 2min) — OI Watch на отдельном таймере",
@@ -17679,6 +17919,10 @@ export function stopWatcher(): void {
   if (stealthReentryTimer) {
     clearTimeout(stealthReentryTimer);
     stealthReentryTimer = null;
+  }
+  if (stealthFreshHighProtectionTimer) {
+    clearTimeout(stealthFreshHighProtectionTimer);
+    stealthFreshHighProtectionTimer = null;
   }
   if (oiWatchTimer) {
     clearTimeout(oiWatchTimer);

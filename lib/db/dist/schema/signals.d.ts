@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 /** Immutable detector used by the stealth_breakout pattern. Null is legacy/unknown. */
-export declare const stealthDetectionMethods: readonly ["quiet_zone_breakout", "abneon_support_bounce"];
+export declare const stealthDetectionMethods: readonly ["quiet_zone_breakout", "abneon_support_bounce", "fresh_24h_high_breakout"];
 export type StealthDetectionMethod = (typeof stealthDetectionMethods)[number];
 export declare const patternDebugCycleNumberSequence: import("drizzle-orm/pg-core").PgSequence;
 export declare const signalTypeEnum: import("drizzle-orm/pg-core").PgEnum<["volume_spike", "oi_increase", "funding_rate", "strict_alpha", "alpha", "super_alpha", "short_sniper", "bingx_volume", "mexc_pump", "whale_watch"]>;

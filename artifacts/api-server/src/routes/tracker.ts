@@ -221,7 +221,8 @@ type StealthLevelSource =
   | "auto_range_4h"
   | "auto_range_1h"
   | "stealth_legacy"
-  | "continuation_shelf";
+  | "continuation_shelf"
+  | "fresh_24h_high";
 
 async function loadStealthEntryPaths(
   signalIds: Array<number | null | undefined>,
@@ -276,6 +277,18 @@ async function loadStealthLevelSources(
     ) {
       sources.set(row.fired_signal_id, row.level_source);
     }
+  }
+  // 🧪 Experimental fresh-24H-high detection (owner 2026-10-28) has no arm.
+  const fresh = await db.execute(sql`
+    SELECT id FROM signals
+     WHERE id IN (${sql.join(
+       ids.map((id) => sql`${id}`),
+       sql`, `,
+     )})
+       AND stealth_detection_method = 'fresh_24h_high_breakout'
+  `);
+  for (const row of fresh.rows as Array<Record<string, unknown>>) {
+    if (typeof row.id === "number") sources.set(row.id, "fresh_24h_high");
   }
   return sources;
 }

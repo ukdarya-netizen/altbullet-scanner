@@ -307,6 +307,103 @@ import {
   type PrescanTelemetryItem,
 } from "./telemetryOutbox.js";
 import { gte, gt, lt, sql, eq, ne, and, inArray, desc } from "drizzle-orm";
+import {
+  STEALTH_FRESH_HIGH_METHOD,
+  lastClosedHourStart,
+  scanFreshHighHour,
+  type FreshHighEvent,
+} from "./stealth-fresh-high.js";
+
+// Owner 2026-10-28: Stealth fires only from the experimental fresh-24H-high
+// detection (live, no shadow). The quiet-zone / Range arm detection no longer
+// fires; its arms keep their bookkeeping and expire on their own.
+const STEALTH_LEGACY_DETECTION_LIVE = false as boolean;
+const STEALTH_FH_LIVE = true as boolean;
+/** A fresh-high event older than this after its candle close is not fired. */
+const STEALTH_FH_EVENT_TTL_MS = 30 * 60_000;
+const STEALTH_FH_SCAN_DELAY_MS = 45_000;
+const STEALTH_FH_HOUR_MS = 60 * 60_000;
+const stealthFreshHighQueue = new Map<
+  string,
+  FreshHighEvent & { quoteVolume24h: number | null }
+>();
+let stealthFreshHighLastHour = 0;
+let stealthFreshHighRunning = false;
+let stealthFreshHighTimer: NodeJS.Timeout | null = null;
+
+/** Evaluates the last closed 1H candle of every BingX USDT perpetual once. */
+async function runStealthFreshHighHour(now = Date.now()): Promise<void> {
+  if (!STEALTH_FH_LIVE || stealthFreshHighRunning) return;
+  const hourStart = lastClosedHourStart(now);
+  const closeAt = hourStart + STEALTH_FH_HOUR_MS;
+  if (hourStart <= stealthFreshHighLastHour) return;
+  if (now < closeAt + STEALTH_FH_SCAN_DELAY_MS) return;
+  if (now > closeAt + STEALTH_FH_EVENT_TTL_MS) {
+    stealthFreshHighLastHour = hourStart;
+    return;
+  }
+  stealthFreshHighRunning = true;
+  try {
+    const volumes = new Map<string, number>();
+    const { events, stats } = await scanFreshHighHour(hourStart, {
+      listSymbols: async () => {
+        const tickers = await getFutureTickers();
+        const out: string[] = [];
+        for (const t of tickers) {
+          if (!t.symbol.endsWith("-USDT") || t.symbol === "BTC-USDT") continue;
+          const qv = Number.parseFloat(t.quoteVolume);
+          if (Number.isFinite(qv)) volumes.set(t.symbol, qv);
+          out.push(t.symbol);
+        }
+        if (out.length === 0) throw new Error("no BingX tickers");
+        return out;
+      },
+      // startTime/endTime keep these candles out of the shared bars store.
+      loadCandles: (symbol) =>
+        getKlines(
+          symbol,
+          "1h",
+          120,
+          hourStart - 119 * STEALTH_FH_HOUR_MS,
+          closeAt - 1,
+        ),
+      hasCandleAtOrBefore: async (symbol, time) =>
+        (
+          await getKlines(
+            symbol,
+            "1h",
+            5,
+            time - 4 * STEALTH_FH_HOUR_MS,
+            time,
+          )
+        ).length > 0,
+      concurrency: 6,
+    });
+    stealthFreshHighLastHour = hourStart;
+    for (const ev of events) {
+      stealthFreshHighQueue.set(`${ev.symbol}:${ev.candleTime}`, {
+        ...ev,
+        quoteVolume24h: volumes.get(ev.symbol) ?? null,
+      });
+    }
+    logger.info(
+      {
+        candle: new Date(hourStart).toISOString(),
+        stats,
+        passes: events.map((e) => e.symbol),
+        durationMs: Date.now() - now,
+      },
+      "Stealth fresh-24H-high hourly scan done",
+    );
+  } catch (err) {
+    logger.warn(
+      { err, candle: new Date(hourStart).toISOString() },
+      "Stealth fresh-24H-high hourly scan failed; retrying",
+    );
+  } finally {
+    stealthFreshHighRunning = false;
+  }
+}
 
 const STEALTH_QUIET_ZONE_4H_EXPERIMENT_VERSION =
   "quiet-zone-4h-breakout-v1" as const;
@@ -4919,7 +5016,10 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     isConfirmedFire: boolean; // из confirming-очереди — пропускаем watching, стреляем сразу
     stealthArmId?: number; // frozen Stealth setup claimed by this candidate
     stealthDedupArmIds?: number[];
-    stealthDetectionMethod?: "quiet_zone_breakout" | "abneon_support_bounce";
+    stealthDetectionMethod?:
+      | "quiet_zone_breakout"
+      | "abneon_support_bounce"
+      | typeof STEALTH_FRESH_HIGH_METHOD;
     stealthRangeConfirmingVenues?: string[];
     stealthBingxOnly?: boolean;
     stealthEntryPath?: string | null;
@@ -6685,9 +6785,13 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       if (!(coinglassOIMap.get(symbol)?.oiUsd ?? 0)) _aggMissing.push("oi");
       // Owner 2026-10-17 (FOLKS): for Stealth, fut taker / spot CVD / spot volume
       // are observation-only; only a missing OI blocks. Fires without them.
+      // Owner 2026-10-28: the fresh-24H-high detection was fitted on candles
+      // only; no aggregated data blocks it (all recorded when available).
       const _aggBlocking =
         _aggPattern === "stealth_breakout"
-          ? _aggMissing.filter((m) => m === "oi")
+          ? base.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD
+            ? []
+            : _aggMissing.filter((m) => m === "oi")
           : _aggMissing;
       if (_aggPattern === "stealth_breakout" && _aggMissing.length > 0) {
         logger.info(
@@ -7229,6 +7333,44 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               signalToPersist: sig,
               telegramSignal: res,
             });
+            const _fhStopRaw =
+              res.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD
+                ? Number(
+                    (
+                      res.decisionMetrics as
+                        | { stealthFreshHigh?: { stopPrice?: unknown } }
+                        | undefined
+                    )?.stealthFreshHigh?.stopPrice,
+                  )
+                : null;
+            const _fhStop =
+              _fhStopRaw !== null && Number.isFinite(_fhStopRaw) && _fhStopRaw > 0
+                ? _fhStopRaw
+                : null;
+            if (res.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD) {
+              // Same rule as the study: the stop must sit > 0.3% below entry.
+              if (
+                _fhStop === null ||
+                !(canonicalFire.entryPrice * 0.997 > _fhStop)
+              ) {
+                skipCount.noConfirming++;
+                _symRej(
+                  res.symbol,
+                  "stealth_breakout",
+                  _fhStop === null
+                    ? "stealth_fh_stop_missing"
+                    : "stealth_fh_price_at_or_below_stop",
+                  res.globalOiChange ?? null,
+                  res.volumeMultiplier ?? null,
+                  res.price24hChange ?? null,
+                  null,
+                  "blocked",
+                  undefined,
+                  canonicalFire.entryPrice,
+                );
+                return;
+              }
+            }
             if (res.sentimentKey === "neon_support_bounce") {
               if (res.neonSupportBounceEvent === undefined) {
                 logger.error(
@@ -7523,6 +7665,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             const tracked = await trackSignal({
               symbol: res.symbol,
               signalId: inserted.id,
+              fixedStopPrice: _fhStop,
               signalType: res.grade ?? "alpha",
               sentiment: res.sentiment,
               sentimentKey: res.sentimentKey,
@@ -10393,6 +10536,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 : null;
             const _sbOiBlocked = !stealthOi4hPasses(_sbOi4hAtBreakout);
             const isStealthBreakout =
+              STEALTH_LEGACY_DETECTION_LIVE &&
               _sbPreVolumeFire &&
               (_sbVolumeGate?.pass ?? false) &&
               !_sbFilterBlocked &&
@@ -13232,6 +13376,125 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     }
     await new Promise((r) => setTimeout(r, 10));
   };
+  // ── Stealth fresh-24H-high (🧪 experimental, owner 2026-10-28) ──────────
+  // Events from the hourly scan of all BingX USDT perpetuals fire in the first
+  // batch of the next cycle. Entry = live price; stop = broken 24H high - 1%.
+  if (STEALTH_FH_LIVE && stealthFreshHighQueue.size > 0) {
+    const _fhNow = Date.now();
+    const _fhEvents = [...stealthFreshHighQueue.entries()];
+    stealthFreshHighQueue.clear();
+    for (const [, ev] of _fhEvents) {
+      const closeAt = ev.candleTime + STEALTH_FH_HOUR_MS;
+      if (_fhNow - closeAt > STEALTH_FH_EVENT_TTL_MS) {
+        _symRej(
+          ev.symbol,
+          "stealth_breakout",
+          "stealth_fh_event_expired_before_fire",
+          null,
+          null,
+          ev.ret24hPct,
+          null,
+          "blocked",
+        );
+        continue;
+      }
+      try {
+        const already = await db
+          .select({ id: trackedSignalsTable.id })
+          .from(trackedSignalsTable)
+          .where(
+            and(
+              eq(trackedSignalsTable.symbol, ev.symbol),
+              eq(trackedSignalsTable.sentimentKey, "stealth_breakout"),
+              gte(trackedSignalsTable.detectedAt, new Date(closeAt)),
+            ),
+          )
+          .limit(1);
+        if (already.length > 0) continue;
+      } catch (err) {
+        logger.warn(
+          { err, symbol: ev.symbol },
+          "Stealth fresh-high duplicate check failed; event re-queued",
+        );
+        stealthFreshHighQueue.set(`${ev.symbol}:${ev.candleTime}`, ev);
+        continue;
+      }
+      const fmt = (v: number | null, d = 2) =>
+        v === null || !Number.isFinite(v) ? "—" : v.toFixed(d);
+      const _fhOi = coinglassOIMap.get(ev.symbol) ?? null;
+      candidates.push({
+        symbol: ev.symbol,
+        price: ev.close,
+        priceChange30m: 0,
+        price1hChange: null,
+        price3hChange: 0,
+        price4hChange: 0,
+        price24hChange: ev.ret24hPct ?? 0,
+        currentVolume: 0,
+        avgVolume: 0,
+        volumeMultiplier: 0,
+        oiChangePercent: _fhOi?.oiChange30m ?? 0,
+        oiChange1h: _fhOi?.oiChange1h ?? null,
+        oiChange4h: _fhOi?.oiChange4h ?? null,
+        oiChange24h: _fhOi?.oiChange24h ?? null,
+        openInterest: _fhOi?.oiUsd ?? 0,
+        sentiment: {
+          key: "stealth_breakout",
+          label: "Stealth Breakout",
+          traderAction: `LONG (🧪 ЭКСПЕРИМЕНТ — свежий пробой 24ч-хая на закрытой 1H свече; уровень ${ev.prevHigh24?.toPrecision(6) ?? "—"}; база 72ч ${fmt(ev.baseHeightPct, 1)}%; рост 24ч +${fmt(ev.ret24hPct, 1)}%; стоп ${ev.stopPrice?.toPrecision(6) ?? "—"} (уровень −1%); при +1R стоп в Б/У, дальше трейлинг 1R от пика; максимум 72ч)`,
+          oiFalling: false,
+        },
+        coinglassOI: _fhOi ?? {
+          available: false,
+          timedOut: false,
+          source: "coinglass",
+          oiUsd: 0,
+          oiChange30m: null,
+          prevOi30m: null,
+          oiChange1h: null,
+          oiChange4h: null,
+          oiChange24h: null,
+          bingxOiChange30m: null,
+          cgVolUsd: null,
+          positiveCandles6h: null,
+          oiConsecutiveUp: null,
+          oi4hConsecFromOhlc: null,
+        },
+        oiTriggerTf: "stealth_fresh_24h_high",
+        isRepeatSignal: false,
+        isConfirmedFire: true,
+        stealthDetectionMethod: STEALTH_FRESH_HIGH_METHOD,
+        isScalpOnly: false,
+        futVolMult: 0,
+        spotVol24h: getSpotPoolEntry(ev.symbol)?.spotVol24h ?? null,
+        futVol24hUsd: ev.quoteVolume24h ?? 0,
+        decisionMetrics: {
+          stealthFreshHigh: {
+            version: "stealth-fresh-24h-high-v1",
+            candleOpenAt: new Date(ev.candleTime).toISOString(),
+            candleClose: ev.close,
+            prevHigh24: ev.prevHigh24,
+            stopPrice: ev.stopPrice,
+            riskPctAtClose: ev.riskPct,
+            base72HeightPct: ev.baseHeightPct,
+            ret24hPct: ev.ret24hPct,
+            newHighsPrev24: ev.newHighsPrev24,
+            detectedAt: new Date(ev.detectedAt).toISOString(),
+          },
+        },
+      });
+      logger.info(
+        {
+          symbol: ev.symbol,
+          close: ev.close,
+          stop: ev.stopPrice,
+          base72: ev.baseHeightPct,
+          ret24h: ev.ret24hPct,
+        },
+        "🧪 STEALTH fresh-24H-high candidate queued for confirmed fire",
+      );
+    }
+  }
   let _priorityTickerCount = 0;
   while (
     _priorityTickerCount < usdtTickers.length &&
@@ -13247,7 +13510,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     4,
     processTicker,
   );
-  if (_priorityTickerCount > 0) await runCandidateBatch();
+  if (_priorityTickerCount > 0 || candidates.length > 0)
+    await runCandidateBatch();
   await runConcurrent(
     usdtTickers.slice(_priorityTickerCount),
     4,
@@ -13934,6 +14198,12 @@ async function scheduledScan() {
 export async function startScanner(): Promise<void> {
   if (state.running) return;
   state.running = true;
+  if (STEALTH_FH_LIVE && !stealthFreshHighTimer) {
+    stealthFreshHighTimer = setInterval(() => {
+      void runStealthFreshHighHour();
+    }, 30_000);
+    stealthFreshHighTimer.unref();
+  }
   logger.info("AltBullet Scanner started (15m TF, 30m OI, multi-pattern)");
 
   // A watchdog restart stays in the same process. Do not let it bypass the
@@ -14164,6 +14434,10 @@ export async function startScanner(): Promise<void> {
 
 export async function stopScanner(): Promise<void> {
   state.running = false;
+  if (stealthFreshHighTimer) {
+    clearInterval(stealthFreshHighTimer);
+    stealthFreshHighTimer = null;
+  }
   state.nextScanAt = null;
   if (activeScanAbortController && !activeScanAbortController.signal.aborted) {
     activeScanAbortController.abort(

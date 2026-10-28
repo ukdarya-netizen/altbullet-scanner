@@ -1,5 +1,5 @@
 export const STEALTH_BREAKOUT_TELEGRAM_NAME =
-  "🔵 Stealth Breakout — Пробой тихой зоны";
+  "🔵 Stealth Breakout 🧪 эксперимент — Пробой 24ч-хая";
 
 export const PRICE_LED_MOMENTUM_TELEGRAM_NAME =
   "💫 Цена лидирует — spot momentum (SNF+CVD), OI/WI только для наблюдения";

@@ -121,8 +121,18 @@ export {
 export function buildSignalManagementLine(
   sentimentKey: string,
   symbol: string,
+  freshHigh?: { stealthDetectionMethod?: string | null; stopPct?: number | null },
 ): string {
   const isBitcoin = symbol === "BTC-USDT" || symbol === "BTCUSDT";
+  if (
+    sentimentKey === "stealth_breakout" &&
+    freshHigh?.stealthDetectionMethod === "fresh_24h_high_breakout" &&
+    freshHigh.stopPct != null &&
+    freshHigh.stopPct > 0
+  ) {
+    const r = Math.abs(freshHigh.stopPct).toFixed(1);
+    return `🛡 <b>Сопровождение (🧪 эксперимент, 1R = ${r}%):</b> стоп под пробитым 24ч-хаем −1% · при +1R (+${r}%) стоп в Б/У · дальше трейлинг на 1R (${r} п.п.) ниже пика · максимум 72ч`;
+  }
   const beActivation =
     sentimentKey === "impulse_buy"
       ? 5
@@ -1066,6 +1076,7 @@ export interface AlphaResult {
   stealthDetectionMethod?:
     | "quiet_zone_breakout"
     | "abneon_support_bounce"
+    | "fresh_24h_high_breakout"
     | null;
 }
 
@@ -1147,8 +1158,11 @@ function telegramReentryLabel(s: AlphaResult): string {
 function telegramStealthSourceLabel(
   sentimentKey: string,
   levelSource: AlphaResult["stealthLevelSource"],
+  detectionMethod?: AlphaResult["stealthDetectionMethod"],
 ): string | null {
   if (sentimentKey !== "stealth_breakout") return null;
+  if (detectionMethod === "fresh_24h_high_breakout")
+    return "🧪 ЭКСПЕРИМЕНТ · пробой 24ч-хая (1H)";
   if (levelSource === "auto_range_1h") return "🔵 Range Breakout 1H";
   if (levelSource === "auto_range_4h") return "🔵 Range Breakout 4H";
   if (levelSource === "stealth_legacy" || levelSource === "continuation_shelf")
@@ -1302,6 +1316,7 @@ export function formatAlphaSignal(
   const stealthSourceLabel = telegramStealthSourceLabel(
     s.sentimentKey,
     s.stealthLevelSource,
+    s.stealthDetectionMethod,
   );
   const stealthVenueLabel = telegramRangeVenueLabel(
     s.sentimentKey,
@@ -1371,7 +1386,10 @@ export function formatAlphaSignal(
   } else {
     stopLine = `🛑 <b>Стоп:</b> $${fmtPrice(s.price * (1 - _patternStopPct / 100))} (−${_patternStopPct}%)`;
   }
-  const managementLine = buildSignalManagementLine(s.sentimentKey, s.symbol);
+  const managementLine = buildSignalManagementLine(s.sentimentKey, s.symbol, {
+    stealthDetectionMethod: s.stealthDetectionMethod,
+    stopPct: hasPersistedStop ? policy.stopLossPct : null,
+  });
   const impulseRunnerLine = fmtImpulseRunnerPolicyLine({
     sentimentKey: s.sentimentKey,
     policyVersion:
@@ -1535,6 +1553,7 @@ export function formatCompactAlphaSignal(
   const stealthSourceLabel = telegramStealthSourceLabel(
     s.sentimentKey,
     s.stealthLevelSource,
+    s.stealthDetectionMethod,
   );
   const stealthVenueLabel = telegramRangeVenueLabel(
     s.sentimentKey,
@@ -1578,7 +1597,10 @@ export function formatCompactAlphaSignal(
         ? s.liqStopPrice
         : s.price * (1 - stopPct / 100);
   const protectionLine = `🛑 <b>Стоп:</b> $${_formatCompactPrice(stopPrice)} (−${Math.abs(stopPct).toFixed(1)}%)`;
-  const managementLine = buildSignalManagementLine(s.sentimentKey, s.symbol);
+  const managementLine = buildSignalManagementLine(s.sentimentKey, s.symbol, {
+    stealthDetectionMethod: s.stealthDetectionMethod,
+    stopPct,
+  });
   const impulseRunnerLine = fmtImpulseRunnerPolicyLine({
     sentimentKey: s.sentimentKey,
     policyVersion:
