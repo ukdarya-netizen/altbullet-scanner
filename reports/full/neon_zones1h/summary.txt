@@ -1,0 +1,29 @@
+period 2026-07-20T17:13:53.081Z .. 2026-10-28T17:13:53.081Z, symbols 1255, errors 157
+== live_k3
+all                                      +10%_before_stop=23% (526/2248) peaks>=20%=267 | n=1376 win=68% exp=0.73% censored=882 days=101 symbols=365
+first half                               +10%_before_stop=23% (205/904) peaks>=20%=129 | n= 481 win=72% exp=1.25% censored=423 days=50 symbols=241
+second half                              +10%_before_stop=24% (321/1344) peaks>=20%=138 | n= 895 win=66% exp=0.46% censored=459 days=52 symbols=294
+== live_k3_h1only
+all                                      +10%_before_stop=27% (235/881) peaks>=20%=108 | n= 523 win=74% exp=1.49% censored=361 days=100 symbols=204
+first half                               +10%_before_stop=25% (89/363) peaks>=20%=51 | n= 185 win=78% exp=2.09% censored=178 days=49 symbols=146
+second half                              +10%_before_stop=28% (146/518) peaks>=20%=57 | n= 338 win=71% exp=1.17% censored=183 days=52 symbols=162
+ADDED vs current                         +10%_before_stop=23% (113/485) peaks>=20%=46 | n= 274 win=77% exp=1.91% censored=214 days=96 symbols=146
+ADDED first half                         +10%_before_stop=17% (30/177) peaks>=20%=16 | n=  75 win=81% exp=2.47% censored=102 days=44 symbols=104
+ADDED second half                        +10%_before_stop=27% (83/308) peaks>=20%=30 | n= 199 win=75% exp=1.70% censored=112 days=52 symbols=120
+REMOVED vs current                       +10%_before_stop=22% (398/1843) peaks>=20%=194 | n=1114 win=67% exp=0.62% censored=739 days=101 symbols=342
+== zones1h_k3
+all                                      +10%_before_stop=24% (621/2584) peaks>=20%=305 | n=1608 win=68% exp=0.78% censored=988 days=101 symbols=375
+first half                               +10%_before_stop=24% (266/1117) peaks>=20%=142 | n= 610 win=74% exp=1.55% censored=507 days=50 symbols=258
+second half                              +10%_before_stop=24% (355/1467) peaks>=20%=163 | n= 998 win=65% exp=0.30% censored=481 days=52 symbols=295
+ADDED vs current                         +10%_before_stop=25% (438/1772) peaks>=20%=204 | n=1126 win=68% exp=0.73% censored=654 days=101 symbols=322
+ADDED first half                         +10%_before_stop=25% (194/766) peaks>=20%=98 | n= 435 win=74% exp=1.58% censored=331 days=50 symbols=218
+ADDED second half                        +10%_before_stop=24% (244/1006) peaks>=20%=106 | n= 691 win=64% exp=0.20% censored=323 days=52 symbols=254
+REMOVED vs current                       +10%_before_stop=24% (339/1430) peaks>=20%=161 | n= 890 win=67% exp=0.66% censored=546 days=100 symbols=307
+== zones1h_k3_h1only
+all                                      +10%_before_stop=26% (256/997) peaks>=20%=115 | n= 602 win=72% exp=1.27% censored=399 days=99 symbols=212
+first half                               +10%_before_stop=24% (108/445) peaks>=20%=52 | n= 228 win=77% exp=1.94% censored=217 days=48 symbols=152
+second half                              +10%_before_stop=27% (148/552) peaks>=20%=63 | n= 374 win=69% exp=0.87% censored=182 days=52 symbols=168
+ADDED vs current                         +10%_before_stop=25% (205/813) peaks>=20%=91 | n= 496 win=72% exp=1.31% censored=321 days=98 symbols=193
+ADDED first half                         +10%_before_stop=24% (86/355) peaks>=20%=41 | n= 184 win=78% exp=2.00% censored=171 days=48 symbols=142
+ADDED second half                        +10%_before_stop=26% (119/458) peaks>=20%=50 | n= 312 win=69% exp=0.90% censored=150 days=51 symbols=152
+REMOVED vs current                       +10%_before_stop=23% (472/2058) peaks>=20%=235 | n=1262 win=68% exp=0.70% censored=806 days=101 symbols=353
