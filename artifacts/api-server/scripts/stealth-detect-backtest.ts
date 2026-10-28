@@ -14,7 +14,7 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { detectAutoRangePine1h } from "../src/lib/auto-range-pine.js";
+import { detectAutoRangePine, detectAutoRangePine1h } from "../src/lib/auto-range-pine.js";
 
 const H1 = 3_600_000;
 const BASE = "https://open-api.bingx.com";
@@ -26,6 +26,11 @@ const DAYS = Number(args.get("days") ?? 60);
 const OUT = args.get("out") ?? "stealth_detect";
 const ONLY = args.get("symbols")?.split(",").filter(Boolean) ?? null;
 const LIMIT = Number(args.get("limit") ?? 10_000);
+// --tf 4h: the same old detection (Auto Range upside break) on 4H candles.
+// Breaks, filters and entries are on 4H bars (entry = the 4H close); exits
+// and outcomes stay on 1H candles from that close, as in the 1H run.
+const TF4H = args.get("tf") === "4h";
+const H4 = 4 * H1;
 
 type C = { time: number; open: number; high: number; low: number; close: number; vol: number };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -43,17 +48,18 @@ async function getJson(path: string): Promise<any> {
   throw last;
 }
 
-async function candles1h(symbol: string, start: number, end: number): Promise<C[]> {
+async function candles1h(symbol: string, start: number, end: number, interval: "1h" | "4h" = "1h"): Promise<C[]> {
+  const step = interval === "4h" ? H4 : H1;
   const rows = new Map<number, C>();
-  for (let cur = start; cur < end; cur += H1 * 1000) {
-    const data = await getJson(`/openApi/swap/v3/quote/klines?symbol=${symbol}&interval=1h&startTime=${cur}&endTime=${Math.min(end, cur + H1 * 1000)}&limit=1000`);
+  for (let cur = start; cur < end; cur += step * 1000) {
+    const data = await getJson(`/openApi/swap/v3/quote/klines?symbol=${symbol}&interval=${interval}&startTime=${cur}&endTime=${Math.min(end, cur + step * 1000)}&limit=1000`);
     for (const k of data ?? []) {
       const close = Number(k.close);
       rows.set(Number(k.time), { time: Number(k.time), open: Number(k.open), high: Number(k.high), low: Number(k.low), close, vol: Number(k.volume) * close });
     }
     await sleep(60);
   }
-  return [...rows.values()].sort((a, b) => a.time - b.time).filter((c) => c.time + H1 <= end);
+  return [...rows.values()].sort((a, b) => a.time - b.time).filter((c) => c.time + step <= end);
 }
 
 /** Owner 2026-10-27: the target is a +10% peak. True = +10% reached before the -8% stop within 72h. */
@@ -140,9 +146,10 @@ const bodyDist = (cs: C[], e: Ev) => {
 };
 const vol2 = (cs: C[], e: Ev) => (volRatio(cs, e.k) ?? 0) >= 2;
 const longRange = (e: Ev, cs: C[]) => cs[e.k]!.time - e.anchorAt >= 48 * H1;
+const RETEST_BARS = TF4H ? 6 : 24; // 24h either way
 const confirm2 = (cs: C[], e: Ev) => (cs[e.k + 1] && cs[e.k + 1]!.close > e.upper ? e.k + 1 : null);
 const retest = (cs: C[], e: Ev) => {
-  for (let j = e.k + 1; j <= e.k + 24 && j < cs.length; j++) {
+  for (let j = e.k + 1; j <= e.k + RETEST_BARS && j < cs.length; j++) {
     const c = cs[j]!;
     if (c.close < e.upper) return null; // lost the level before a clean retest
     if (c.low <= e.upper * 1.01) return j; // touched the broken top and held above it
@@ -150,7 +157,10 @@ const retest = (cs: C[], e: Ev) => {
   return null;
 };
 
-const VARIANTS: Variant[] = [
+// Momentum variants are 3-bar (3h) rules from the 1H run; on 4H they would
+// mean 12h, so the 4H run keeps only the timeframe-neutral variants.
+const MOMENTUM = /^(C|J|K|L|M|N)_/;
+const ALL_VARIANTS: Variant[] = [
   { name: "A_all_breakouts", entry: breakoutOk },
   { name: "B_live_proxy(dist1%+body1ATR+vol2x+height4.5)", entry: (cs, e) => (live(cs, e) ? e.k : null) },
   { name: "C_momentum3h>=2.3", entry: (cs, e) => (mom(cs, e.k) ? e.k : null) },
@@ -168,6 +178,7 @@ const VARIANTS: Variant[] = [
   { name: "O_dist1%+body1ATR", entry: (cs, e) => (bodyDist(cs, e) ? e.k : null) },
   { name: "P_vol2x", entry: (cs, e) => (vol2(cs, e) ? e.k : null) },
 ];
+const VARIANTS = TF4H ? ALL_VARIANTS.filter((v) => !MOMENTUM.test(v.name)) : ALL_VARIANTS;
 
 async function main() {
   const now = Date.now(), from = now - DAYS * 24 * H1;
@@ -182,23 +193,35 @@ async function main() {
     try {
       const cs = await candles1h(symbol, from - 400 * H1, now);
       if (cs.length < 300) { errors[symbol] = "short_history"; continue; }
-      const res = detectAutoRangePine1h(cs.map((c) => ({ ...c, closed: true })), { mergeDeviations: false });
-      const idx = new Map(cs.map((c, i) => [c.time, i]));
+      // Detection bars: 1H, or 4H with --tf 4h (entry/exit stay on 1H `cs`).
+      const TF = TF4H ? H4 : H1;
+      const ds = TF4H ? await candles1h(symbol, from - 400 * H4, now, "4h") : cs;
+      if (TF4H && ds.length < 200) { errors[symbol] = "short_history_4h"; continue; }
+      const res = TF4H
+        ? detectAutoRangePine(ds.map((c) => ({ ...c, closed: true })), { mergeDeviations: false })
+        : detectAutoRangePine1h(ds.map((c) => ({ ...c, closed: true })), { mergeDeviations: false });
+      const idx = new Map(ds.map((c, i) => [c.time, i]));
+      const idx1 = new Map(cs.map((c, i) => [c.time, i]));
+      /** 1H index whose close equals the close of detection bar j (or -1). */
+      const to1h = (j: number) => idx1.get(ds[j]!.time + TF - H1) ?? -1;
       const evs: Ev[] = (res.upsideBreakouts ?? [])
-        .map((b) => ({ upper: b.upper, lower: b.lower, anchorAt: b.anchorAt, k: idx.get(b.breakoutCloseTime - H1) ?? -1 }))
-        .filter((e) => e.k >= 0 && cs[e.k]!.time >= from);
+        .map((b) => ({ upper: b.upper, lower: b.lower, anchorAt: b.anchorAt, k: idx.get(b.breakoutCloseTime - TF) ?? -1 }))
+        .filter((e) => e.k >= 0 && ds[e.k]!.time >= from && to1h(e.k) >= 0);
       // Champions: breakouts whose price ran +20% / +50% within 72h of the break.
       for (const e of evs) {
-        if (e.k + HORIZON >= cs.length) continue;
-        const pk = peak72(cs, e.k, cs[e.k]!.close);
+        const k1 = to1h(e.k);
+        if (k1 + HORIZON >= cs.length) continue;
+        const pk = peak72(cs, k1, cs[k1]!.close);
         if (pk >= 20) champions.c20++;
         if (pk >= 50) champions.c50++;
       }
       for (const v of VARIANTS) {
         let busyUntil = -1;
         for (const e of evs) {
-          const j = v.entry(cs, e);
-          if (j === null || j <= busyUntil || j >= cs.length) continue;
+          const jd = v.entry(ds, e);
+          if (jd === null || jd >= ds.length) continue;
+          const j = to1h(jd);
+          if (j < 0 || j <= busyUntil || j >= cs.length) continue;
           const r = outcome(cs, j, cs[j]!.close);
           const p10 = hit10(cs, j, cs[j]!.close);
           if (r === null || p10 === null) continue;
