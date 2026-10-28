@@ -311,8 +311,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       )}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar — hidden on mobile, visible on md+ */}
-        <aside className="hidden md:flex md:flex-col w-64 border-r border-border bg-card">
-          <div className="h-16 flex items-center px-5 border-b border-border bg-[linear-gradient(110deg,rgba(85,64,154,.10),transparent_70%)]">
+        <aside className="hidden md:flex md:flex-col w-64 border-r border-border bg-sidebar/90 backdrop-blur">
+          <div className="h-16 flex items-center px-5 border-b neon-edge bg-[linear-gradient(110deg,hsl(var(--neon-violet)/0.16),hsl(var(--neon-cyan)/0.05)_55%,transparent_80%)]">
             <BrandLockup />
           </div>
 
@@ -335,8 +335,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         className={cn(
                           "flex items-start px-3 py-2.5 text-sm font-medium transition-colors border border-transparent",
                           isActive
-                            ? "bg-primary/10 text-primary border-primary/20"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                            ? "rounded-md border-[hsl(var(--neon-violet)/0.45)] bg-[linear-gradient(100deg,hsl(var(--neon-violet)/0.20),hsl(var(--neon-cyan)/0.08))] text-foreground shadow-[0_0_12px_hsl(var(--neon-violet)/0.25)]"
+                            : "rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
                         )}
                       >
                         <Icon className="w-4 h-4 mr-3 mt-0.5 shrink-0" />
@@ -354,7 +354,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             className={cn(
                               "text-xs font-normal",
                               isActive
-                                ? "text-primary/60"
+                                ? "text-[hsl(var(--neon-cyan)/0.8)]"
                                 : "text-muted-foreground/60",
                             )}
                           >
