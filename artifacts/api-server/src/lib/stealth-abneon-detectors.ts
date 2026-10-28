@@ -358,9 +358,11 @@ export function resolveFrozenZone(
   h4: readonly ClosedDetectorCandle[],
   armTime: number,
   frozenTop: number,
+  /** Research only: timeframe of the zone candles (default 4H). */
+  zoneTimeframeMs: number = H4,
 ): SupportZone {
   for (const through of [armTime, armTime + H1]) {
-    const zones = computeSupportZones(h4.filter((c) => c.time + H4 <= through));
+    const zones = computeSupportZones(h4.filter((c) => c.time + zoneTimeframeMs <= through));
     const hit = zones.find(
       (z) => Math.abs(z.top - frozenTop) / frozenTop <= 1e-6,
     );
@@ -395,9 +397,15 @@ export function evaluateAbneonSupportBounce(input: {
   armCandleTime?: number;
   /** Research only (backtest): treat wicks/short closes below a zone as sweeps. */
   sweepReclaimBars?: number;
+  /**
+   * Research only (backtest): timeframe of `candles4h` when zones are built
+   * from another timeframe (1H horizontal levels). Production omits it (4H).
+   */
+  zoneTimeframeMs?: number;
 }): ShadowDetectorResult<AbneonShadowMethod> {
   const sweep = input.sweepReclaimBars;
-  const h4 = closed(input.candles4h, H4, input.observedAt);
+  const ZONE_TF = input.zoneTimeframeMs ?? H4;
+  const h4 = closed(input.candles4h, ZONE_TF, input.observedAt);
   const h1 = closed(input.candles1h, H1, input.observedAt);
   if (h1.length < VOLUME_LOOKBACK + 1)
     return empty("abneon_support_bounce", "insufficient_closed_candles");
@@ -415,7 +423,7 @@ export function evaluateAbneonSupportBounce(input: {
         volumeEvidence: volumeEvidence(h1, h1.length - 1),
       };
     }
-    const zone = resolveFrozenZone(h4, arm, frozenLevel);
+    const zone = resolveFrozenZone(h4, arm, frozenLevel, ZONE_TF);
     const brokenBelow = zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE);
     if (
       sweep != null
@@ -611,7 +619,7 @@ export function evaluateAbneonSupportBounce(input: {
     status: "armed",
     reason: "awaiting_later_1h_reaction",
     frozenLevel: zone.top,
-    armCandleTime: arm.time + H4,
+    armCandleTime: arm.time + ZONE_TF,
     triggerCandleTime: null,
     volumeEvidence: volumeEvidence(h1, h1.length - 1),
   };

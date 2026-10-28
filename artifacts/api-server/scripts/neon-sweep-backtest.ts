@@ -62,7 +62,18 @@ const ONLY = args.get("symbols")?.split(",").filter(Boolean) ?? null;
 // closed 1H candle (no 15m trigger); each trade gets entry-time features.
 const FEATURES = args.has("features");
 const EXITS = args.has("exits");
-const VARIANTS: { name: string; sweep?: number; h1Only?: boolean }[] = FEATURES
+// --zones1h: the same detector with support zones built from 1H candles
+// (horizontal 1H levels) instead of 4H, next to the 4H baseline.
+const ZONES1H = args.has("zones1h");
+type Variant = { name: string; sweep?: number; h1Only?: boolean; zoneTf?: number };
+const VARIANTS: Variant[] = ZONES1H
+  ? [
+      { name: "live_k3", sweep: 3 },
+      { name: "live_k3_h1only", sweep: 3, h1Only: true },
+      { name: "zones1h_k3", sweep: 3, zoneTf: H1 },
+      { name: "zones1h_k3_h1only", sweep: 3, h1Only: true, zoneTf: H1 },
+    ]
+  : FEATURES
   ? [
       { name: "live_k3", sweep: 3 },
       { name: "live_k3_h1only", sweep: 3, h1Only: true },
@@ -302,7 +313,7 @@ function labelTrade(
 
 function simulate(
   symbol: string,
-  variant: { name: string; sweep?: number; h1Only?: boolean },
+  variant: Variant,
   h4: ClosedDetectorCandle[],
   h1: ClosedDetectorCandle[],
   m15: ClosedDetectorCandle[],
@@ -317,9 +328,13 @@ function simulate(
     // Unarmed evaluation runs on 1H closes (scanner cadence is 30 min; the
     // detector only changes on closed 1H/4H candles). Armed: every 15m close.
     if (!arm && t % H1 !== 0) continue;
+    const zoneTf = variant.zoneTf ?? H4;
+    const zoneCandles = (zoneTf === H1 ? h1 : h4)
+      .filter((c) => c.time + zoneTf <= t && c.time >= t - 640 * zoneTf);
     const res = evaluateAbneonSupportBounce({
       // Production keeps ~600 bars of 4H history (zones use the last 600).
-      candles4h: h4.filter((c) => c.time + H4 <= t && c.time >= t - 640 * H4),
+      candles4h: zoneCandles,
+      zoneTimeframeMs: zoneTf,
       candles1h: h1.filter((c) => c.time + H1 <= t && c.time >= t - 30 * H1),
       candles15m:
         arm && !variant.h1Only
@@ -343,9 +358,10 @@ function simulate(
       let zoneFeat: Record<string, number | null> = {};
       if (EXITS && trig && res.frozenLevel != null && res.armCandleTime != null) {
         const zone = resolveFrozenZone(
-          h4.filter((c) => c.time + H4 <= t),
+          (zoneTf === H1 ? h1 : h4).filter((c) => c.time + zoneTf <= t),
           res.armCandleTime,
           res.frozenLevel,
+          zoneTf,
         );
         zoneFeat = {
           zoneHeightPct: pct(zone.top, zone.bottom),
@@ -442,7 +458,7 @@ async function main() {
   for (const symbol of symbols) {
     try {
       const h4 = await klines(symbol, "4h", from - 620 * H4, now);
-      const h1 = await klines(symbol, "1h", from - 40 * H1, now);
+      const h1 = await klines(symbol, "1h", from - (ZONES1H ? 640 : 40) * H1, now);
       const m15 = await klines(symbol, "15m", from - 40 * M15, now);
       if (h4.length < 50 || h1.length < 50) {
         errors[symbol] = "short_history";
