@@ -197,6 +197,19 @@ const SETTLES: Array<[string, HoldRule]> = [
   ["s_mid_c2", { hard: "mid", hold: "c2" }],
 ];
 
+/** Owner 2026-10-29 (pattern speed): hours from entry to +5% / +8% and to the 72h peak (1H highs). */
+function hoursTo(cs: C[], from: number, entry: number): { h5: number | null; h8: number | null; hPeak: number | null } {
+  const after = cs.slice(from + 1, from + 1 + HORIZON);
+  let h5: number | null = null, h8: number | null = null, best = -Infinity, hPeak: number | null = null;
+  after.forEach((c, i) => {
+    const p = (c.high / entry - 1) * 100;
+    if (h5 === null && p >= 5) h5 = i + 1;
+    if (h8 === null && p >= 8) h8 = i + 1;
+    if (p > best) { best = p; hPeak = i + 1; }
+  });
+  return { h5, h8, hPeak };
+}
+
 /** Highest high within 72h after entry, % of entry (champion size). */
 function peak72(cs: C[], from: number, entry: number): number {
   const after = cs.slice(from + 1, from + 1 + HORIZON);
@@ -349,6 +362,7 @@ async function main() {
             ret24hPct: e.k >= 24 * H1 / TF ? (b.close / ds[e.k - 24 * H1 / TF]!.close - 1) * 100 : null,
             ret7dPct: e.k >= 168 * H1 / TF ? (b.close / ds[e.k - 168 * H1 / TF]!.close - 1) * 100 : null,
             riskPct: (cs[j]!.close - e.upper * 0.99) / cs[j]!.close * 100,
+            ...hoursTo(cs, j, cs[j]!.close),
           };
           trades.push({ v: v.name, s: symbol, t: cs[j]!.time, r, p10, pk: peak72(cs, j, cs[j]!.close), ex, f });
           busyUntil = j + HORIZON; // conservative: one trade per symbol per 72h
@@ -391,6 +405,10 @@ async function main() {
     const months = [...new Set(live.map((t) => new Date(t.t).toISOString().slice(0, 7)))].sort();
     const depth = (k: (t: (typeof live)[number]) => number) => { const xs = live.map(k).sort((a, b) => a - b); return xs.length ? `med ${xs[Math.floor(xs.length / 2)]!.toFixed(2)}% p90 ${xs[Math.floor(xs.length * 0.9)]!.toFixed(2)}%` : "-"; };
     out.push(`stop depth from entry: top-1% ${depth((t) => t.f.riskPct ?? 0)} | range bottom ${depth((t) => (t.f.riskPct ?? 0) + (t.f.rangeHeightPct ?? 0))}`);
+    const qs = (v: number[]) => { const x = [...v].sort((a, b) => a - b); const at = (p: number) => x[Math.min(x.length - 1, Math.floor(p * (x.length - 1) + 0.5))]!; return x.length ? `p25 ${at(0.25)}h / med ${at(0.5)}h / p75 ${at(0.75)}h (${x.length})` : "- (0)"; };
+    const num = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+    out.push(`speed (1H candles, from entry): to +5% ${qs(live.map((t) => t.f.h5).filter(num))} | to +8% ${qs(live.map((t) => t.f.h8).filter(num))} | ` +
+      `to 72h peak (trades >= +8%) ${qs(live.filter((t) => num(t.f.h8)).map((t) => t.f.hPeak).filter(num))}`);
     out.push(`== LIVE 1H RULE (height<5.5, close>=2% above top) n=${live.length}, symbols=${new Set(live.map((t) => t.s)).size}`);
     for (const m of ["r_trail", ...CANCELS.map((c) => `r_cx_${c}`), ...SETTLES.map(([n]) => n)]) {
       const xs = live.map((t) => t.ex[m]).filter((x): x is number => typeof x === "number");
