@@ -69,6 +69,7 @@ import {
   prefetchNetflowBatch,
   getNetflowBatchEntry,
   getAggregatedFuturesTakerNetBuyPct15m,
+  getAggFuturesTakerHistory,
   getAggregatedFuturesVolume30m,
   getAggFuturesVolumeByInterval,
   getAggregatedFuturesVolumeSeries30m,
@@ -94,6 +95,7 @@ import {
 } from "./auto-range-history-store.js";
 import { snapshotCgTelemetry, type CgTelemetrySnapshot } from "./cg_latency.js";
 import { getSpotCvdMtf, getSpotCvdAndVolume } from "./coinglass_spot_cvd.js";
+import { evaluateNeonFlowGate, reactionTakerNetUsd } from "./neon-flow-gate.js";
 import { fetchMarketCap } from "./whale_watch_v2.js";
 import {
   getSpotPoolEntry,
@@ -12261,7 +12263,45 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             }
             // Owner 2026-10-22: no price-vs-zone or "pullback shape" entry filters;
             // a qualified bounce with volume fires, a broken zone waits for the next level.
+            // Owner 2026-10-29: the bounce must have buyers — futures takers net
+            // buying on the reaction 1H candle and spot CVD 1h > 0 (aggregated;
+            // unknown = no signal). A rejected event is not retried later
+            // (offered-and-not-fired events expire, owner 2026-10-25).
+            let _neonFlowBlocked = false;
             if (!det && _neonSupportBounceEvent !== null && !_neonLevelBroken) {
+              const [_neonTakerBars, _neonSpot] = await Promise.all([
+                getAggFuturesTakerHistory(symbol, 16).catch(() => null),
+                getSpotCvdAndVolume(symbol, { bypassCache: true }).catch(() => null),
+              ]);
+              const _neonFlow = evaluateNeonFlowGate({
+                takerNetUsd: reactionTakerNetUsd(
+                  _neonTakerBars,
+                  _neonSupportBounceEvent.triggerCandleTime,
+                  Date.now(),
+                ),
+                spotCvd1h: _neonSpot?.cvd.available ? _neonSpot.cvd.cvd1h : null,
+              });
+              if (!_neonFlow.pass) {
+                _neonFlowBlocked = true;
+                _symRej(
+                  symbol,
+                  "neon_support_bounce",
+                  `flow_${_neonFlow.reason}`,
+                  null,
+                  null,
+                  null,
+                  null,
+                  "rejected",
+                  {
+                    frozenLevel: _neonSupportBounceEvent.frozenLevel,
+                    triggerCandleTime: _neonSupportBounceEvent.triggerCandleTime,
+                    takerNetUsd: _neonFlow.takerNetUsd,
+                    spotCvd1h: _neonFlow.spotCvd1h,
+                  },
+                );
+              }
+            }
+            if (!det && _neonSupportBounceEvent !== null && !_neonLevelBroken && !_neonFlowBlocked) {
               det = {
                 passes: true,
                 oiChangePercent: oi30m ?? 0,
