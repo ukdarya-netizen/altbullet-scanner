@@ -196,16 +196,15 @@ export function fmtPositionProtectionLine(
     }
     // The "take not yet reached" line is redundant next to the next-protection
     // level line; only the reached intermediate target is worth stating.
-    return milestone > 0
-      ? `🎯 Промежуточная цель +${milestone}% достигнута`
-      : "";
+    // Owner 2026-10-29: +5/+8 are protection levels, not take-profits.
+    return milestone > 0 ? `📈 Позиция в профите +${milestone}%` : "";
   }
 
   if (signal.status === "bu_stop") {
     if (isBitcoin) {
       return `₿ Уровень +${buMilestone}% достигнут · 🛡 ${protectedStopLabel} сработал на ${fmtP(protectedExit.exitPrice ?? signal.entryPrice)}`;
     }
-    return `✅ Тейк +${buMilestone}% достигнут · 🛡 ${protectedStopLabel} сработал на ${fmtP(protectedExit.exitPrice ?? signal.entryPrice)}`;
+    return `🛡 Стоп был в Б/У с +${buMilestone}% · ${protectedStopLabel} сработал на ${fmtP(protectedExit.exitPrice ?? signal.entryPrice)}`;
   }
 
   const exitProfile = getExitProfile(signal.sentimentKey, signal.symbol);
@@ -245,7 +244,9 @@ export function fmtPositionProtectionLine(
 
   const nextProfitLock =
     !noProfitLock && buMilestone < 10 ? " · при +10% стоп в прибыль +5%" : "";
-  return `✅ Тейк +${buMilestone}% достигнут · 🛡 ${protectedStopLabel} → ${fmtP(protectedExit.exitPrice ?? signal.entryPrice)}${nextProfitLock}`;
+  return protectedProfitPct > 0
+    ? `🛡 Стоп в прибыли +${protectedProfitPct}% → ${fmtP(protectedExit.exitPrice ?? signal.entryPrice)}`
+    : `🛡 Стоп в Б/У с +${buMilestone}% → ${fmtP(protectedExit.exitPrice ?? signal.entryPrice)}${nextProfitLock}`;
 }
 
 export function fmtVolM(v: number): string {
@@ -568,10 +569,10 @@ function fmtBreakevenContext(
     take != null && take > 0
       ? isBitcoinSignal(t)
         ? `₿ Уровень сопровождения +${take}% достигнут (частичная продажа не подтверждена)`
-        : `🎯 Тейк: +${take}% достигнут`
+        : `📈 Пройденный уровень: +${take}%`
       : isBitcoinSignal(t)
         ? `₿ Уровень сопровождения не достигнут`
-        : `🎯 Тейк: не достигнут`;
+        : `📈 Пройденный уровень: нет`;
   return [peakLine, takeLine];
 }
 
@@ -600,6 +601,21 @@ export function nextBitcoinMilestone(
   const highestReached = Math.min(Math.floor(currentPnl), Math.floor(ceiling));
   const next = last + 1;
   return next <= highestReached ? next : null;
+}
+
+/** What happens after the B.U. move, per pattern (presentation only). */
+function nextStepAfterBu(t: TrackedSignal): string {
+  const m = t.stealthDetectionMethod;
+  if (
+    t.sentimentKey === "stealth_breakout" &&
+    (m === "range_1h_breakout" || m === "range_4h_breakout" || m === "fresh_24h_high_breakout")
+  ) {
+    return `⏳ Дальше стоп идёт за ценой на 1R ниже пика`;
+  }
+  const exitProfile = getExitProfile(t.sentimentKey, t.symbol);
+  return hasNoProfitStopPromotion(t.sentimentKey)
+    ? `⏳ Дальше: трейлинг с +${exitProfile.trailingActivation}%`
+    : `⏳ На +10% стоп в прибыль +5%, трейлинг с +${exitProfile.trailingActivation}%`;
 }
 
 // ── Telegram message builders ─────────────────────────────────────────────────
@@ -902,14 +918,19 @@ export function msgPartialTakeProfit(
   return buildPositionUpdate(t, {
     event: isBitcoin
       ? `₿ BTC: уровень Б/У +${milestone}%`
-      : `🎯 TARGET HIT +${milestone}%`,
+      : `🛡 +${milestone}%: СТОП В Б/У`,
     price: `${fmtP(t.entryPrice)} → ${fmtP(currentPrice)} (${fmtPct(pnl)}) | ${dur.str}`,
-    context: [
-      fmtPositionProtectionLine(t, { milestone }),
-      isBitcoin
-        ? `₿ BTC: достигнут уровень Б/У +1%; частичное исполнение не подтверждено`
-        : `✂️ Фиксируй 20-25%`,
-    ],
+    context: isBitcoin
+      ? [
+          fmtPositionProtectionLine(t, { milestone }),
+          `₿ BTC: достигнут уровень Б/У +1%; частичное исполнение не подтверждено`,
+        ]
+      : [
+          // Owner 2026-10-29: the B.U. level is not a take-profit; fixing is optional.
+          fmtPositionProtectionLine(t, { milestone }),
+          `✂️ По желанию: можно зафиксировать 20-25%`,
+          nextStepAfterBu(t),
+        ],
     health,
     tags: lifecycleTags(t, "#partial"),
   });
@@ -935,7 +956,7 @@ export function msgPreTargetMilestone(
   return buildPositionUpdate(t, {
     event: isBitcoin
       ? `₿ BTC: уровень +${milestone}%`
-      : `🎯 TARGET HIT +${milestone}%`,
+      : `📈 ПОЗИЦИЯ В ПРОФИТЕ +${milestone}%`,
     price: `${fmtP(t.entryPrice)} → ${fmtP(currentPrice)} (${fmtPct(pnl)}) | ${dur.str}`,
     context: isBitcoin
       ? [
@@ -944,9 +965,8 @@ export function msgPreTargetMilestone(
           `ℹ️ Это уровень сопровождения; частичное исполнение не подтверждено`,
         ]
       : [
-          `✂️ Фиксируй 20-25%`,
-          fmtPositionProtectionLine(t, { milestone }),
-          `⏳ Следующий уровень защиты: +${nextTarget}%`,
+          // Owner 2026-10-29: +5% is not a take-profit; no fixation advice.
+          `⏳ Стоп в Б/У при +${nextTarget}%`,
         ],
     health,
     liqCtx,

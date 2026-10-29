@@ -103,7 +103,7 @@ test("shows earned BE and hides the obsolete initial stop", () => {
   assert.equal(hasEarnedBuProtection(protectedPosition), true);
   assert.match(
     fmtPositionProtectionLine(protectedPosition),
-    /Тейк \+5% достигнут · 🛡 BE STOP → \$1\.0000/,
+    /Стоп в Б\/У с \+5% → \$1\.0000/,
   );
 
   const batch = buildPositionCard(
@@ -111,14 +111,14 @@ test("shows earned BE and hides the obsolete initial stop", () => {
     new Map([["TEST-USDT", 1.03]]),
     noEnrichment,
   );
-  assert.match(batch, /BE STOP → \$1\.0000/);
+  assert.match(batch, /Стоп в Б\/У с \+5% → \$1\.0000/);
   assert.doesNotMatch(batch, /Stop: \$0\.9200/);
 
   const report = formatOpenPositionLines(
     [protectedPosition],
     new Map([["TEST-USDT", 1.03]]),
   ).join("\n");
-  assert.match(report, /BE STOP → \$1\.0000/);
+  assert.match(report, /Стоп в Б\/У с \+5% → \$1\.0000/);
 });
 
 test("BTC earns breakeven protection at +1% and says so in follow-ups", () => {
@@ -257,7 +257,7 @@ test("keeps Bullish Accumulation unprotected until its +10% milestone", () => {
   assert.equal(hasEarnedBuProtection(interimBa), false);
   assert.match(
     fmtPositionProtectionLine(interimBa),
-    /^🎯 Промежуточная цель \+8% достигнута$/,
+    /^📈 Позиция в профите \+8%$/,
   );
 });
 
@@ -282,7 +282,7 @@ test("Impulse Buy presents +5% before +10% and promotes BE to +5% profit protect
   assert.equal(hasEarnedBuProtection(beforeTarget), true);
   assert.match(
     fmtPositionProtectionLine(beforeTarget),
-    /Тейк \+5% достигнут · 🛡 BE STOP → \$1\.0000 · при \+10% стоп в прибыль \+5%/,
+    /Стоп в Б\/У с \+5% → \$1\.0000 · при \+10% стоп в прибыль \+5%/,
   );
 
   const protectedPosition = position({
@@ -293,7 +293,7 @@ test("Impulse Buy presents +5% before +10% and promotes BE to +5% profit protect
   assert.equal(hasEarnedBuProtection(protectedPosition), true);
   assert.match(
     fmtPositionProtectionLine(protectedPosition),
-    /Тейк \+10% достигнут · 🛡 PROFIT STOP \+5% → \$1\.0500/,
+    /Стоп в прибыли \+5% → \$1\.0500/,
   );
 
   const closed = msgBUStop(
@@ -322,7 +322,7 @@ test("Impulse Buy keeps ordinary BE at +5 before its +10 promotion", () => {
   assert.equal(hasEarnedBuProtection(legacyProtected), true);
   assert.match(
     fmtPositionProtectionLine(legacyProtected),
-    /Тейк \+5% достигнут · 🛡 BE STOP → \$0\.460700/,
+    /Стоп в Б\/У с \+5% → \$0\.460700/,
   );
   assert.doesNotMatch(
     fmtPositionProtectionLine(legacyProtected),
@@ -341,7 +341,7 @@ test("Impulse Buy keeps ordinary BE at +5 before its +10 promotion", () => {
   assert.match(closed, /<b>🔵 BE STOP<\/b>/);
   assert.match(closed, /\$0\.460700 → \$0\.460700 \(\+0\.00%\)/);
   assert.match(closed, /Пик позиции: \+7\.27%/);
-  assert.match(closed, /Тейк: \+5% достигнут/);
+  assert.match(closed, /Пройденный уровень: \+5%/);
   assert.doesNotMatch(closed, /PROFIT STOP \+5%/);
 });
 
@@ -356,15 +356,15 @@ test("formats the same BE fact across milestone, accumulation, re-entry and late
     msgLateSignal(signal, 1.2, 20),
   ];
 
-  assert.match(texts[0]!, /Тейк \+5% достигнут/);
-  assert.match(texts[1]!, /Тейк \+10% достигнут.*PROFIT STOP \+5%/s);
+  assert.match(texts[0]!, /Стоп в Б\/У с \+5%/);
+  assert.match(texts[1]!, /Стоп в прибыли \+5%/s);
   assert.match(
     texts[2]!,
-    /Тейк \+10% достигнут.*PROFIT STOP \+5% пройден, трейлинг: \$1\.0600/s,
+    /PROFIT STOP \+5% пройден, трейлинг: \$1\.0600/s,
   );
-  assert.match(texts[3]!, /Тейк \+5% достигнут/);
-  assert.match(texts[4]!, /Тейк \+5% достигнут/);
-  assert.match(texts[5]!, /Тейк \+10% достигнут.*PROFIT STOP \+5%/s);
+  assert.match(texts[3]!, /Стоп в Б\/У с \+5%/);
+  assert.match(texts[4]!, /Стоп в Б\/У с \+5%/);
+  assert.match(texts[5]!, /Стоп в прибыли \+5%/s);
   assert.match(texts[2]!, /трейлинг: \$1\.0600/);
   assert.match(texts[2]!, /защищает \+6\.00%/);
   assert.match(
@@ -411,7 +411,7 @@ test("uses the same milestone rule for short positions and terminal BE", () => {
   });
   assert.match(
     fmtPositionProtectionLine(shortProtected),
-    /BE STOP → \$2\.0000/,
+    /Стоп в Б\/У с \+5% → \$2\.0000/,
   );
 
   const closedAtBu = position({
@@ -437,7 +437,7 @@ test("includes position peak in EXPIRED and achieved take in BE STOP", () => {
     0,
   );
   assert.match(protectedBuStop, /Пик позиции: \+10\.00% \(\$1\.1000\)/);
-  assert.match(protectedBuStop, /Тейк: \+5% достигнут/);
+  assert.match(protectedBuStop, /Пройденный уровень: \+5%/);
   assert.match(protectedBuStop, /POSITION CLOSED — TEST/);
   assert.match(protectedBuStop, /<b>🔵 BE STOP<\/b>/);
 });

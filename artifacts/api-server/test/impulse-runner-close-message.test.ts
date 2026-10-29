@@ -129,7 +129,7 @@ test("five-day runner BE close shows the runner peak and achieved target", () =>
   );
   assert.match(message, /IMPULSE RUNNER BE STOP/);
   assert.match(message, /Пик позиции: \+20\.00%/);
-  assert.match(message, /Тейк: \+10% достигнут/);
+  assert.match(message, /Пройденный уровень: \+10%/);
   assert.match(message, /защищённому Б\/У/);
 });
 

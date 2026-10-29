@@ -11111,6 +11111,9 @@ async function runInRunFastCycle(
       if (
         tracked.status === "active" &&
         firstTarget > 8 &&
+        // Owner 2026-10-29: no separate +8% message once B.U. was already
+        // earned below +8% (IB at +5%); +8% is not a fixation level.
+        _buMilestone > 8 &&
         pnl >= 8 &&
         (tracked.lastMilestone ?? 0) < 8
       ) {
