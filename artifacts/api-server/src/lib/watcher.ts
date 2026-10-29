@@ -373,6 +373,7 @@ import {
   ACCUM_SCOUT_COOLDOWN_MS,
   ACCUM_OI_COOLDOWN_MS,
   HEALTH_ADVICE_TELEGRAM_ENABLED,
+  HEALTH_OBSERVATION_ENABLED,
   REENTRY_SHADOW_ONLY,
   ACCUM_SCOUT_TELEGRAM_ENABLED,
   RE_ENTRY_VOL_MULT,
@@ -10296,6 +10297,7 @@ async function runInRunFastCycle(
       // подтверждений. Обычные сообщения дополнительно имеют cooldown 12ч,
       // лимит 2 на позицию и пожизненный dedup по типу.
       if (
+        HEALTH_OBSERVATION_ENABLED &&
         (tracked.status === "active" || tracked.status === "in_run") &&
         ageMs >= 60 * 60_000
       ) {
@@ -14442,6 +14444,7 @@ async function runCancelOutcomesBackfill(): Promise<void> {
 // Через 4ч / 8ч / 24ч после отправки СЛЕДИ/ДЕРЖИ/РАССМОТРИ записываем,
 // как изменилась цена. Это основа для калибровки точности health-сообщений.
 async function runHealthEventBackfill(): Promise<void> {
+  if (!HEALTH_OBSERVATION_ENABLED) return;
   try {
     // Каждый временной слот заполняется ТОЛЬКО в своё окно наблюдения.
     // Если окно пропущено (рестарт, даунтайм), слот остаётся NULL —

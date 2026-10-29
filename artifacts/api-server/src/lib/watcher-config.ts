@@ -16,6 +16,13 @@ export const ACCUM_OI_COOLDOWN_MS = 2 * 60 * 60 * 1000; // 2ч кулдаун м
 // FOLLOW was random, HOLD was negatively calibrated, and EXIT was too small
 // and wrong-way at 4h/8h. Keep these observations internal, not in Telegram.
 export const HEALTH_ADVICE_TELEGRAM_ENABLED = false;
+// Owner 2026-10-29: HOLD/FOLLOW/EXIT advice is switched off entirely. On the
+// recorded cohort (22.08-29.10, first message per trade, closed trades) exiting
+// at "EXIT" would have been worse than the trade's real outcome (shadow 87
+// trades: -2.07 pp per trade, price +1.5% after 24h); FOLLOW and HOLD showed no
+// edge either. No evaluation, no recording, no backfill. History stays in
+// signal_health_events.
+export const HEALTH_OBSERVATION_ENABLED = false;
 // Re-entry candidates are retained solely for incremental-value measurement.
 // They must never create delivery, mutate a tracked position, or increment the
 // legacy reEntryCount field.
