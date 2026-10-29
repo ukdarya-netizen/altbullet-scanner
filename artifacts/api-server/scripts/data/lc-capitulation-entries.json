@@ -1,0 +1,1394 @@
+[
+{
+"id": 2807,
+"symbol": "AKE-USDT",
+"candleOpenMs": 1784523600000,
+"low": 0.001697,
+"close": 0.001699,
+"month": "07"
+},
+{
+"id": 2866,
+"symbol": "LA-USDT",
+"candleOpenMs": 1784618100000,
+"low": 0.05696,
+"close": 0.05728,
+"month": "07"
+},
+{
+"id": 2917,
+"symbol": "BANK-USDT",
+"candleOpenMs": 1784704500000,
+"low": 0.11805,
+"close": 0.12841,
+"month": "07"
+},
+{
+"id": 2926,
+"symbol": "CASHCAT-USDT",
+"candleOpenMs": 1784729700000,
+"low": 0.05552,
+"close": 0.0558,
+"month": "07"
+},
+{
+"id": 3018,
+"symbol": "VELVET-USDT",
+"candleOpenMs": 1784853900000,
+"low": 0.2713,
+"close": 0.3456,
+"month": "07"
+},
+{
+"id": 3109,
+"symbol": "SLX-USDT",
+"candleOpenMs": 1784971800000,
+"low": 0.10915,
+"close": 0.1141,
+"month": "07"
+},
+{
+"id": 3203,
+"symbol": "ACH-USDT",
+"candleOpenMs": 1785221100000,
+"low": 0.004673,
+"close": 0.004765,
+"month": "07"
+},
+{
+"id": 3215,
+"symbol": "GIGGLE-USDT",
+"candleOpenMs": 1785487500000,
+"low": 38.16,
+"close": 38.91,
+"month": "07"
+},
+{
+"id": 3242,
+"symbol": "BTW-USDT",
+"candleOpenMs": 1785582900000,
+"low": 0.1046,
+"close": 0.1088,
+"month": "08"
+},
+{
+"id": 3296,
+"symbol": "1000CAT-USDT",
+"candleOpenMs": 1786202100000,
+"low": 0.002287,
+"close": 0.002305,
+"month": "08"
+},
+{
+"id": 3297,
+"symbol": "GUA-USDT",
+"candleOpenMs": 1786205700000,
+"low": 0.03336,
+"close": 0.03439,
+"month": "08"
+},
+{
+"id": 3307,
+"symbol": "GWEI-USDT",
+"candleOpenMs": 1786398300000,
+"low": 0.02627,
+"close": 0.02731,
+"month": "08"
+},
+{
+"id": 3326,
+"symbol": "CAP-USDT",
+"candleOpenMs": 1786447800000,
+"low": 0.04635,
+"close": 0.0469,
+"month": "08"
+},
+{
+"id": 3376,
+"symbol": "MAGMA-USDT",
+"candleOpenMs": 1787188500000,
+"low": 0.21424,
+"close": 0.21829,
+"month": "08"
+},
+{
+"id": 3435,
+"symbol": "AKE-USDT",
+"candleOpenMs": 1787743800000,
+"low": 0.007387,
+"close": 0.008167,
+"month": "08"
+},
+{
+"id": 3491,
+"symbol": "CASHCAT-USDT",
+"candleOpenMs": 1788503400000,
+"low": 0.23741,
+"close": 0.24866,
+"month": "09"
+},
+{
+"id": 3501,
+"symbol": "APR-USDT",
+"candleOpenMs": 1788948000000,
+"low": 0.1634,
+"close": 0.1653,
+"month": "09"
+},
+{
+"id": 3598,
+"symbol": "ETHFI-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.648,
+"close": 0.6641,
+"month": "09"
+},
+{
+"id": 3599,
+"symbol": "FIL-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.897,
+"close": 0.9678,
+"month": "09"
+},
+{
+"id": 3602,
+"symbol": "1000SHIB-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.005567,
+"close": 0.00571,
+"month": "09"
+},
+{
+"id": 3603,
+"symbol": "GALA-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.001946,
+"close": 0.001987,
+"month": "09"
+},
+{
+"id": 3604,
+"symbol": "JTO-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.455,
+"close": 0.4771,
+"month": "09"
+},
+{
+"id": 3605,
+"symbol": "VIRTUAL-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.6842,
+"close": 0.7058,
+"month": "09"
+},
+{
+"id": 3606,
+"symbol": "OP-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.12423,
+"close": 0.12737,
+"month": "09"
+},
+{
+"id": 3607,
+"symbol": "CASHCAT-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.1577,
+"close": 0.1582,
+"month": "09"
+},
+{
+"id": 3612,
+"symbol": "APT-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.7317,
+"close": 0.779,
+"month": "09"
+},
+{
+"id": 3613,
+"symbol": "STRK-USDT",
+"candleOpenMs": 1790172000000,
+"low": 0.03913,
+"close": 0.04017,
+"month": "09"
+},
+{
+"id": 3926,
+"symbol": "APR-USDT",
+"candleOpenMs": 1790742600000,
+"low": 0.1119,
+"close": 0.1128,
+"month": "09"
+},
+{
+"id": 4041,
+"symbol": "ROBO-USDT",
+"candleOpenMs": 1790965800000,
+"low": 0.00813,
+"close": 0.00822,
+"month": "10"
+},
+{
+"id": 4111,
+"symbol": "PONS-USDT",
+"candleOpenMs": 1791125100000,
+"low": 0.3835,
+"close": 0.3889,
+"month": "10"
+},
+{
+"id": 4174,
+"symbol": "PROM-USDT",
+"candleOpenMs": 1791301500000,
+"low": 5.025,
+"close": 5.032,
+"month": "10"
+},
+{
+"id": 4179,
+"symbol": "MNT-USDT",
+"candleOpenMs": 1791304200000,
+"low": 0.5457,
+"close": 0.6008,
+"month": "10"
+},
+{
+"id": 4212,
+"symbol": "BIO-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.02675,
+"close": 0.02897,
+"month": "10"
+},
+{
+"id": 4218,
+"symbol": "RARE-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.0145,
+"close": 0.0156,
+"month": "10"
+},
+{
+"id": 4225,
+"symbol": "FOGO-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.004789,
+"close": 0.005048,
+"month": "10"
+},
+{
+"id": 4237,
+"symbol": "STAR-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.03529,
+"close": 0.038,
+"month": "10"
+},
+{
+"id": 4245,
+"symbol": "RAVE-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.169,
+"close": 0.1817,
+"month": "10"
+},
+{
+"id": 4257,
+"symbol": "CFG-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.1318,
+"close": 0.1383,
+"month": "10"
+},
+{
+"id": 4258,
+"symbol": "COLLECT-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.01843,
+"close": 0.02045,
+"month": "10"
+},
+{
+"id": 4263,
+"symbol": "AIO-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.03911,
+"close": 0.04231,
+"month": "10"
+},
+{
+"id": 4331,
+"symbol": "LAB-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.04374,
+"close": 0.04724,
+"month": "10"
+},
+{
+"id": 4337,
+"symbol": "JUP-USDT",
+"candleOpenMs": 1791338400000,
+"low": 0.3227,
+"close": 0.3295,
+"month": "10"
+},
+{
+"id": 4420,
+"symbol": "OP-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.11463,
+"close": 0.11632,
+"month": "10"
+},
+{
+"id": 4423,
+"symbol": "GALA-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.002136,
+"close": 0.00218,
+"month": "10"
+},
+{
+"id": 4430,
+"symbol": "FET-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.215,
+"close": 0.2178,
+"month": "10"
+},
+{
+"id": 4433,
+"symbol": "VET-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.007276,
+"close": 0.007341,
+"month": "10"
+},
+{
+"id": 4434,
+"symbol": "ETHFI-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.6804,
+"close": 0.6939,
+"month": "10"
+},
+{
+"id": 4442,
+"symbol": "IOTA-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.04739,
+"close": 0.04964,
+"month": "10"
+},
+{
+"id": 4447,
+"symbol": "APT-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.7241,
+"close": 0.7273,
+"month": "10"
+},
+{
+"id": 4465,
+"symbol": "MYX-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.05938,
+"close": 0.06368,
+"month": "10"
+},
+{
+"id": 4466,
+"symbol": "BSB-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.09325,
+"close": 0.0964,
+"month": "10"
+},
+{
+"id": 4467,
+"symbol": "BLESS-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.007142,
+"close": 0.007654,
+"month": "10"
+},
+{
+"id": 4469,
+"symbol": "AT-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.1258,
+"close": 0.1319,
+"month": "10"
+},
+{
+"id": 4470,
+"symbol": "SENT-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.02344,
+"close": 0.02395,
+"month": "10"
+},
+{
+"id": 4471,
+"symbol": "CASHCAT-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.10747,
+"close": 0.11015,
+"month": "10"
+},
+{
+"id": 4474,
+"symbol": "TRIA-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.003171,
+"close": 0.003248,
+"month": "10"
+},
+{
+"id": 4477,
+"symbol": "ZK-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.011158,
+"close": 0.011253,
+"month": "10"
+},
+{
+"id": 4478,
+"symbol": "ACT-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.00942,
+"close": 0.009595,
+"month": "10"
+},
+{
+"id": 4484,
+"symbol": "SAGA-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.02067,
+"close": 0.02163,
+"month": "10"
+},
+{
+"id": 4488,
+"symbol": "DYDX-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.1278,
+"close": 0.1303,
+"month": "10"
+},
+{
+"id": 4499,
+"symbol": "AR-USDT",
+"candleOpenMs": 1791472500000,
+"low": 3.894,
+"close": 3.919,
+"month": "10"
+},
+{
+"id": 4511,
+"symbol": "ALICE-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.1623,
+"close": 0.1671,
+"month": "10"
+},
+{
+"id": 4516,
+"symbol": "FOGO-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.0043,
+"close": 0.004497,
+"month": "10"
+},
+{
+"id": 4521,
+"symbol": "LA-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.05774,
+"close": 0.05933,
+"month": "10"
+},
+{
+"id": 4526,
+"symbol": "FLOW-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.02966,
+"close": 0.03033,
+"month": "10"
+},
+{
+"id": 4528,
+"symbol": "RESOLV-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.01743,
+"close": 0.01777,
+"month": "10"
+},
+{
+"id": 4533,
+"symbol": "MAGMA-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.18993,
+"close": 0.20174,
+"month": "10"
+},
+{
+"id": 4542,
+"symbol": "PEOPLE-USDT",
+"candleOpenMs": 1791472500000,
+"low": 0.007441,
+"close": 0.007611,
+"month": "10"
+},
+{
+"id": 4601,
+"symbol": "TIA-USDT",
+"candleOpenMs": 1791541800000,
+"low": 0.4644,
+"close": 0.4716,
+"month": "10"
+},
+{
+"id": 4644,
+"symbol": "BTW-USDT",
+"candleOpenMs": 1791699300000,
+"low": 1.2578,
+"close": 1.4079,
+"month": "10"
+},
+{
+"id": 4757,
+"symbol": "KGEN-USDT",
+"candleOpenMs": 1791849600000,
+"low": 0.1239,
+"close": 0.1269,
+"month": "10"
+},
+{
+"id": 4770,
+"symbol": "FHE-USDT",
+"candleOpenMs": 1791852300000,
+"low": 0.01676,
+"close": 0.01738,
+"month": "10"
+},
+{
+"id": 4835,
+"symbol": "CT-USDT",
+"candleOpenMs": 1791861300000,
+"low": 0.33761,
+"close": 0.34456,
+"month": "10"
+},
+{
+"id": 5194,
+"symbol": "XAN-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.009359,
+"close": 0.009448,
+"month": "10-15"
+},
+{
+"id": 5195,
+"symbol": "BRETT-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.004586,
+"close": 0.004652,
+"month": "10-15"
+},
+{
+"id": 5203,
+"symbol": "DYDX-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.1174,
+"close": 0.1187,
+"month": "10-15"
+},
+{
+"id": 5207,
+"symbol": "KAITO-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.2722,
+"close": 0.2784,
+"month": "10-15"
+},
+{
+"id": 5211,
+"symbol": "HEI-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.11013,
+"close": 0.1119,
+"month": "10-15"
+},
+{
+"id": 5216,
+"symbol": "ACH-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.005235,
+"close": 0.005285,
+"month": "10-15"
+},
+{
+"id": 5217,
+"symbol": "WIF-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.1873,
+"close": 0.1893,
+"month": "10-15"
+},
+{
+"id": 5219,
+"symbol": "TURBO-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.0008405,
+"close": 0.0008515,
+"month": "10-15"
+},
+{
+"id": 5220,
+"symbol": "ARX-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.2217,
+"close": 0.2243,
+"month": "10-15"
+},
+{
+"id": 5223,
+"symbol": "APE-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.1315,
+"close": 0.1338,
+"month": "10-15"
+},
+{
+"id": 5226,
+"symbol": "EUL-USDT",
+"candleOpenMs": 1792030500000,
+"low": 1.1651,
+"close": 1.1993,
+"month": "10-15"
+},
+{
+"id": 5229,
+"symbol": "HOME-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.004599,
+"close": 0.004734,
+"month": "10-15"
+},
+{
+"id": 5234,
+"symbol": "PUMP-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.00436,
+"close": 0.004383,
+"month": "10-15"
+},
+{
+"id": 5240,
+"symbol": "CETUS-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.02318,
+"close": 0.02344,
+"month": "10-15"
+},
+{
+"id": 5244,
+"symbol": "OP-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.13095,
+"close": 0.1322,
+"month": "10-15"
+},
+{
+"id": 5260,
+"symbol": "CELR-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.002696,
+"close": 0.002745,
+"month": "10-15"
+},
+{
+"id": 5266,
+"symbol": "ROSE-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.007333,
+"close": 0.00757,
+"month": "10-15"
+},
+{
+"id": 5269,
+"symbol": "STBL-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.02026,
+"close": 0.02061,
+"month": "10-15"
+},
+{
+"id": 5270,
+"symbol": "FIDA-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01822,
+"close": 0.01843,
+"month": "10-15"
+},
+{
+"id": 5272,
+"symbol": "JUP-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.2982,
+"close": 0.3013,
+"month": "10-15"
+},
+{
+"id": 5279,
+"symbol": "BROCCOLI-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.0189,
+"close": 0.01957,
+"month": "10-15"
+},
+{
+"id": 5286,
+"symbol": "TNSR-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.031,
+"close": 0.03133,
+"month": "10-15"
+},
+{
+"id": 5288,
+"symbol": "ZBT-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.06836,
+"close": 0.06965,
+"month": "10-15"
+},
+{
+"id": 5289,
+"symbol": "CHILLGUY-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.009093,
+"close": 0.009231,
+"month": "10-15"
+},
+{
+"id": 5290,
+"symbol": "SAFE-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.10361,
+"close": 0.10529,
+"month": "10-15"
+},
+{
+"id": 5291,
+"symbol": "BB-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.00791,
+"close": 0.008113,
+"month": "10-15"
+},
+{
+"id": 5293,
+"symbol": "COLLECT-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01952,
+"close": 0.02025,
+"month": "10-15"
+},
+{
+"id": 5296,
+"symbol": "RPL-USDT",
+"candleOpenMs": 1792030500000,
+"low": 1.547,
+"close": 1.577,
+"month": "10-15"
+},
+{
+"id": 5299,
+"symbol": "FORM-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.2414,
+"close": 0.2449,
+"month": "10-15"
+},
+{
+"id": 5303,
+"symbol": "GRT-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.02336,
+"close": 0.02364,
+"month": "10-15"
+},
+{
+"id": 5304,
+"symbol": "GIGGLE-USDT",
+"candleOpenMs": 1792030500000,
+"low": 31.96,
+"close": 32.42,
+"month": "10-15"
+},
+{
+"id": 5306,
+"symbol": "BANANA-USDT",
+"candleOpenMs": 1792030500000,
+"low": 3.34,
+"close": 3.42,
+"month": "10-15"
+},
+{
+"id": 5310,
+"symbol": "YB-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.06589,
+"close": 0.06723,
+"month": "10-15"
+},
+{
+"id": 5313,
+"symbol": "KGEN-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.098,
+"close": 0.1003,
+"month": "10-15"
+},
+{
+"id": 5314,
+"symbol": "APT-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.75,
+"close": 0.7587,
+"month": "10-15"
+},
+{
+"id": 5317,
+"symbol": "AIN-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.0374,
+"close": 0.03876,
+"month": "10-15"
+},
+{
+"id": 5329,
+"symbol": "IOTX-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.003415,
+"close": 0.003454,
+"month": "10-15"
+},
+{
+"id": 5330,
+"symbol": "NEIROCTO-USDT",
+"candleOpenMs": 1792030500000,
+"low": 7.207e-05,
+"close": 7.43e-05,
+"month": "10-15"
+},
+{
+"id": 5333,
+"symbol": "H-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.05083,
+"close": 0.05209,
+"month": "10-15"
+},
+{
+"id": 5340,
+"symbol": "IO-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.1555,
+"close": 0.1573,
+"month": "10-15"
+},
+{
+"id": 5343,
+"symbol": "SKL-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.004533,
+"close": 0.004618,
+"month": "10-15"
+},
+{
+"id": 5352,
+"symbol": "LUNA-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.04055,
+"close": 0.04122,
+"month": "10-15"
+},
+{
+"id": 5360,
+"symbol": "SOON-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.2799,
+"close": 0.283,
+"month": "10-15"
+},
+{
+"id": 5368,
+"symbol": "HEMI-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.00485,
+"close": 0.00509,
+"month": "10-15"
+},
+{
+"id": 5372,
+"symbol": "BANK-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.02484,
+"close": 0.02528,
+"month": "10-15"
+},
+{
+"id": 5377,
+"symbol": "RARE-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01371,
+"close": 0.01395,
+"month": "10-15"
+},
+{
+"id": 5387,
+"symbol": "CTSI-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.02867,
+"close": 0.02949,
+"month": "10-15"
+},
+{
+"id": 5388,
+"symbol": "PIXEL-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.005348,
+"close": 0.005428,
+"month": "10-15"
+},
+{
+"id": 5392,
+"symbol": "ORDI-USDT",
+"candleOpenMs": 1792030500000,
+"low": 3.683,
+"close": 3.743,
+"month": "10-15"
+},
+{
+"id": 5400,
+"symbol": "MEME-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.000476,
+"close": 0.0004829,
+"month": "10-15"
+},
+{
+"id": 5403,
+"symbol": "CLANKER-USDT",
+"candleOpenMs": 1792030500000,
+"low": 10.93,
+"close": 11.09,
+"month": "10-15"
+},
+{
+"id": 5415,
+"symbol": "IOTA-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.04385,
+"close": 0.04446,
+"month": "10-15"
+},
+{
+"id": 5416,
+"symbol": "TREE-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.03619,
+"close": 0.03691,
+"month": "10-15"
+},
+{
+"id": 5417,
+"symbol": "COW-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.1228,
+"close": 0.126,
+"month": "10-15"
+},
+{
+"id": 5419,
+"symbol": "DIA-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.154,
+"close": 0.1565,
+"month": "10-15"
+},
+{
+"id": 5422,
+"symbol": "DOGS-USDT",
+"candleOpenMs": 1792030500000,
+"low": 3.757e-05,
+"close": 3.805e-05,
+"month": "10-15"
+},
+{
+"id": 5423,
+"symbol": "DYM-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01687,
+"close": 0.01724,
+"month": "10-15"
+},
+{
+"id": 5425,
+"symbol": "ZKC-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.03463,
+"close": 0.03502,
+"month": "10-15"
+},
+{
+"id": 5426,
+"symbol": "PONS-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.285,
+"close": 0.2992,
+"month": "10-15"
+},
+{
+"id": 5430,
+"symbol": "IDOL-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.0078,
+"close": 0.007898,
+"month": "10-15"
+},
+{
+"id": 5431,
+"symbol": "AVAAI-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.006882,
+"close": 0.007222,
+"month": "10-15"
+},
+{
+"id": 5433,
+"symbol": "CKB-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.0014294,
+"close": 0.0014642,
+"month": "10-15"
+},
+{
+"id": 5435,
+"symbol": "TAC-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.001184,
+"close": 0.001222,
+"month": "10-15"
+},
+{
+"id": 5437,
+"symbol": "SYN-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.16691,
+"close": 0.17148,
+"month": "10-15"
+},
+{
+"id": 5438,
+"symbol": "MYX-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.05259,
+"close": 0.05575,
+"month": "10-15"
+},
+{
+"id": 5439,
+"symbol": "SAGA-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01821,
+"close": 0.01869,
+"month": "10-15"
+},
+{
+"id": 5447,
+"symbol": "ARKM-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.1179,
+"close": 0.1193,
+"month": "10-15"
+},
+{
+"id": 5450,
+"symbol": "MELANIA-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.07929,
+"close": 0.08091,
+"month": "10-15"
+},
+{
+"id": 5465,
+"symbol": "USELESS-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.15293,
+"close": 0.1555,
+"month": "10-15"
+},
+{
+"id": 5472,
+"symbol": "ACU-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.08853,
+"close": 0.09106,
+"month": "10-15"
+},
+{
+"id": 5474,
+"symbol": "ALT-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.007272,
+"close": 0.007443,
+"month": "10-15"
+},
+{
+"id": 5482,
+"symbol": "GWEI-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01978,
+"close": 0.02014,
+"month": "10-15"
+},
+{
+"id": 5489,
+"symbol": "SLX-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.04697,
+"close": 0.04792,
+"month": "10-15"
+},
+{
+"id": 5490,
+"symbol": "GUN-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.002321,
+"close": 0.002362,
+"month": "10-15"
+},
+{
+"id": 5491,
+"symbol": "GOAT-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01429,
+"close": 0.01446,
+"month": "10-15"
+},
+{
+"id": 5495,
+"symbol": "CVX-USDT",
+"candleOpenMs": 1792030500000,
+"low": 1.751,
+"close": 1.779,
+"month": "10-15"
+},
+{
+"id": 5498,
+"symbol": "CYBER-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.2972,
+"close": 0.304,
+"month": "10-15"
+},
+{
+"id": 5499,
+"symbol": "BICO-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01583,
+"close": 0.01608,
+"month": "10-15"
+},
+{
+"id": 5500,
+"symbol": "COTI-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.010619,
+"close": 0.010884,
+"month": "10-15"
+},
+{
+"id": 5501,
+"symbol": "POPCAT-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.04168,
+"close": 0.04223,
+"month": "10-15"
+},
+{
+"id": 5502,
+"symbol": "AXS-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.9869,
+"close": 1.0042,
+"month": "10-15"
+},
+{
+"id": 5503,
+"symbol": "BLUAI-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.007619,
+"close": 0.007975,
+"month": "10-15"
+},
+{
+"id": 5504,
+"symbol": "SAND-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.05292,
+"close": 0.05351,
+"month": "10-15"
+},
+{
+"id": 5508,
+"symbol": "MOODENG-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.03647,
+"close": 0.037,
+"month": "10-15"
+},
+{
+"id": 5515,
+"symbol": "CYS-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.1163,
+"close": 0.1196,
+"month": "10-15"
+},
+{
+"id": 5516,
+"symbol": "SWARMS-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.006722,
+"close": 0.006845,
+"month": "10-15"
+},
+{
+"id": 5518,
+"symbol": "CORE-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01719,
+"close": 0.0174,
+"month": "10-15"
+},
+{
+"id": 5520,
+"symbol": "OPN-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.05757,
+"close": 0.06022,
+"month": "10-15"
+},
+{
+"id": 5526,
+"symbol": "AIXBT-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.01804,
+"close": 0.01829,
+"month": "10-15"
+},
+{
+"id": 5527,
+"symbol": "SNX-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.2112,
+"close": 0.214,
+"month": "10-15"
+},
+{
+"id": 5535,
+"symbol": "LSK-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.18461,
+"close": 0.19074,
+"month": "10-15"
+},
+{
+"id": 5544,
+"symbol": "GALA-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.001888,
+"close": 0.001911,
+"month": "10-15"
+},
+{
+"id": 5546,
+"symbol": "ALICE-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.1435,
+"close": 0.1455,
+"month": "10-15"
+},
+{
+"id": 5548,
+"symbol": "CFG-USDT",
+"candleOpenMs": 1792030500000,
+"low": 0.1279,
+"close": 0.1305,
+"month": "10-15"
+},
+{
+"id": 5590,
+"symbol": "PARTI-USDT",
+"candleOpenMs": 1792082700000,
+"low": 0.03479,
+"close": 0.03562,
+"month": "10-15"
+},
+{
+"id": 5766,
+"symbol": "CYS-USDT",
+"candleOpenMs": 1792241100000,
+"low": 0.1071,
+"close": 0.1077,
+"month": "10"
+},
+{
+"id": 6155,
+"symbol": "CT-USDT",
+"candleOpenMs": 1792345500000,
+"low": 0.28702,
+"close": 0.29098,
+"month": "10"
+},
+{
+"id": 6279,
+"symbol": "TA-USDT",
+"candleOpenMs": 1792352700000,
+"low": 0.03564,
+"close": 0.03863,
+"month": "10"
+},
+{
+"id": 6341,
+"symbol": "AGENCY-USDT",
+"candleOpenMs": 1792437300000,
+"low": 0.000934,
+"close": 0.000939,
+"month": "10"
+},
+{
+"id": 6362,
+"symbol": "AIN-USDT",
+"candleOpenMs": 1792455300000,
+"low": 0.03523,
+"close": 0.036,
+"month": "10"
+},
+{
+"id": 6815,
+"symbol": "GRIFFAIN-USDT",
+"candleOpenMs": 1792727100000,
+"low": 0.013492,
+"close": 0.013717,
+"month": "10"
+}
+]
