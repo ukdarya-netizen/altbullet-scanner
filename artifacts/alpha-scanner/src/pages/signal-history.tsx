@@ -50,6 +50,7 @@ interface SignalRow {
     | "continuation_shelf"
     | "fresh_24h_high"
     | "range_4h"
+    | "range_1h"
     | null;
   stealthRangeConfirmingVenues?: string[] | null;
   stealthEntryPath?: string | null;
@@ -191,6 +192,16 @@ function StealthLevelSourceBadge({
   entryPath?: string | null;
 }) {
   if (sentimentKey !== "stealth_breakout") return null;
+  if (source === "range_1h") {
+    return (
+      <span
+        className="mt-1 inline-flex rounded border border-amber-400/40 bg-amber-400/10 px-1 py-0.5 text-[9px] font-medium leading-none text-amber-300"
+        title="Экспериментальный паттерн: пробой узкого ренджа (высота < 5,5%) на закрытой 1H свече, закрытие ≥ 2% выше верха, тейкеры и спот в покупке; стоп под верхом ренджа −1%, Б/У на +1R, трейлинг 1R"
+      >
+        🧪 Эксперимент · пробой узкого ренджа 1H
+      </span>
+    );
+  }
   if (source === "range_4h") {
     return (
       <span

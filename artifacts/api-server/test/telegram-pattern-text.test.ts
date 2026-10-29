@@ -15,7 +15,7 @@ import { buildCanonicalSignalFirePrice } from "../src/lib/scanner-patterns.js";
 test("names Stealth Breakout without an experiment marker", () => {
   assert.equal(
     STEALTH_BREAKOUT_TELEGRAM_NAME,
-    "🔵 Stealth Breakout 🧪 эксперимент — Пробой 4H-ренджа",
+    "🔵 Stealth Breakout 🧪 эксперимент — Пробой узкого ренджа",
   );
 });
 
@@ -55,7 +55,7 @@ test("treats Impulse Buy as a finalized pattern", () => {
 test("uses a blue label for Stealth Breakout", () => {
   assert.equal(
     getPatternTgLabel("stealth_breakout"),
-    "🔵 Stealth Breakout 🧪 эксперимент — Пробой 4H-ренджа",
+    "🔵 Stealth Breakout 🧪 эксперимент — Пробой узкого ренджа",
   );
 });
 

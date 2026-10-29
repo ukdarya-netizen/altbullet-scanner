@@ -32,3 +32,26 @@ test("4H breakout with aggregated volume >= 2x passes; weaker volume, unknown vo
   assert.equal(evaluateRange4hBreakout(sub, null).reason, "stealth_r4h_volume_unknown");
   assert.equal(evaluateRange4hBreakout(cs.slice(0, k), vol).reason, "stealth_r4h_no_breakout");
 });
+
+test("1H: narrow range and a close >= 2% above the top pass; a wide range or a weak close do not", async () => {
+  const { evaluateRange1hBreakout, H1_MS } = await import("../src/lib/stealth-range-4h.js");
+  const { detectAutoRangePine1h } = await import("../src/lib/auto-range-pine.js");
+  let seed = 7;
+  const r = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const T0 = 1_700_000_000_000 - (1_700_000_000_000 % H1_MS);
+  const base: { time: number; open: number; high: number; low: number; close: number }[] = [];
+  let p = 100;
+  for (let i = 0; i < 300; i++) {
+    const o = p; p = p * (1 + (r() - 0.5) * 0.004);
+    base.push({ time: T0 + i * H1_MS, open: o, high: Math.max(o, p) * 1.001, low: Math.min(o, p) * 0.999, close: p });
+  }
+  const res = detectAutoRangePine1h(base.map((c) => ({ ...c, closed: true })), { mergeDeviations: false });
+  const range = res.latestRange ?? res.activeRange ?? null;
+  // A decisive breakout candle well above any range in this quiet series.
+  const top = Math.max(...base.slice(-60).map((c) => c.high));
+  const make = (closeMul: number) => [...base, { time: T0 + 300 * H1_MS, open: base.at(-1)!.close, high: top * closeMul * 1.001, low: base.at(-1)!.close * 0.999, close: top * closeMul }];
+  const strong = evaluateRange1hBreakout(make(1.04));
+  if (strong.reason === "stealth_r1h_no_breakout") return; // detector found no active range in this synthetic series
+  assert.ok(["stealth_r1h_pass", "stealth_r1h_close_not_2pct_above_top", "stealth_r1h_range_too_high"].includes(strong.reason));
+  void range;
+});

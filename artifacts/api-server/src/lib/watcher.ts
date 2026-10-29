@@ -2328,6 +2328,7 @@ export async function trackSignal(params: {
     | "abneon_support_bounce"
     | "fresh_24h_high_breakout"
     | "range_4h_breakout"
+    | "range_1h_breakout"
     | null;
   alphaScore?: number | null;
   entryPrice: number;
@@ -7345,6 +7346,7 @@ export async function runStealthFreshHighProtection(
         inArray(trackedSignalsTable.stealthDetectionMethod, [
           STEALTH_FRESH_HIGH_METHOD,
           "range_4h_breakout",
+          "range_1h_breakout",
         ]),
         inArray(trackedSignalsTable.status, ["active", "in_run"]),
       ),

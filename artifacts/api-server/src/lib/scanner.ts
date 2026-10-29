@@ -317,9 +317,13 @@ import {
 } from "./stealth-fresh-high.js";
 import {
   STEALTH_RANGE_4H_METHOD,
+  STEALTH_RANGE_1H_METHOD,
   H4_MS as STEALTH_R4H_H4_MS,
+  H1_MS as STEALTH_R1H_H1_MS,
   evaluateRange4hBreakout,
+  evaluateRange1hBreakout,
   lastClosed4hStart,
+  lastClosed1hStart,
   type Range4hDecision,
 } from "./stealth-range-4h.js";
 
@@ -334,6 +338,11 @@ const STEALTH_LEGACY_DETECTION_LIVE = false as boolean;
 // closed 4H Range breakout with volume and buyers (stealth-range-4h.ts).
 const STEALTH_FH_LIVE = false as boolean;
 const STEALTH_R4H_LIVE = true as boolean;
+// Owner 2026-10-29: the range breakout runs on 1H (narrow range, decisive
+// close); "4h" keeps the 4H volume variant available.
+const STEALTH_RANGE_TF = "1h" as "1h" | "4h";
+const STEALTH_RANGE_CANDLE_MS = STEALTH_RANGE_TF === "1h" ? STEALTH_R1H_H1_MS : STEALTH_R4H_H4_MS;
+const STEALTH_RANGE_METHOD = STEALTH_RANGE_TF === "1h" ? STEALTH_RANGE_1H_METHOD : STEALTH_RANGE_4H_METHOD;
 type Range4hEvent = Range4hDecision & {
   symbol: string;
   detectedAt: number;
@@ -353,8 +362,8 @@ let stealthRange4hTimer: NodeJS.Timeout | null = null;
  */
 async function runStealthRange4h(now = Date.now()): Promise<void> {
   if (!STEALTH_R4H_LIVE || stealthRange4hRunning) return;
-  const candleStart = lastClosed4hStart(now);
-  const closeAt = candleStart + STEALTH_R4H_H4_MS;
+  const candleStart = STEALTH_RANGE_TF === "1h" ? lastClosed1hStart(now) : lastClosed4hStart(now);
+  const closeAt = candleStart + STEALTH_RANGE_CANDLE_MS;
   if (candleStart <= stealthRange4hLastCandle) return;
   if (now < closeAt + STEALTH_FH_SCAN_DELAY_MS) return;
   if (now > closeAt + STEALTH_FH_EVENT_TTL_MS) {
@@ -380,25 +389,34 @@ async function runStealthRange4h(now = Date.now()): Promise<void> {
       while (next < symbols.length) {
         const { symbol, qv } = symbols[next++]!;
         try {
-          const rows = await getKlines(symbol, "4h", 400,
-            candleStart - 399 * STEALTH_R4H_H4_MS, closeAt - 1);
+          const rows = STEALTH_RANGE_TF === "1h"
+            ? await getKlines(symbol, "1h", 1000, candleStart - 999 * STEALTH_R1H_H1_MS, closeAt - 1)
+            : await getKlines(symbol, "4h", 400, candleStart - 399 * STEALTH_R4H_H4_MS, closeAt - 1);
           const candles = rows
             .map((k) => ({ time: Number(k.time), open: Number(k.open), high: Number(k.high), low: Number(k.low), close: Number(k.close) }))
             .filter((c) => Number.isFinite(c.time) && c.time <= candleStart && c.close > 0)
             .sort((a, b) => a.time - b.time);
           if (candles.at(-1)?.time !== candleStart) { count("stealth_r4h_candle_missing"); continue; }
-          // Structure without volume first: only breakouts cost CoinGlass calls.
-          const structural = evaluateRange4hBreakout(candles, null);
-          if (structural.reason !== "stealth_r4h_volume_unknown") { count(structural.reason); continue; }
-          const volumes = await getAggFuturesVolumeByInterval(symbol, "4h", 21).catch(() => null);
-          const decision = evaluateRange4hBreakout(candles, volumes);
+          let decision: Range4hDecision;
+          if (STEALTH_RANGE_TF === "1h") {
+            decision = evaluateRange1hBreakout(candles);
+          } else {
+            // Structure without volume first: only breakouts cost CoinGlass calls.
+            const structural = evaluateRange4hBreakout(candles, null);
+            if (structural.reason !== "stealth_r4h_volume_unknown") { count(structural.reason); continue; }
+            const volumes = await getAggFuturesVolumeByInterval(symbol, "4h", 21).catch(() => null);
+            decision = evaluateRange4hBreakout(candles, volumes);
+          }
           if (!decision.pass) { count(decision.reason); continue; }
           const [takerBars, spot] = await Promise.all([
             getAggFuturesTakerHistory(symbol, 24).catch(() => null),
             getSpotCvdAndVolume(symbol, { bypassCache: true }).catch(() => null),
           ]);
-          const takerNetUsd = reactionTakerNetUsd(takerBars, candleStart, Date.now(), STEALTH_R4H_H4_MS);
-          const spotCvd4h = spot?.cvd.available ? spot.cvd.cvd4h : null;
+          const takerNetUsd = reactionTakerNetUsd(takerBars, candleStart, Date.now(), STEALTH_RANGE_CANDLE_MS);
+          // Spot CVD over the breakout candle's timeframe (1h or 4h).
+          const spotCvd4h = spot?.cvd.available
+            ? (STEALTH_RANGE_TF === "1h" ? spot.cvd.cvd1h : spot.cvd.cvd4h)
+            : null;
           const flow = evaluateNeonFlowGate({ takerNetUsd, spotCvd1h: spotCvd4h });
           if (!flow.pass) {
             count(`stealth_r4h_flow_${flow.reason}`);
@@ -421,7 +439,7 @@ async function runStealthRange4h(now = Date.now()): Promise<void> {
     stealthRange4hLastCandle = candleStart;
     logger.info(
       { candle: new Date(candleStart).toISOString(), stats, passes, durationMs: Date.now() - now },
-      "Stealth 4H Range breakout scan done",
+      `Stealth ${STEALTH_RANGE_TF.toUpperCase()} Range breakout scan done`,
     );
   } catch (err) {
     logger.warn({ err, candle: new Date(candleStart).toISOString() }, "Stealth 4H Range breakout scan failed; retrying");
@@ -5130,7 +5148,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       | "quiet_zone_breakout"
       | "abneon_support_bounce"
       | typeof STEALTH_FRESH_HIGH_METHOD
-      | typeof STEALTH_RANGE_4H_METHOD;
+      | typeof STEALTH_RANGE_4H_METHOD
+      | typeof STEALTH_RANGE_1H_METHOD;
     stealthRangeConfirmingVenues?: string[];
     stealthBingxOnly?: boolean;
     stealthEntryPath?: string | null;
@@ -6903,7 +6922,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       const _aggBlocking =
         _aggPattern === "stealth_breakout"
           ? base.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD ||
-            base.stealthDetectionMethod === STEALTH_RANGE_4H_METHOD
+            base.stealthDetectionMethod === STEALTH_RANGE_4H_METHOD ||
+            base.stealthDetectionMethod === STEALTH_RANGE_1H_METHOD
             ? []
             : _aggMissing.filter((m) => m === "oi")
           : _aggMissing;
@@ -7449,7 +7469,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             });
             const _isRStealth =
               res.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD ||
-              res.stealthDetectionMethod === STEALTH_RANGE_4H_METHOD;
+              res.stealthDetectionMethod === STEALTH_RANGE_4H_METHOD ||
+              res.stealthDetectionMethod === STEALTH_RANGE_1H_METHOD;
             const _rMetrics = res.decisionMetrics as
               | {
                   stealthFreshHigh?: { stopPrice?: unknown };
@@ -13660,7 +13681,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     const _r4Events = [...stealthRange4hQueue.entries()];
     stealthRange4hQueue.clear();
     for (const [, ev] of _r4Events) {
-      const closeAt = ev.candleTime + STEALTH_R4H_H4_MS;
+      const closeAt = ev.candleTime + STEALTH_RANGE_CANDLE_MS;
       if (_r4Now - closeAt > STEALTH_FH_EVENT_TTL_MS) {
         _symRej(ev.symbol, "stealth_breakout", "stealth_r4h_event_expired_before_fire",
           null, ev.volRatio, null, null, "blocked");
@@ -13706,7 +13727,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         sentiment: {
           key: "stealth_breakout",
           label: "Stealth Breakout",
-          traderAction: `LONG (🧪 ЭКСПЕРИМЕНТ — пробой 4H-ренджа на закрытой 4H свече; верх ренджа ${ev.rangeTop?.toPrecision(6) ?? "—"}; объём ×${fmt(ev.volRatio, 1)} (все биржи); тейкеры и спот в покупке; стоп ${ev.stopPrice?.toPrecision(6) ?? "—"} (верх −1%); при +1R стоп в Б/У, дальше трейлинг 1R от пика; максимум 72ч)`,
+          traderAction: STEALTH_RANGE_TF === "1h"
+            ? `LONG (🧪 ЭКСПЕРИМЕНТ — пробой узкого ренджа на закрытой 1H свече; верх ${ev.rangeTop?.toPrecision(6) ?? "—"}, высота ренджа ${fmt(ev.rangeTop && ev.rangeBottom ? (ev.rangeTop / ev.rangeBottom - 1) * 100 : null, 1)}%; закрытие ≥2% выше верха; тейкеры и спот в покупке; стоп ${ev.stopPrice?.toPrecision(6) ?? "—"} (верх −1%); при +1R стоп в Б/У, дальше трейлинг 1R от пика; максимум 72ч)`
+            : `LONG (🧪 ЭКСПЕРИМЕНТ — пробой 4H-ренджа на закрытой 4H свече; верх ренджа ${ev.rangeTop?.toPrecision(6) ?? "—"}; объём ×${fmt(ev.volRatio, 1)} (все биржи); тейкеры и спот в покупке; стоп ${ev.stopPrice?.toPrecision(6) ?? "—"} (верх −1%); при +1R стоп в Б/У, дальше трейлинг 1R от пика; максимум 72ч)`,
           oiFalling: false,
         },
         coinglassOI: _r4Oi ?? {
@@ -13725,17 +13748,17 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           oiConsecutiveUp: null,
           oi4hConsecFromOhlc: null,
         },
-        oiTriggerTf: "stealth_range_4h",
+        oiTriggerTf: STEALTH_RANGE_TF === "1h" ? "stealth_range_1h" : "stealth_range_4h",
         isRepeatSignal: false,
         isConfirmedFire: true,
-        stealthDetectionMethod: STEALTH_RANGE_4H_METHOD,
+        stealthDetectionMethod: STEALTH_RANGE_METHOD,
         isScalpOnly: false,
         futVolMult: ev.volRatio ?? 0,
         spotVol24h: getSpotPoolEntry(ev.symbol)?.spotVol24h ?? null,
         futVol24hUsd: ev.quoteVolume24h ?? 0,
         decisionMetrics: {
           stealthRange4h: {
-            version: "stealth-range-4h-v1",
+            version: STEALTH_RANGE_TF === "1h" ? "stealth-range-1h-v1" : "stealth-range-4h-v1",
             candleOpenAt: new Date(ev.candleTime).toISOString(),
             candleClose: ev.close,
             rangeTop: ev.rangeTop,

@@ -190,6 +190,7 @@ export interface AlphaResult {
     | "abneon_support_bounce"
     | "fresh_24h_high_breakout"
     | "range_4h_breakout"
+    | "range_1h_breakout"
     | null;
   stealthRangeConfirmingVenues?: string[] | null;
   stealthBingxOnly?: boolean;

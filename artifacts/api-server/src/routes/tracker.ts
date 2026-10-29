@@ -223,7 +223,8 @@ type StealthLevelSource =
   | "stealth_legacy"
   | "continuation_shelf"
   | "fresh_24h_high"
-  | "range_4h";
+  | "range_4h"
+  | "range_1h";
 
 async function loadStealthEntryPaths(
   signalIds: Array<number | null | undefined>,
@@ -286,19 +287,19 @@ async function loadStealthLevelSources(
        ids.map((id) => sql`${id}`),
        sql`, `,
      )})
-       AND stealth_detection_method IN ('fresh_24h_high_breakout', 'range_4h_breakout')
+       AND stealth_detection_method IN ('fresh_24h_high_breakout', 'range_4h_breakout', 'range_1h_breakout')
   `);
   const r4h = await db.execute(sql`
-    SELECT id FROM signals
+    SELECT id, stealth_detection_method AS m FROM signals
      WHERE id IN (${sql.join(
        ids.map((id) => sql`${id}`),
        sql`, `,
      )})
-       AND stealth_detection_method = 'range_4h_breakout'
+       AND stealth_detection_method IN ('range_4h_breakout', 'range_1h_breakout')
   `);
-  const r4hIds = new Set((r4h.rows as Array<Record<string, unknown>>).map((r) => r.id));
+  const r4hIds = new Map((r4h.rows as Array<Record<string, unknown>>).map((r) => [r.id, r.m]));
   for (const row of fresh.rows as Array<Record<string, unknown>>) {
-    if (typeof row.id === "number") sources.set(row.id, r4hIds.has(row.id) ? "range_4h" : "fresh_24h_high");
+    if (typeof row.id === "number") sources.set(row.id, r4hIds.get(row.id) === "range_1h_breakout" ? "range_1h" : r4hIds.has(row.id) ? "range_4h" : "fresh_24h_high");
   }
   return sources;
 }

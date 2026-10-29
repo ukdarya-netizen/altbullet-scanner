@@ -14,7 +14,7 @@ import {
 
 export type AbneonShadowMethod = Exclude<
   StealthDetectionMethod,
-  "quiet_zone_breakout" | "fresh_24h_high_breakout" | "range_4h_breakout"
+  "quiet_zone_breakout" | "fresh_24h_high_breakout" | "range_4h_breakout" | "range_1h_breakout"
 >;
 export type OrderBlockShadowMethod = "order_block_support_bounce";
 export type ShadowDetectorMethod = AbneonShadowMethod | OrderBlockShadowMethod;

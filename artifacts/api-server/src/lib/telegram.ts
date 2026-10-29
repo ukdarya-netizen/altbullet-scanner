@@ -127,7 +127,8 @@ export function buildSignalManagementLine(
   if (
     sentimentKey === "stealth_breakout" &&
     (freshHigh?.stealthDetectionMethod === "fresh_24h_high_breakout" ||
-      freshHigh?.stealthDetectionMethod === "range_4h_breakout") &&
+      freshHigh?.stealthDetectionMethod === "range_4h_breakout" ||
+      freshHigh?.stealthDetectionMethod === "range_1h_breakout") &&
     freshHigh.stopPct != null &&
     freshHigh.stopPct > 0
   ) {
@@ -135,6 +136,8 @@ export function buildSignalManagementLine(
     const level =
       freshHigh.stealthDetectionMethod === "range_4h_breakout"
         ? "под пробитым верхом 4H-ренджа −1%"
+        : freshHigh.stealthDetectionMethod === "range_1h_breakout"
+        ? "под пробитым верхом ренджа −1%"
         : "под пробитым 24ч-хаем −1%";
     return `🛡 <b>Сопровождение (🧪 эксперимент, 1R = ${r}%):</b> стоп ${level} · при +1R (+${r}%) стоп в Б/У · дальше трейлинг на 1R (${r} п.п.) ниже пика · максимум 72ч`;
   }
@@ -1083,6 +1086,7 @@ export interface AlphaResult {
     | "abneon_support_bounce"
     | "fresh_24h_high_breakout"
     | "range_4h_breakout"
+    | "range_1h_breakout"
     | null;
 }
 
@@ -1171,6 +1175,8 @@ function telegramStealthSourceLabel(
     return "🧪 ЭКСПЕРИМЕНТ · пробой 24ч-хая (1H)";
   if (detectionMethod === "range_4h_breakout")
     return "🧪 ЭКСПЕРИМЕНТ · пробой 4H-ренджа с объёмом";
+  if (detectionMethod === "range_1h_breakout")
+    return "🧪 ЭКСПЕРИМЕНТ · пробой узкого ренджа (1H)";
   if (levelSource === "auto_range_1h") return "🔵 Range Breakout 1H";
   if (levelSource === "auto_range_4h") return "🔵 Range Breakout 4H";
   if (levelSource === "stealth_legacy" || levelSource === "continuation_shelf")
