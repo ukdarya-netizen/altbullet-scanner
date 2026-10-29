@@ -160,6 +160,43 @@ function rTrailCancelPct(cs: C[], from: number, entry: number, stop0: number, to
 }
 const CANCELS: CancelRule[] = ["in", "in6", "in2", "mid", "nofol3"];
 
+/**
+ * Owner 2026-10-29: the 1% wick stop under the top is too tight for crypto and
+ * ignores whether price actually settles back in the range. Here the exit on
+ * failure needs a 1H CLOSE back in the range (закреп), with a wide hard stop
+ * (intrabar) only as disaster protection. The R unit for B.U./trail stays
+ * entry - top*0.99 so results are comparable with the live exit.
+ *  hard: "low" = range bottom, "mid" = range middle
+ *  hold: "c1" = one 1H close below the top, "c2" = two in a row,
+ *        "cmid" = one 1H close below the range middle
+ */
+type HoldRule = { hard: "low" | "mid"; hold: "c1" | "c2" | "cmid" };
+function rSettlePct(cs: C[], from: number, entry: number, top: number, bottom: number, rule: HoldRule): number | null {
+  const risk = entry - top * 0.99;
+  if (!(risk > entry * 0.003)) return null;
+  const after = cs.slice(from + 1, from + 1 + HORIZON);
+  if (after.length < HORIZON) return null;
+  const midR = (top + bottom) / 2;
+  let stop = (rule.hard === "low" ? bottom : midR) * 0.995;
+  let peak = entry, below = 0;
+  for (const c of after) {
+    if (c.low <= stop) return (stop / entry - 1) * 100 - FEE;
+    peak = Math.max(peak, c.high);
+    if (peak >= entry + risk) stop = Math.max(stop, entry, peak - risk);
+    below = c.close < top ? below + 1 : 0;
+    const settled = rule.hold === "c1" ? below >= 1 : rule.hold === "c2" ? below >= 2 : c.close < midR;
+    if (settled && c.close > stop) return (c.close / entry - 1) * 100 - FEE;
+  }
+  return (after[after.length - 1]!.close / entry - 1) * 100 - FEE;
+}
+const SETTLES: Array<[string, HoldRule]> = [
+  ["s_low_c1", { hard: "low", hold: "c1" }],
+  ["s_low_c2", { hard: "low", hold: "c2" }],
+  ["s_low_cmid", { hard: "low", hold: "cmid" }],
+  ["s_mid_c1", { hard: "mid", hold: "c1" }],
+  ["s_mid_c2", { hard: "mid", hold: "c2" }],
+];
+
 /** Highest high within 72h after entry, % of entry (champion size). */
 function peak72(cs: C[], from: number, entry: number): number {
   const after = cs.slice(from + 1, from + 1 + HORIZON);
@@ -295,6 +332,10 @@ async function main() {
             const x = rTrailCancelPct(cs, j, cs[j]!.close, e.upper * 0.99, e.upper, rule);
             if (x !== null) ex[`r_cx_${rule}`] = x;
           }
+          for (const [name, rule] of SETTLES) {
+            const x = rSettlePct(cs, j, cs[j]!.close, e.upper, e.lower, rule);
+            if (x !== null) ex[name] = x;
+          }
           // Breakout-candle features on the detection timeframe (for fitting).
           const b = ds[e.k]!, a = atr14(ds, e.k);
           const f: Record<string, number | null> = {
@@ -322,7 +363,7 @@ async function main() {
     const w = rs.filter((r) => r.r > 0).length;
     const p10 = rs.filter((r) => r.p10).length;
     const c20 = rs.filter((r) => r.pk >= 20).length, c50 = rs.filter((r) => r.pk >= 50).length;
-    const exits = [...EXITS, "r_trail", ...CANCELS.map((c) => `r_cx_${c}`)].map((m) => {
+    const exits = [...EXITS, "r_trail", ...CANCELS.map((c) => `r_cx_${c}`), ...SETTLES.map(([n]) => n)].map((m) => {
       const xs = rs.map((r) => r.ex[m]).filter((x): x is number => typeof x === "number");
       return `${m}=${xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2) : "-"}%`;
     }).join(" ");
@@ -348,8 +389,10 @@ async function main() {
     const live = trades.filter((t) => t.v === VARIANTS[0]!.name && (t.f.rangeHeightPct ?? 99) < 5.5 &&
       (t.f.closeAboveTopPct ?? -1) >= 2 && typeof t.ex.r_trail === "number");
     const months = [...new Set(live.map((t) => new Date(t.t).toISOString().slice(0, 7)))].sort();
+    const depth = (k: (t: (typeof live)[number]) => number) => { const xs = live.map(k).sort((a, b) => a - b); return xs.length ? `med ${xs[Math.floor(xs.length / 2)]!.toFixed(2)}% p90 ${xs[Math.floor(xs.length * 0.9)]!.toFixed(2)}%` : "-"; };
+    out.push(`stop depth from entry: top-1% ${depth((t) => t.f.riskPct ?? 0)} | range bottom ${depth((t) => (t.f.riskPct ?? 0) + (t.f.rangeHeightPct ?? 0))}`);
     out.push(`== LIVE 1H RULE (height<5.5, close>=2% above top) n=${live.length}, symbols=${new Set(live.map((t) => t.s)).size}`);
-    for (const m of ["r_trail", ...CANCELS.map((c) => `r_cx_${c}`)]) {
+    for (const m of ["r_trail", ...CANCELS.map((c) => `r_cx_${c}`), ...SETTLES.map(([n]) => n)]) {
       const xs = live.map((t) => t.ex[m]).filter((x): x is number => typeof x === "number");
       const sum = xs.reduce((a, b) => a + b, 0);
       const thirds = [0, 1, 2].map((k) => live.slice(Math.floor(k * live.length / 3), Math.floor((k + 1) * live.length / 3))
@@ -363,7 +406,7 @@ async function main() {
   }
   writeFileSync(join(OUT, "summary.txt"), out.join("\n"));
   const FEAT = ["volRatio", "bodyAtr", "rangeAtr", "closePos", "closeAboveTopPct", "rangeHeightPct", "rangeHours", "ret24hPct", "ret7dPct", "riskPct"];
-  const EXALL = [...EXITS, "r_trail", ...CANCELS.map((c) => `r_cx_${c}`)];
+  const EXALL = [...EXITS, "r_trail", ...CANCELS.map((c) => `r_cx_${c}`), ...SETTLES.map(([n]) => n)];
   const n = (x: number | null | undefined) => (typeof x === "number" && Number.isFinite(x) ? x.toFixed(4) : "");
   writeFileSync(join(OUT, "trades.csv"), [
     ["variant", "symbol", "entry_time", "net_pct", "hit10_before_stop", "peak72_pct", ...EXALL, ...FEAT].join(","),
