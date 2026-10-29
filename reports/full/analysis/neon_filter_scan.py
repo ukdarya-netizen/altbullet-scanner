@@ -3,7 +3,7 @@ Run: python3 reports/full/analysis/neon_filter_scan.py"""
 import csv, os
 from collections import defaultdict
 P = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "neon_exits", "signals.csv")
-rows = list(csv.DictReader(open(P)))
+rows = [r for r in csv.DictReader(open(P)) if not (r["symbol"].startswith("NC") and r["symbol"].endswith("2USD-USDT"))]  # crypto only (owner 2026-10-29)
 def f(v):
     try: return float(v)
     except: return None
