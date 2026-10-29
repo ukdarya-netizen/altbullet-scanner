@@ -317,6 +317,9 @@ import {
 // Owner 2026-10-28: Stealth fires only from the experimental fresh-24H-high
 // detection (live, no shadow). The quiet-zone / Range arm detection no longer
 // fires; its arms keep their bookkeeping and expire on their own.
+// Owner 2026-10-29: ABNeon confirms only on the closed 1H candle (see the
+// armed-zone block in the Neon evaluation).
+const NEON_15M_CONFIRMATION_LIVE = false;
 const STEALTH_LEGACY_DETECTION_LIVE = false as boolean;
 const STEALTH_FH_LIVE = true as boolean;
 /** A fresh-high event older than this after its candle close is not fired. */
@@ -6100,10 +6103,12 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           support = runSupport(volumed1h);
         }
       }
-      // Owner 2026-10-22: an armed zone is also confirmed on a closed 15m candle
-      // (aggregated 15m volume only, never BingX volume) instead of waiting for
-      // the closed 1H candle.
-      if (arm != null && support.status === "armed") {
+      // Owner 2026-10-22: an armed zone was also confirmed on a closed 15m
+      // candle. Owner 2026-10-29: OFF — confirmation on the closed 1H candle
+      // only (100-day backtest, 4H zones, sweep k3: +1.41% vs +0.76% per
+      // trade, peaks >=10% 29% vs 26%, better in Aug/Sep/Oct). The sweep
+      // (wick/short close below the zone with a return) stays.
+      if (NEON_15M_CONFIRMATION_LIVE && arm != null && support.status === "armed") {
         const [raw15m, aggVol15m] = await Promise.all([
           getKlines(symbol, "15m", 60).catch(() => null),
           getAggFuturesVolumeByInterval(symbol, "15m", 60).catch(() => null),
