@@ -8446,6 +8446,9 @@ async function runInRunFastCycle(
     if (t.pendingMilestone != null) return 0;
     const price = priceMap.get(t.symbol);
     if (!price || !(t.entryPrice > 0)) return 2;
+    // A crossed stop / B.U. / trailing level is handled before anything else.
+    const stopWake = resolveStopWakePrice(t);
+    if (stopWake !== null && price <= stopWake) return 0;
     const pnlNow = ((price - t.entryPrice) / t.entryPrice) * 100;
     const last = t.lastMilestone ?? 0;
     return _fastMilestoneSteps.some((m) => pnlNow >= m && last < m) ? 1 : 2;
@@ -18416,6 +18419,30 @@ async function handleRealtimeTrailingPrice(
 const MILESTONE_WAKE_COOLDOWN_MS = 20_000;
 const _milestoneWakeTriggers = new Map<string, number>();
 const _milestoneWakeLastAt = new Map<string, number>();
+// Owner 2026-10-29 (JCT): a live price at or below a position's active stop
+// (initial stop, B.U. level or trailing level) wakes the fast cycle at once,
+// instead of waiting up to two minutes for the next snapshot.
+const _stopWakeTriggers = new Map<string, number>();
+const STOP_WAKE_COOLDOWN_MS = 10_000;
+
+/** Active protective level of an open long (highest of stop / B.U. / trailing), or null. */
+function resolveStopWakePrice(
+  tracked: typeof trackedSignalsTable.$inferSelect,
+): number | null {
+  if (
+    (tracked.status !== "active" && tracked.status !== "in_run") ||
+    tracked.isShort === true ||
+    !(tracked.entryPrice > 0)
+  ) {
+    return null;
+  }
+  const levels: number[] = [];
+  if (tracked.stopLossPrice != null && tracked.stopLossPrice > 0) levels.push(tracked.stopLossPrice);
+  const bu = getBuStopMilestone(tracked.sentimentKey, tracked.symbol);
+  if (tracked.status === "in_run" || (tracked.lastMilestone ?? 0) >= bu) levels.push(tracked.entryPrice);
+  if (tracked.trailingStopLevel != null && tracked.trailingStopLevel > 0) levels.push(tracked.trailingStopLevel);
+  return levels.length ? Math.max(...levels) : null;
+}
 
 // Memory diagnostics: size of every long-lived module-level collection.
 registerProcessHealthSource("watcher_collections", () => {
@@ -18439,6 +18466,7 @@ registerProcessHealthSource("watcher_collections", () => {
     realtimeTrailingRememberedState: _realtimeTrailingRememberedState.size,
     realtimeTrailingCandidates: _realtimeTrailingCandidates.size,
     milestoneWakeTriggers: _milestoneWakeTriggers.size,
+    stopWakeTriggers: _stopWakeTriggers.size,
     milestoneWakeLastAt: _milestoneWakeLastAt.size,
   };
   return {
@@ -18494,6 +18522,21 @@ async function runFastCycleExclusive(generation?: number): Promise<void> {
 }
 
 function handleMilestoneWakeTick(update: BingXLastPriceUpdate): void {
+  const stop = _stopWakeTriggers.get(update.symbol);
+  if (stop !== undefined && update.price <= stop) {
+    const now = Date.now();
+    if (now - (_milestoneWakeLastAt.get(update.symbol) ?? 0) >= STOP_WAKE_COOLDOWN_MS) {
+      _milestoneWakeLastAt.set(update.symbol, now);
+      logger.info(
+        { symbol: update.symbol, price: update.price, stop },
+        "Stop wake: live price at or below the active stop — running fast cycle",
+      );
+      void runFastCycleExclusive().catch((err) =>
+        logger.error({ err }, "FastCycle error (stop wake)"),
+      );
+    }
+    return;
+  }
   const trigger = _milestoneWakeTriggers.get(update.symbol);
   if (trigger === undefined || update.price < trigger) return;
   const now = Date.now();
@@ -18601,6 +18644,14 @@ function syncRealtimeTrailingCandidates(
   }
   if (!isRealtimeTrailingMonitorCurrent(monitorGeneration)) return;
   _milestoneWakeTriggers.clear();
+  _stopWakeTriggers.clear();
+  for (const tracked of signals) {
+    const stopWake = resolveStopWakePrice(tracked);
+    if (stopWake !== null) {
+      const prev = _stopWakeTriggers.get(tracked.symbol);
+      _stopWakeTriggers.set(tracked.symbol, prev === undefined ? stopWake : Math.max(prev, stopWake));
+    }
+  }
   for (const tracked of signals) {
     const trigger = resolveNextMilestoneWakePrice(tracked);
     if (trigger === null) continue;
@@ -18614,6 +18665,7 @@ function syncRealtimeTrailingCandidates(
     ...new Set([
       ...[...next.values()].map((candidate) => candidate.tracked.symbol),
       ..._milestoneWakeTriggers.keys(),
+      ..._stopWakeTriggers.keys(),
     ]),
   ]);
 }
