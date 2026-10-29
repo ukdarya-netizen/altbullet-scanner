@@ -222,7 +222,8 @@ type StealthLevelSource =
   | "auto_range_1h"
   | "stealth_legacy"
   | "continuation_shelf"
-  | "fresh_24h_high";
+  | "fresh_24h_high"
+  | "range_4h";
 
 async function loadStealthEntryPaths(
   signalIds: Array<number | null | undefined>,
@@ -285,10 +286,19 @@ async function loadStealthLevelSources(
        ids.map((id) => sql`${id}`),
        sql`, `,
      )})
-       AND stealth_detection_method = 'fresh_24h_high_breakout'
+       AND stealth_detection_method IN ('fresh_24h_high_breakout', 'range_4h_breakout')
   `);
+  const r4h = await db.execute(sql`
+    SELECT id FROM signals
+     WHERE id IN (${sql.join(
+       ids.map((id) => sql`${id}`),
+       sql`, `,
+     )})
+       AND stealth_detection_method = 'range_4h_breakout'
+  `);
+  const r4hIds = new Set((r4h.rows as Array<Record<string, unknown>>).map((r) => r.id));
   for (const row of fresh.rows as Array<Record<string, unknown>>) {
-    if (typeof row.id === "number") sources.set(row.id, "fresh_24h_high");
+    if (typeof row.id === "number") sources.set(row.id, r4hIds.has(row.id) ? "range_4h" : "fresh_24h_high");
   }
   return sources;
 }

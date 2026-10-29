@@ -189,6 +189,7 @@ export interface AlphaResult {
     | "quiet_zone_breakout"
     | "abneon_support_bounce"
     | "fresh_24h_high_breakout"
+    | "range_4h_breakout"
     | null;
   stealthRangeConfirmingVenues?: string[] | null;
   stealthBingxOnly?: boolean;

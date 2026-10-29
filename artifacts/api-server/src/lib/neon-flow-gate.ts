@@ -19,10 +19,11 @@ export function reactionTakerNetUsd(
   bars: readonly { time: number; buy: number; sell: number }[] | null,
   reactionCandleTime: number,
   now: number,
+  candleMs: number = H1,
 ): number | null {
   if (!bars) return null;
-  const inside = bars.filter((b) => b.time >= reactionCandleTime && b.time < reactionCandleTime + H1 && b.time + M15 <= now);
-  if (inside.length !== 4) return null;
+  const inside = bars.filter((b) => b.time >= reactionCandleTime && b.time < reactionCandleTime + candleMs && b.time + M15 <= now);
+  if (inside.length !== candleMs / M15) return null;
   return inside.reduce((sum, b) => sum + b.buy - b.sell, 0);
 }
 

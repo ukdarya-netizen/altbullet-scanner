@@ -22,6 +22,7 @@ export const stealthDetectionMethods = [
   "quiet_zone_breakout",
   "abneon_support_bounce",
   "fresh_24h_high_breakout",
+  "range_4h_breakout",
 ] as const;
 export type StealthDetectionMethod = (typeof stealthDetectionMethods)[number];
 

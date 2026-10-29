@@ -315,6 +315,13 @@ import {
   scanFreshHighHour,
   type FreshHighEvent,
 } from "./stealth-fresh-high.js";
+import {
+  STEALTH_RANGE_4H_METHOD,
+  H4_MS as STEALTH_R4H_H4_MS,
+  evaluateRange4hBreakout,
+  lastClosed4hStart,
+  type Range4hDecision,
+} from "./stealth-range-4h.js";
 
 // Owner 2026-10-28: Stealth fires only from the experimental fresh-24H-high
 // detection (live, no shadow). The quiet-zone / Range arm detection no longer
@@ -323,7 +330,102 @@ import {
 // armed-zone block in the Neon evaluation).
 const NEON_15M_CONFIRMATION_LIVE = false;
 const STEALTH_LEGACY_DETECTION_LIVE = false as boolean;
-const STEALTH_FH_LIVE = true as boolean;
+// Owner 2026-10-29: the fresh 24H-high detection is off; Stealth fires on a
+// closed 4H Range breakout with volume and buyers (stealth-range-4h.ts).
+const STEALTH_FH_LIVE = false as boolean;
+const STEALTH_R4H_LIVE = true as boolean;
+type Range4hEvent = Range4hDecision & {
+  symbol: string;
+  detectedAt: number;
+  takerNetUsd: number | null;
+  spotCvd4h: boolean | null;
+  quoteVolume24h: number | null;
+};
+const stealthRange4hQueue = new Map<string, Range4hEvent>();
+let stealthRange4hLastCandle = 0;
+let stealthRange4hRunning = false;
+let stealthRange4hTimer: NodeJS.Timeout | null = null;
+
+/**
+ * Evaluates the last closed 4H candle of every BingX USDT perpetual once
+ * (45 s after the close). Structure first (public 4H candles); aggregated
+ * volume, takers and spot CVD are fetched only for structural breakouts.
+ */
+async function runStealthRange4h(now = Date.now()): Promise<void> {
+  if (!STEALTH_R4H_LIVE || stealthRange4hRunning) return;
+  const candleStart = lastClosed4hStart(now);
+  const closeAt = candleStart + STEALTH_R4H_H4_MS;
+  if (candleStart <= stealthRange4hLastCandle) return;
+  if (now < closeAt + STEALTH_FH_SCAN_DELAY_MS) return;
+  if (now > closeAt + STEALTH_FH_EVENT_TTL_MS) {
+    stealthRange4hLastCandle = candleStart;
+    return;
+  }
+  stealthRange4hRunning = true;
+  const stats: Record<string, number> = { symbols: 0, errors: 0 };
+  const passes: string[] = [];
+  try {
+    const tickers = await getFutureTickers();
+    const symbols = tickers
+      .filter((t) => t.symbol.endsWith("-USDT") && t.symbol !== "BTC-USDT")
+      .map((t) => ({ symbol: t.symbol, qv: Number.parseFloat(t.quoteVolume) }));
+    if (symbols.length === 0) throw new Error("no BingX tickers");
+    stats.symbols = symbols.length;
+    const count = (k: string) => { stats[k] = (stats[k] ?? 0) + 1; };
+    let next = 0;
+    const worker = async () => {
+      while (next < symbols.length) {
+        const { symbol, qv } = symbols[next++]!;
+        try {
+          const rows = await getKlines(symbol, "4h", 400,
+            candleStart - 399 * STEALTH_R4H_H4_MS, closeAt - 1);
+          const candles = rows
+            .map((k) => ({ time: Number(k.time), open: Number(k.open), high: Number(k.high), low: Number(k.low), close: Number(k.close) }))
+            .filter((c) => Number.isFinite(c.time) && c.time <= candleStart && c.close > 0)
+            .sort((a, b) => a.time - b.time);
+          if (candles.at(-1)?.time !== candleStart) { count("stealth_r4h_candle_missing"); continue; }
+          // Structure without volume first: only breakouts cost CoinGlass calls.
+          const structural = evaluateRange4hBreakout(candles, null);
+          if (structural.reason !== "stealth_r4h_volume_unknown") { count(structural.reason); continue; }
+          const volumes = await getAggFuturesVolumeByInterval(symbol, "4h", 21).catch(() => null);
+          const decision = evaluateRange4hBreakout(candles, volumes);
+          if (!decision.pass) { count(decision.reason); continue; }
+          const [takerBars, spot] = await Promise.all([
+            getAggFuturesTakerHistory(symbol, 24).catch(() => null),
+            getSpotCvdAndVolume(symbol, { bypassCache: true }).catch(() => null),
+          ]);
+          const takerNetUsd = reactionTakerNetUsd(takerBars, candleStart, Date.now(), STEALTH_R4H_H4_MS);
+          const spotCvd4h = spot?.cvd.available ? spot.cvd.cvd4h : null;
+          const flow = evaluateNeonFlowGate({ takerNetUsd, spotCvd1h: spotCvd4h });
+          if (!flow.pass) {
+            count(`stealth_r4h_flow_${flow.reason}`);
+            _symRej(symbol, "stealth_breakout", `stealth_r4h_flow_${flow.reason}`, null, decision.volRatio, null, null, "rejected",
+              { rangeTop: decision.rangeTop, volRatio: decision.volRatio, takerNetUsd, spotCvd4h });
+            continue;
+          }
+          count("stealth_r4h_pass");
+          passes.push(symbol);
+          stealthRange4hQueue.set(`${symbol}:${candleStart}`, {
+            ...decision, symbol, detectedAt: Date.now(), takerNetUsd, spotCvd4h,
+            quoteVolume24h: Number.isFinite(qv) ? qv : null,
+          });
+        } catch {
+          stats.errors++;
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: 6 }, () => worker()));
+    stealthRange4hLastCandle = candleStart;
+    logger.info(
+      { candle: new Date(candleStart).toISOString(), stats, passes, durationMs: Date.now() - now },
+      "Stealth 4H Range breakout scan done",
+    );
+  } catch (err) {
+    logger.warn({ err, candle: new Date(candleStart).toISOString() }, "Stealth 4H Range breakout scan failed; retrying");
+  } finally {
+    stealthRange4hRunning = false;
+  }
+}
 /** A fresh-high event older than this after its candle close is not fired. */
 const STEALTH_FH_EVENT_TTL_MS = 30 * 60_000;
 const STEALTH_FH_SCAN_DELAY_MS = 45_000;
@@ -5024,7 +5126,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     stealthDetectionMethod?:
       | "quiet_zone_breakout"
       | "abneon_support_bounce"
-      | typeof STEALTH_FRESH_HIGH_METHOD;
+      | typeof STEALTH_FRESH_HIGH_METHOD
+      | typeof STEALTH_RANGE_4H_METHOD;
     stealthRangeConfirmingVenues?: string[];
     stealthBingxOnly?: boolean;
     stealthEntryPath?: string | null;
@@ -6796,7 +6899,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       // only; no aggregated data blocks it (all recorded when available).
       const _aggBlocking =
         _aggPattern === "stealth_breakout"
-          ? base.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD
+          ? base.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD ||
+            base.stealthDetectionMethod === STEALTH_RANGE_4H_METHOD
             ? []
             : _aggMissing.filter((m) => m === "oi")
           : _aggMissing;
@@ -7340,21 +7444,26 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               signalToPersist: sig,
               telegramSignal: res,
             });
-            const _fhStopRaw =
-              res.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD
-                ? Number(
-                    (
-                      res.decisionMetrics as
-                        | { stealthFreshHigh?: { stopPrice?: unknown } }
-                        | undefined
-                    )?.stealthFreshHigh?.stopPrice,
-                  )
-                : null;
+            const _isRStealth =
+              res.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD ||
+              res.stealthDetectionMethod === STEALTH_RANGE_4H_METHOD;
+            const _rMetrics = res.decisionMetrics as
+              | {
+                  stealthFreshHigh?: { stopPrice?: unknown };
+                  stealthRange4h?: { stopPrice?: unknown };
+                }
+              | undefined;
+            const _fhStopRaw = _isRStealth
+              ? Number(
+                  _rMetrics?.stealthRange4h?.stopPrice ??
+                    _rMetrics?.stealthFreshHigh?.stopPrice,
+                )
+              : null;
             const _fhStop =
               _fhStopRaw !== null && Number.isFinite(_fhStopRaw) && _fhStopRaw > 0
                 ? _fhStopRaw
                 : null;
-            if (res.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD) {
+            if (_isRStealth) {
               // Same rule as the study: the stop must sit > 0.3% below entry.
               if (
                 _fhStop === null ||
@@ -13540,6 +13649,110 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       );
     }
   }
+  // ── Stealth 4H Range breakout (🧪 experimental, owner 2026-10-29) ────────
+  // Events from the 4H scan fire in the first batch of the next cycle.
+  // Entry = live price; stop = range top - 1%; R exit in the watcher.
+  if (STEALTH_R4H_LIVE && stealthRange4hQueue.size > 0) {
+    const _r4Now = Date.now();
+    const _r4Events = [...stealthRange4hQueue.entries()];
+    stealthRange4hQueue.clear();
+    for (const [, ev] of _r4Events) {
+      const closeAt = ev.candleTime + STEALTH_R4H_H4_MS;
+      if (_r4Now - closeAt > STEALTH_FH_EVENT_TTL_MS) {
+        _symRej(ev.symbol, "stealth_breakout", "stealth_r4h_event_expired_before_fire",
+          null, ev.volRatio, null, null, "blocked");
+        continue;
+      }
+      try {
+        const already = await db
+          .select({ id: trackedSignalsTable.id })
+          .from(trackedSignalsTable)
+          .where(
+            and(
+              eq(trackedSignalsTable.symbol, ev.symbol),
+              eq(trackedSignalsTable.sentimentKey, "stealth_breakout"),
+              gte(trackedSignalsTable.detectedAt, new Date(closeAt)),
+            ),
+          )
+          .limit(1);
+        if (already.length > 0) continue;
+      } catch (err) {
+        logger.warn({ err, symbol: ev.symbol }, "Stealth 4H duplicate check failed; event re-queued");
+        stealthRange4hQueue.set(`${ev.symbol}:${ev.candleTime}`, ev);
+        continue;
+      }
+      const fmt = (v: number | null, d = 2) =>
+        v === null || !Number.isFinite(v) ? "—" : v.toFixed(d);
+      const _r4Oi = coinglassOIMap.get(ev.symbol) ?? null;
+      candidates.push({
+        symbol: ev.symbol,
+        price: ev.close,
+        priceChange30m: 0,
+        price1hChange: null,
+        price3hChange: 0,
+        price4hChange: 0,
+        price24hChange: 0,
+        currentVolume: 0,
+        avgVolume: 0,
+        volumeMultiplier: ev.volRatio ?? 0,
+        oiChangePercent: _r4Oi?.oiChange30m ?? 0,
+        oiChange1h: _r4Oi?.oiChange1h ?? null,
+        oiChange4h: _r4Oi?.oiChange4h ?? null,
+        oiChange24h: _r4Oi?.oiChange24h ?? null,
+        openInterest: _r4Oi?.oiUsd ?? 0,
+        sentiment: {
+          key: "stealth_breakout",
+          label: "Stealth Breakout",
+          traderAction: `LONG (🧪 ЭКСПЕРИМЕНТ — пробой 4H-ренджа на закрытой 4H свече; верх ренджа ${ev.rangeTop?.toPrecision(6) ?? "—"}; объём ×${fmt(ev.volRatio, 1)} (все биржи); тейкеры и спот в покупке; стоп ${ev.stopPrice?.toPrecision(6) ?? "—"} (верх −1%); при +1R стоп в Б/У, дальше трейлинг 1R от пика; максимум 72ч)`,
+          oiFalling: false,
+        },
+        coinglassOI: _r4Oi ?? {
+          available: false,
+          timedOut: false,
+          source: "coinglass",
+          oiUsd: 0,
+          oiChange30m: null,
+          prevOi30m: null,
+          oiChange1h: null,
+          oiChange4h: null,
+          oiChange24h: null,
+          bingxOiChange30m: null,
+          cgVolUsd: null,
+          positiveCandles6h: null,
+          oiConsecutiveUp: null,
+          oi4hConsecFromOhlc: null,
+        },
+        oiTriggerTf: "stealth_range_4h",
+        isRepeatSignal: false,
+        isConfirmedFire: true,
+        stealthDetectionMethod: STEALTH_RANGE_4H_METHOD,
+        isScalpOnly: false,
+        futVolMult: ev.volRatio ?? 0,
+        spotVol24h: getSpotPoolEntry(ev.symbol)?.spotVol24h ?? null,
+        futVol24hUsd: ev.quoteVolume24h ?? 0,
+        decisionMetrics: {
+          stealthRange4h: {
+            version: "stealth-range-4h-v1",
+            candleOpenAt: new Date(ev.candleTime).toISOString(),
+            candleClose: ev.close,
+            rangeTop: ev.rangeTop,
+            rangeBottom: ev.rangeBottom,
+            rangeHours: ev.rangeHours,
+            volRatio: ev.volRatio,
+            takerNetUsd: ev.takerNetUsd,
+            spotCvd4h: ev.spotCvd4h,
+            stopPrice: ev.stopPrice,
+            riskPctAtClose: ev.riskPct,
+            detectedAt: new Date(ev.detectedAt).toISOString(),
+          },
+        },
+      });
+      logger.info(
+        { symbol: ev.symbol, close: ev.close, stop: ev.stopPrice, volRatio: ev.volRatio },
+        "🧪 STEALTH 4H Range breakout candidate queued for confirmed fire",
+      );
+    }
+  }
   let _priorityTickerCount = 0;
   while (
     _priorityTickerCount < usdtTickers.length &&
@@ -14243,6 +14456,12 @@ async function scheduledScan() {
 export async function startScanner(): Promise<void> {
   if (state.running) return;
   state.running = true;
+  if (STEALTH_R4H_LIVE && !stealthRange4hTimer) {
+    stealthRange4hTimer = setInterval(() => {
+      void runStealthRange4h();
+    }, 30_000);
+    stealthRange4hTimer.unref();
+  }
   if (STEALTH_FH_LIVE && !stealthFreshHighTimer) {
     stealthFreshHighTimer = setInterval(() => {
       void runStealthFreshHighHour();
@@ -14479,6 +14698,10 @@ export async function startScanner(): Promise<void> {
 
 export async function stopScanner(): Promise<void> {
   state.running = false;
+  if (stealthRange4hTimer) {
+    clearInterval(stealthRange4hTimer);
+    stealthRange4hTimer = null;
+  }
   if (stealthFreshHighTimer) {
     clearInterval(stealthFreshHighTimer);
     stealthFreshHighTimer = null;
