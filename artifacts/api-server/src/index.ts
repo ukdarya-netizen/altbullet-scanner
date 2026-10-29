@@ -6316,10 +6316,18 @@ app.listen(port, async (err) => {
         setTimeout(() => void startAfterRequestedStops(), 30_000);
         return;
       }
+      // Owner 2026-10-29: open positions are managed (stops, B.U., trailing,
+      // targets, lifetime) from the start. They used to wait for the whole
+      // first discovery cycle (22 min on 29.10), leaving every stop unchecked
+      // after each restart. The watcher runs standalone (as in development).
+      try {
+        startWatcher();
+      } catch (err) {
+        logger.error({ err }, "Failed to start watcher before the first scan");
+      }
       try {
         await startScanner();
         startPostDiscoveryWarmups();
-        startWatcher();
         startWatchdog(
           getLastScanAt,
           requestWorkerRestart,
@@ -6328,7 +6336,7 @@ app.listen(port, async (err) => {
           getScannerRecoveryState,
         );
         logger.info(
-          "Watcher started after operator-requested closes and scanner initialization",
+          "Scanner initialized after operator-requested closes (watcher already running)",
         );
       } catch (err) {
         logger.error({ err }, "Failed to auto-start scanner");
