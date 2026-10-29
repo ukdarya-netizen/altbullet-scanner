@@ -204,7 +204,7 @@ import {
   sameStealthAutoRangeInstance,
   type StealthBreakoutParticipationTelemetry,
 } from "./stealth-breakout-armed.js";
-import { isAnalysisBlockedSymbol } from "./excluded-signal-symbols.js";
+import { isAnalysisBlockedSymbol, isSignalSymbolExcluded } from "./excluded-signal-symbols.js";
 import {} from "./stealth-wider-range-veto.js";
 import { recheckFrozenOneHourRange } from "./stealth-range-recheck.js";
 import { checkStealthLevelOnSrv2 } from "./stealth-srv2-level-check.js";
@@ -367,7 +367,10 @@ async function runStealthRange4h(now = Date.now()): Promise<void> {
   try {
     const tickers = await getFutureTickers();
     const symbols = tickers
-      .filter((t) => t.symbol.endsWith("-USDT") && t.symbol !== "BTC-USDT")
+      // Crypto only: NCSK/NCCO/... stock, commodity and index contracts and
+      // excluded symbols never enter (35% of the study's trades were such).
+      .filter((t) => t.symbol.endsWith("-USDT") && t.symbol !== "BTC-USDT" &&
+        !isAnalysisBlockedSymbol(t.symbol) && !isSignalSymbolExcluded(t.symbol))
       .map((t) => ({ symbol: t.symbol, qv: Number.parseFloat(t.quoteVolume) }));
     if (symbols.length === 0) throw new Error("no BingX tickers");
     stats.symbols = symbols.length;

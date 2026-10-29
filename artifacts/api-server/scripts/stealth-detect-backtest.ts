@@ -15,6 +15,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { detectAutoRangePine, detectAutoRangePine1h } from "../src/lib/auto-range-pine.js";
+import { isAnalysisBlockedSymbol, isSignalSymbolExcluded } from "../src/lib/excluded-signal-symbols.js";
 
 const H1 = 3_600_000;
 const BASE = "https://open-api.bingx.com";
@@ -203,9 +204,11 @@ const VARIANTS = TF4H ? ALL_VARIANTS.filter((v) => !MOMENTUM.test(v.name)) : ALL
 async function main() {
   const now = Date.now(), from = now - DAYS * 24 * H1;
   const symbols: string[] = ONLY ?? ((await getJson("/openApi/swap/v2/quote/contracts")) as { symbol: string }[])
-    .map((c) => c.symbol).filter((s) => s.endsWith("-USDT") && !s.startsWith("BTC-")).slice(0, LIMIT);
+    .map((c) => c.symbol).filter((s) => s.endsWith("-USDT") && !s.startsWith("BTC-") &&
+      // Crypto only, as live: no NCSK/NCCO stock/commodity/index contracts.
+      !isAnalysisBlockedSymbol(s) && !isSignalSymbolExcluded(s)).slice(0, LIMIT);
   mkdirSync(OUT, { recursive: true });
-  const trades: { v: string; s: string; t: number; r: number; p10: boolean; pk: number; ex: Record<string, number> }[] = [];
+  const trades: { v: string; s: string; t: number; r: number; p10: boolean; pk: number; ex: Record<string, number>; f: Record<string, number | null> }[] = [];
   const champions = { c20: 0, c50: 0 };
   const errors: Record<string, string> = {};
   let done = 0;
@@ -249,7 +252,21 @@ async function main() {
           for (const m of EXITS) { const x = exitResult(cs, j, cs[j]!.close, m); if (x !== null) ex[m] = x; }
           const rt = rTrailPct(cs, j, cs[j]!.close, e.upper * 0.99);
           if (rt !== null) ex.r_trail = rt;
-          trades.push({ v: v.name, s: symbol, t: cs[j]!.time, r, p10, pk: peak72(cs, j, cs[j]!.close), ex });
+          // Breakout-candle features on the detection timeframe (for fitting).
+          const b = ds[e.k]!, a = atr14(ds, e.k);
+          const f: Record<string, number | null> = {
+            volRatio: volRatio(ds, e.k),
+            bodyAtr: a ? (b.close - b.open) / a : null,
+            rangeAtr: a ? (b.high - b.low) / a : null,
+            closePos: b.high > b.low ? (b.close - b.low) / (b.high - b.low) : null,
+            closeAboveTopPct: (b.close / e.upper - 1) * 100,
+            rangeHeightPct: (e.upper / e.lower - 1) * 100,
+            rangeHours: (b.time - e.anchorAt) / H1,
+            ret24hPct: e.k >= 24 * H1 / TF ? (b.close / ds[e.k - 24 * H1 / TF]!.close - 1) * 100 : null,
+            ret7dPct: e.k >= 168 * H1 / TF ? (b.close / ds[e.k - 168 * H1 / TF]!.close - 1) * 100 : null,
+            riskPct: (cs[j]!.close - e.upper * 0.99) / cs[j]!.close * 100,
+          };
+          trades.push({ v: v.name, s: symbol, t: cs[j]!.time, r, p10, pk: peak72(cs, j, cs[j]!.close), ex, f });
           busyUntil = j + HORIZON; // conservative: one trade per symbol per 72h
         }
       }
@@ -284,7 +301,14 @@ async function main() {
     }
   }
   writeFileSync(join(OUT, "summary.txt"), out.join("\n"));
-  writeFileSync(join(OUT, "trades.csv"), ["variant,symbol,entry_time,net_pct,hit10_before_stop", ...trades.map((t) => `${t.v},${t.s},${new Date(t.t).toISOString()},${t.r.toFixed(3)},${t.p10 ? 1 : 0}`)].join("\n"));
+  const FEAT = ["volRatio", "bodyAtr", "rangeAtr", "closePos", "closeAboveTopPct", "rangeHeightPct", "rangeHours", "ret24hPct", "ret7dPct", "riskPct"];
+  const EXALL = [...EXITS, "r_trail"];
+  const n = (x: number | null | undefined) => (typeof x === "number" && Number.isFinite(x) ? x.toFixed(4) : "");
+  writeFileSync(join(OUT, "trades.csv"), [
+    ["variant", "symbol", "entry_time", "net_pct", "hit10_before_stop", "peak72_pct", ...EXALL, ...FEAT].join(","),
+    ...trades.map((t) => [t.v, t.s, new Date(t.t).toISOString(), t.r.toFixed(3), t.p10 ? 1 : 0, t.pk.toFixed(3),
+      ...EXALL.map((m) => n(t.ex[m])), ...FEAT.map((k) => n(t.f[k]))].join(",")),
+  ].join("\n"));
   writeFileSync(join(OUT, "errors.json"), JSON.stringify(errors, null, 1));
   console.log(out.join("\n"));
 }
