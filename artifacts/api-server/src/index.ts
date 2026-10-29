@@ -5782,7 +5782,7 @@ app.listen(port, async (err) => {
     }
     try {
       // Same table in every environment, so dev and prod schemas match and a
-      // publish has nothing to drop (it did on 29.10, see neon-zombie-fix.ts).
+      // publish has nothing to drop (on 29.10 it did, and the 25.10 recalc ran again).
       await pool.query(
         `CREATE TABLE IF NOT EXISTS neon_recalc_markers (
            name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`,
