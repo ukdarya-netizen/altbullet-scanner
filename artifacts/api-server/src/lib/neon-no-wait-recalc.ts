@@ -14,8 +14,8 @@ export type NeonNoWaitRecalcResult = {
  * Owner order 2026-10-25: October ABNeon dashboard rows are restated as if the
  * entry had been taken at the reaction-candle close (no waiting). Closed rows
  * only; originals are copied to a backup table in the same transaction. A row
- * is changed only while its id, lineage, status, entry price and detection
- * time still equal the reviewed original, so a different database is a no-op.
+ * is changed only while its id, lineage, entry price and detection time still
+ * equal the reviewed original, so a rerun or a different database is a no-op.
  */
 export async function applyNeonNoWaitRecalc(): Promise<NeonNoWaitRecalcResult> {
   if (process.env.NODE_ENV !== "production") {
@@ -47,10 +47,20 @@ export async function applyNeonNoWaitRecalc(): Promise<NeonNoWaitRecalcResult> {
     const eligible: Array<(typeof NEON_NO_WAIT_ROWS)[number]> = [];
     const skipped: number[] = [];
     const locked = await client.query(
-      `SELECT id, signal_id, symbol, sentiment_key, status::text AS status,
-              entry_price, detected_at
-         FROM tracked_signals WHERE id = ANY($1::integer[]) FOR UPDATE`,
-      [NEON_NO_WAIT_ROWS.map((r) => r.id)],
+      `SELECT t.id, t.signal_id, t.symbol, t.sentiment_key, t.status::text AS status,
+              t.entry_price, t.detected_at,
+              (abs(t.entry_price / NULLIF(d.old_entry, 0) - 1) < 1e-6
+                AND abs(extract(epoch FROM t.detected_at - (d.old_detected::timestamptz AT TIME ZONE 'UTC'))) < 1)
+                AS is_original
+         FROM tracked_signals t
+         JOIN unnest($1::integer[], $2::float8[], $3::text[]) AS d(id, old_entry, old_detected)
+           ON d.id = t.id
+         FOR UPDATE OF t`,
+      [
+        NEON_NO_WAIT_ROWS.map((r) => r.id),
+        NEON_NO_WAIT_ROWS.map((r) => r.oldEntryPrice),
+        NEON_NO_WAIT_ROWS.map((r) => r.oldDetectedAt),
+      ],
     );
     for (const row of NEON_NO_WAIT_ROWS) {
       const cur = (
@@ -62,10 +72,16 @@ export async function applyNeonNoWaitRecalc(): Promise<NeonNoWaitRecalcResult> {
           status: string;
           entry_price: number;
           detected_at: Date;
+          is_original: boolean | null;
         }>
       ).find((r) => r.id === row.id);
+      // 2026-10-29: the marker table is not in the drizzle schema, so a Replit
+      // publish can drop it and this ran again on 29.10, resetting rows that
+      // were already restated. A row is changed only while it still holds its
+      // original (pre-recalc) entry price and detection time.
       if (
         !cur ||
+        cur.is_original !== true ||
         cur.signal_id !== row.signalId ||
         cur.symbol !== row.symbol ||
         cur.sentiment_key !== "neon_support_bounce" ||

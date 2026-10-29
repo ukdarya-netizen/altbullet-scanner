@@ -5782,6 +5782,16 @@ app.listen(port, async (err) => {
       logger.error({ err }, "Neon zone-rule restore failed");
     }
     try {
+      // Same table in every environment, so dev and prod schemas match and a
+      // publish has nothing to drop (it did on 29.10, see neon-zombie-fix.ts).
+      await pool.query(
+        `CREATE TABLE IF NOT EXISTS neon_recalc_markers (
+           name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`,
+      );
+    } catch (err) {
+      logger.error({ err }, "neon_recalc_markers ensure failed");
+    }
+    try {
       const recalc = await applyNeonNoWaitRecalc();
       logger.warn(recalc, "Neon no-wait October recalculation reviewed");
     } catch (err) {

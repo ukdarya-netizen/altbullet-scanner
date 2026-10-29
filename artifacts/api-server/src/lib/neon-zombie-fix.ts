@@ -1,28 +1,31 @@
 import { pool } from "@workspace/db";
 
-const MARKER = "neon_zombie_replay_2026_10_29_v1";
-const BACKUP_TABLE = "tracked_signals_backup_neon_zombie_20261029";
+const MARKER = "neon_zombie_replay_2026_10_29_v2";
+const BACKUP_TABLE = "tracked_signals_backup_neon_zombie_20261029_v2";
 
 /**
  * Owner order 2026-10-29: seven ABNeon rows restated by the 25.10 no-wait
  * recalc were left open and the watcher closed them only on 29.10 at that
  * day's prices. Values below are the replay on BingX 15m candles with the
  * live ABNeon rules and the 4-day lifetime
- * (scripts/neon-recalc-zombie-replay.ts, commit acddbf4). A row changes only
- * while it is still closed exactly as the watcher closed it (status and
- * closed_at); originals are copied to a backup table in the same transaction.
+ * (scripts/neon-recalc-zombie-replay.ts, commit acddbf4). v1 found nothing to
+ * change: the 25.10 recalc had run again at that start (its marker table was
+ * dropped by a publish) and reopened the rows, and the watcher closed them a
+ * second time at 29.10 prices. v2 changes a row only while it carries the
+ * restated entry price and a close dated 29.10 or later, so it is a no-op once
+ * applied even without the marker; originals go to the backup table first.
  */
 const ROWS: ReadonlyArray<{
   id: number; status: "stop_loss" | "bu_stop"; exitPrice: number; pnl: number; closedAt: string;
-  peak: number; lastMilestone: number | null; wasStatus: string; wasClosedAt: string;
+  peak: number; lastMilestone: number | null; entry: number;
 }> = [
-  { id: 2763, status: "stop_loss", exitPrice: 0.007441, pnl: -7.725694, closedAt: "2026-10-25 07:00:00", peak: 0.008399, lastMilestone: null, wasStatus: "stop_loss", wasClosedAt: "2026-10-29 05:59:17.412" },
-  { id: 2768, status: "stop_loss", exitPrice: 0.000617, pnl: -2.589201, closedAt: "2026-10-25 08:00:00", peak: 0.0006611, lastMilestone: null, wasStatus: "stop_loss", wasClosedAt: "2026-10-29 05:59:32.183" },
-  { id: 2771, status: "stop_loss", exitPrice: 17.782, pnl: -0.095511, closedAt: "2026-10-24 13:00:00", peak: 18.732, lastMilestone: null, wasStatus: "stop_loss", wasClosedAt: "2026-10-29 05:59:20.414" },
-  { id: 2778, status: "stop_loss", exitPrice: 0.3051, pnl: -6.725772, closedAt: "2026-10-25 12:00:00", peak: 0.3425, lastMilestone: null, wasStatus: "stop_loss", wasClosedAt: "2026-10-29 05:59:28.927" },
-  { id: 2783, status: "stop_loss", exitPrice: 0.05096, pnl: -6.185567, closedAt: "2026-10-25 14:00:00", peak: 0.05734, lastMilestone: null, wasStatus: "stop_loss", wasClosedAt: "2026-10-29 05:59:25.923" },
-  { id: 2796, status: "bu_stop", exitPrice: 0.16329, pnl: 0, closedAt: "2026-10-25 15:00:00", peak: 0.18748, lastMilestone: 10, wasStatus: "bu_stop", wasClosedAt: "2026-10-29 05:57:28.56" },
-  { id: 2868, status: "stop_loss", exitPrice: 0.01356, pnl: -1.667875, closedAt: "2026-10-25 14:00:00", peak: 0.01488, lastMilestone: null, wasStatus: "expired", wasClosedAt: "2026-10-29 05:59:23.169" },
+  { id: 2763, status: "stop_loss", exitPrice: 0.007441, pnl: -7.725694, closedAt: "2026-10-25 07:00:00", peak: 0.008399, lastMilestone: null, entry: 0.008064 },
+  { id: 2768, status: "stop_loss", exitPrice: 0.000617, pnl: -2.589201, closedAt: "2026-10-25 08:00:00", peak: 0.0006611, lastMilestone: null, entry: 0.0006334 },
+  { id: 2771, status: "stop_loss", exitPrice: 17.782, pnl: -0.095511, closedAt: "2026-10-24 13:00:00", peak: 18.732, lastMilestone: null, entry: 17.799 },
+  { id: 2778, status: "stop_loss", exitPrice: 0.3051, pnl: -6.725772, closedAt: "2026-10-25 12:00:00", peak: 0.3425, lastMilestone: null, entry: 0.3271 },
+  { id: 2783, status: "stop_loss", exitPrice: 0.05096, pnl: -6.185567, closedAt: "2026-10-25 14:00:00", peak: 0.05734, lastMilestone: null, entry: 0.05432 },
+  { id: 2796, status: "bu_stop", exitPrice: 0.16329, pnl: 0, closedAt: "2026-10-25 15:00:00", peak: 0.18748, lastMilestone: 10, entry: 0.16329 },
+  { id: 2868, status: "stop_loss", exitPrice: 0.01356, pnl: -1.667875, closedAt: "2026-10-25 14:00:00", peak: 0.01488, lastMilestone: null, entry: 0.01379 },
 ];
 
 export async function applyNeonZombieReplayFix(): Promise<{ applied: number[]; skipped: number[]; alreadyApplied: boolean }> {
@@ -53,8 +56,10 @@ export async function applyNeonZombieReplayFix(): Promise<{ applied: number[]; s
            closed_at = $5::timestamp, peak_price = GREATEST($6, entry_price), last_milestone = $7,
            trailing_stop_level = NULL, updated_at = now()
          WHERE id = $1 AND sentiment_key = 'neon_support_bounce'
-           AND status::text = $8 AND closed_at = $9::timestamp`,
-        [r.id, r.status, r.exitPrice, r.pnl, r.closedAt, r.peak, r.lastMilestone, r.wasStatus, r.wasClosedAt],
+           AND status::text IN ('stop_loss', 'bu_stop', 'expired', 'profit')
+           AND closed_at >= '2026-10-29 00:00'::timestamp
+           AND abs(entry_price / $8::float8 - 1) < 1e-6`,
+        [r.id, r.status, r.exitPrice, r.pnl, r.closedAt, r.peak, r.lastMilestone, r.entry],
       );
       (res.rowCount ? applied : skipped).push(r.id);
     }
