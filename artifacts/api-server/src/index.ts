@@ -80,6 +80,7 @@ import {
 } from "./lib/op-neon-neutral-close.js";
 import { removeNeonOpenNoWaitPositions } from "./lib/neon-open-removal.js";
 import { applyNeonNoWaitRecalc } from "./lib/neon-no-wait-recalc.js";
+import { applyNeonZombieReplayFix } from "./lib/neon-zombie-fix.js";
 import { neutralizeNonAggregatedOpenPositions } from "./lib/non-aggregated-data-neutral-close.js";
 import { neutralizeReviewedStealthVolumeGateSignals } from "./lib/stealth-volume-gate-neutral-close.js";
 import { neutralizeNeonVolumeGateSignals } from "./lib/neon-volume-gate-neutral-close.js";
@@ -5791,6 +5792,12 @@ app.listen(port, async (err) => {
       logger.warn(removal, "Neon open no-wait removal reviewed");
     } catch (err) {
       logger.error({ err }, "Neon open no-wait removal failed");
+    }
+    try {
+      const zombies = await applyNeonZombieReplayFix();
+      logger.warn(zombies, "Neon 25.10-recalc rows replayed to their 4-day outcome (29.10)");
+    } catch (err) {
+      logger.error({ err }, "Neon 25.10-recalc replay fix failed");
     }
   }
   try {
