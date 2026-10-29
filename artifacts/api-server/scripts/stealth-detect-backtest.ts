@@ -121,6 +121,45 @@ function rTrailPct(cs: C[], from: number, entry: number, stop0: number): number 
   return (after[after.length - 1]!.close / entry - 1) * 100 - FEE;
 }
 
+/**
+ * Owner 2026-10-29: Stealth cancel rules on top of the R exit. Each cancel
+ * exits at the CLOSE of the 1H candle that triggers it (known only at close):
+ *  in      any 1H close back below the range top (price is back in the range)
+ *  in6     the same, only within the first 6 hours
+ *  in2     two 1H closes in a row below the range top
+ *  mid     a 1H close below the middle of the breakout candle
+ *  nofol3  none of the next 3 1H candles closes above the breakout candle high
+ * Stop/B.U./trail as rTrailPct, stop first inside a candle.
+ */
+type CancelRule = "in" | "in6" | "in2" | "mid" | "nofol3";
+function rTrailCancelPct(cs: C[], from: number, entry: number, stop0: number, top: number, rule: CancelRule): number | null {
+  const risk = entry - stop0;
+  if (!(risk > entry * 0.003)) return null;
+  const after = cs.slice(from + 1, from + 1 + HORIZON);
+  if (after.length < HORIZON) return null;
+  const brk = cs[from]!;
+  const mid = (brk.open + brk.close) / 2;
+  let stop = stop0, peak = entry, below = 0, followed = false;
+  for (let i = 0; i < after.length; i++) {
+    const c = after[i]!;
+    if (c.low <= stop) return (stop / entry - 1) * 100 - FEE;
+    peak = Math.max(peak, c.high);
+    if (peak >= entry + risk) stop = Math.max(stop, entry, peak - risk);
+    if (c.close > brk.high) followed = true;
+    below = c.close < top ? below + 1 : 0;
+    const cancel =
+      rule === "in" ? c.close < top
+      : rule === "in6" ? i < 6 && c.close < top
+      : rule === "in2" ? below >= 2
+      : rule === "mid" ? c.close < mid
+      : i === 2 && !followed;
+    // A cancel never closes below the protective stop already in force.
+    if (cancel && c.close > stop) return (c.close / entry - 1) * 100 - FEE;
+  }
+  return (after[after.length - 1]!.close / entry - 1) * 100 - FEE;
+}
+const CANCELS: CancelRule[] = ["in", "in6", "in2", "mid", "nofol3"];
+
 /** Highest high within 72h after entry, % of entry (champion size). */
 function peak72(cs: C[], from: number, entry: number): number {
   const after = cs.slice(from + 1, from + 1 + HORIZON);
@@ -252,6 +291,10 @@ async function main() {
           for (const m of EXITS) { const x = exitResult(cs, j, cs[j]!.close, m); if (x !== null) ex[m] = x; }
           const rt = rTrailPct(cs, j, cs[j]!.close, e.upper * 0.99);
           if (rt !== null) ex.r_trail = rt;
+          for (const rule of CANCELS) {
+            const x = rTrailCancelPct(cs, j, cs[j]!.close, e.upper * 0.99, e.upper, rule);
+            if (x !== null) ex[`r_cx_${rule}`] = x;
+          }
           // Breakout-candle features on the detection timeframe (for fitting).
           const b = ds[e.k]!, a = atr14(ds, e.k);
           const f: Record<string, number | null> = {
@@ -279,7 +322,7 @@ async function main() {
     const w = rs.filter((r) => r.r > 0).length;
     const p10 = rs.filter((r) => r.p10).length;
     const c20 = rs.filter((r) => r.pk >= 20).length, c50 = rs.filter((r) => r.pk >= 50).length;
-    const exits = [...EXITS, "r_trail"].map((m) => {
+    const exits = [...EXITS, "r_trail", ...CANCELS.map((c) => `r_cx_${c}`)].map((m) => {
       const xs = rs.map((r) => r.ex[m]).filter((x): x is number => typeof x === "number");
       return `${m}=${xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2) : "-"}%`;
     }).join(" ");
@@ -300,9 +343,27 @@ async function main() {
       }).join(" | "));
     }
   }
+  // Live Stealth 1H rule: range height < 5.5%, close >= 2% above the top, risk > 0.3%.
+  if (!TF4H) {
+    const live = trades.filter((t) => t.v === VARIANTS[0]!.name && (t.f.rangeHeightPct ?? 99) < 5.5 &&
+      (t.f.closeAboveTopPct ?? -1) >= 2 && typeof t.ex.r_trail === "number");
+    const months = [...new Set(live.map((t) => new Date(t.t).toISOString().slice(0, 7)))].sort();
+    out.push(`== LIVE 1H RULE (height<5.5, close>=2% above top) n=${live.length}, symbols=${new Set(live.map((t) => t.s)).size}`);
+    for (const m of ["r_trail", ...CANCELS.map((c) => `r_cx_${c}`)]) {
+      const xs = live.map((t) => t.ex[m]).filter((x): x is number => typeof x === "number");
+      const sum = xs.reduce((a, b) => a + b, 0);
+      const thirds = [0, 1, 2].map((k) => live.slice(Math.floor(k * live.length / 3), Math.floor((k + 1) * live.length / 3))
+        .reduce((a, t) => a + (t.ex[m] ?? 0), 0).toFixed(0));
+      out.push(`${m.padEnd(12)} n=${xs.length} sum=${sum.toFixed(0)}% avg=${(sum / xs.length).toFixed(2)}% win=${Math.round(100 * xs.filter((x) => x > 0).length / xs.length)}% ` +
+        `thirds=${thirds.join("/")} | ` + months.map((mo) => {
+          const ys = live.filter((t) => new Date(t.t).toISOString().startsWith(mo)).map((t) => t.ex[m]).filter((x): x is number => typeof x === "number");
+          return `${mo.slice(5)} ${ys.length ? (ys.reduce((a, b) => a + b, 0) / ys.length).toFixed(2) : "-"}% (${ys.length})`;
+        }).join(" | "));
+    }
+  }
   writeFileSync(join(OUT, "summary.txt"), out.join("\n"));
   const FEAT = ["volRatio", "bodyAtr", "rangeAtr", "closePos", "closeAboveTopPct", "rangeHeightPct", "rangeHours", "ret24hPct", "ret7dPct", "riskPct"];
-  const EXALL = [...EXITS, "r_trail"];
+  const EXALL = [...EXITS, "r_trail", ...CANCELS.map((c) => `r_cx_${c}`)];
   const n = (x: number | null | undefined) => (typeof x === "number" && Number.isFinite(x) ? x.toFixed(4) : "");
   writeFileSync(join(OUT, "trades.csv"), [
     ["variant", "symbol", "entry_time", "net_pct", "hit10_before_stop", "peak72_pct", ...EXALL, ...FEAT].join(","),
