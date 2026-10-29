@@ -100,6 +100,26 @@ function exitResult(cs: C[], from: number, entry: number, mode: (typeof EXITS)[n
   return part + rem * ((after[after.length - 1]!.close / entry - 1) * 100) - FEE;
 }
 
+/**
+ * Breakout-trader exit as live Stealth (owner 2026-10-28), in % of entry:
+ * stop at the broken range top - 1%; at +1R the stop goes to entry, then
+ * trails 1R below the peak; 72h; stop first in a candle; fee 0.1%.
+ * Null when the stop is not below the entry by more than 0.3%.
+ */
+function rTrailPct(cs: C[], from: number, entry: number, stop0: number): number | null {
+  const risk = entry - stop0;
+  if (!(risk > entry * 0.003)) return null;
+  const after = cs.slice(from + 1, from + 1 + HORIZON);
+  if (after.length < HORIZON) return null;
+  let stop = stop0, peak = entry;
+  for (const c of after) {
+    if (c.low <= stop) return (stop / entry - 1) * 100 - FEE;
+    peak = Math.max(peak, c.high);
+    if (peak >= entry + risk) stop = Math.max(stop, entry, peak - risk);
+  }
+  return (after[after.length - 1]!.close / entry - 1) * 100 - FEE;
+}
+
 /** Highest high within 72h after entry, % of entry (champion size). */
 function peak72(cs: C[], from: number, entry: number): number {
   const after = cs.slice(from + 1, from + 1 + HORIZON);
@@ -227,6 +247,8 @@ async function main() {
           if (r === null || p10 === null) continue;
           const ex: Record<string, number> = {};
           for (const m of EXITS) { const x = exitResult(cs, j, cs[j]!.close, m); if (x !== null) ex[m] = x; }
+          const rt = rTrailPct(cs, j, cs[j]!.close, e.upper * 0.99);
+          if (rt !== null) ex.r_trail = rt;
           trades.push({ v: v.name, s: symbol, t: cs[j]!.time, r, p10, pk: peak72(cs, j, cs[j]!.close), ex });
           busyUntil = j + HORIZON; // conservative: one trade per symbol per 72h
         }
@@ -240,7 +262,7 @@ async function main() {
     const w = rs.filter((r) => r.r > 0).length;
     const p10 = rs.filter((r) => r.p10).length;
     const c20 = rs.filter((r) => r.pk >= 20).length, c50 = rs.filter((r) => r.pk >= 50).length;
-    const exits = EXITS.map((m) => {
+    const exits = [...EXITS, "r_trail"].map((m) => {
       const xs = rs.map((r) => r.ex[m]).filter((x): x is number => typeof x === "number");
       return `${m}=${xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2) : "-"}%`;
     }).join(" ");
@@ -251,6 +273,15 @@ async function main() {
   for (const v of VARIANTS) {
     const rs = trades.filter((t) => t.v === v.name);
     out.push(`== ${v.name}`, line("all", rs), line("first half", rs.filter((t) => t.t < mid)), line("second half", rs.filter((t) => t.t >= mid)));
+    // Per month, the live-Stealth R exit and trail10 (avg % per trade, n).
+    const months = [...new Set(rs.map((t) => new Date(t.t).toISOString().slice(0, 7)))].sort();
+    for (const m of ["r_trail", "trail10"]) {
+      out.push(`   by month ${m}: ` + months.map((mo) => {
+        const xs = rs.filter((t) => new Date(t.t).toISOString().startsWith(mo)).map((t) => t.ex[m])
+          .filter((x): x is number => typeof x === "number");
+        return `${mo.slice(5)} ${xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2) : "-"}% (${xs.length})`;
+      }).join(" | "));
+    }
   }
   writeFileSync(join(OUT, "summary.txt"), out.join("\n"));
   writeFileSync(join(OUT, "trades.csv"), ["variant,symbol,entry_time,net_pct,hit10_before_stop", ...trades.map((t) => `${t.v},${t.s},${new Date(t.t).toISOString()},${t.r.toFixed(3)},${t.p10 ? 1 : 0}`)].join("\n"));
