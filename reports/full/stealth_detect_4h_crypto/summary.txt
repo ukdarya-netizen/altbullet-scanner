@@ -1,0 +1,62 @@
+period 2026-07-21T07:28:47.833Z..2026-10-29T07:28:47.833Z symbols=551 errors=27
+champion breakouts in the market: >=20% in 72h: 374, >=50%: 86
+== A_all_breakouts
+all                                              n= 2081 +10%_before_stop=30% (632) champions>=20%=343 >=50%=79 | +5%rule win=57% exp=-0.09% | exits/trade: take5=-0.10% half_trail=0.41% trail10=0.92% trail15=0.73% r_trail=0.32% | days=100
+first half                                       n= 1208 +10%_before_stop=34% (415) champions>=20%=237 >=50%=48 | +5%rule win=63% exp=0.76% | exits/trade: take5=0.76% half_trail=1.63% trail10=2.50% trail15=2.24% r_trail=0.50% | days=49
+second half                                      n=  873 +10%_before_stop=25% (217) champions>=20%=106 >=50%=31 | +5%rule win=48% exp=-1.26% | exits/trade: take5=-1.34% half_trail=-1.34% trail10=-1.34% trail15=-1.43% r_trail=0.06% | days=52
+   by month r_trail: 07 -0.89% (196) | 08 1.05% (786) | 09 0.63% (573) | 10 -0.72% (496)
+   by month trail10: 07 -0.76% (196) | 08 3.64% (786) | 09 0.90% (573) | 10 -2.71% (496)
+== B_live_proxy(dist1%+body1ATR+vol2x+height4.5)
+all                                              n=   60 +10%_before_stop=40% (24) champions>=20%=18 >=50%=8 | +5%rule win=60% exp=-0.32% | exits/trade: take5=-0.41% half_trail=0.05% trail10=0.52% trail15=-0.57% r_trail=1.63% | days=41
+first half                                       n=   26 +10%_before_stop=31% (8) champions>=20%=10 >=50%=5 | +5%rule win=54% exp=-0.98% | exits/trade: take5=-0.98% half_trail=0.36% trail10=1.70% trail15=0.61% r_trail=-0.16% | days=19
+second half                                      n=   34 +10%_before_stop=47% (16) champions>=20%=8 >=50%=3 | +5%rule win=65% exp=0.18% | exits/trade: take5=0.03% half_trail=-0.19% trail10=-0.40% trail15=-1.51% r_trail=3.04% | days=22
+   by month r_trail: 07 -8.88% (4) | 08 0.61% (14) | 09 9.84% (20) | 10 -3.52% (21)
+   by month trail10: 07 -4.01% (4) | 08 3.70% (14) | 09 2.44% (20) | 10 -2.57% (21)
+== D_confirm_2nd_close
+all                                              n= 1680 +10%_before_stop=32% (539) champions>=20%=298 >=50%=70 | +5%rule win=57% exp=-0.06% | exits/trade: take5=-0.06% half_trail=0.52% trail10=1.09% trail15=0.85% r_trail=0.58% | days=100
+first half                                       n=  976 +10%_before_stop=37% (363) champions>=20%=199 >=50%=42 | +5%rule win=63% exp=0.86% | exits/trade: take5=0.86% half_trail=1.81% trail10=2.75% trail15=2.39% r_trail=1.11% | days=49
+second half                                      n=  704 +10%_before_stop=25% (176) champions>=20%=99 >=50%=28 | +5%rule win=48% exp=-1.33% | exits/trade: take5=-1.38% half_trail=-1.33% trail10=-1.29% trail15=-1.36% r_trail=-0.18% | days=52
+   by month r_trail: 07 -1.03% (135) | 08 1.98% (651) | 09 0.42% (476) | 10 -0.99% (396)
+   by month trail10: 07 -0.04% (135) | 08 3.87% (651) | 09 0.73% (476) | 10 -2.67% (396)
+== E_retest_hold
+all                                              n= 1371 +10%_before_stop=28% (389) champions>=20%=192 >=50%=42 | +5%rule win=54% exp=-0.30% | exits/trade: take5=-0.30% half_trail=0.20% trail10=0.70% trail15=0.33% r_trail=0.24% | days=99
+first half                                       n=  797 +10%_before_stop=33% (261) champions>=20%=125 >=50%=24 | +5%rule win=61% exp=0.62% | exits/trade: take5=0.62% half_trail=1.46% trail10=2.30% trail15=1.73% r_trail=0.52% | days=48
+second half                                      n=  574 +10%_before_stop=22% (128) champions>=20%=67 >=50%=18 | +5%rule win=46% exp=-1.58% | exits/trade: take5=-1.59% half_trail=-1.57% trail10=-1.56% trail15=-1.64% r_trail=-0.16% | days=52
+   by month r_trail: 07 -0.65% (111) | 08 1.20% (516) | 09 -0.02% (400) | 10 -0.64% (337)
+   by month trail10: 07 -0.74% (111) | 08 3.29% (516) | 09 0.73% (400) | 10 -2.85% (337)
+== F_retest_hold+vol2x_breakout
+all                                              n=   48 +10%_before_stop=35% (17) champions>=20%=9 >=50%=6 | +5%rule win=63% exp=0.29% | exits/trade: take5=0.29% half_trail=1.04% trail10=1.79% trail15=1.51% r_trail=0.78% | days=30
+first half                                       n=   21 +10%_before_stop=33% (7) champions>=20%=7 >=50%=5 | +5%rule win=67% exp=0.83% | exits/trade: take5=0.83% half_trail=2.53% trail10=4.23% trail15=5.77% r_trail=0.46% | days=14
+second half                                      n=   27 +10%_before_stop=37% (10) champions>=20%=2 >=50%=1 | +5%rule win=59% exp=-0.13% | exits/trade: take5=-0.13% half_trail=-0.12% trail10=-0.11% trail15=-1.79% r_trail=1.03% | days=16
+   by month r_trail: 07 -1.56% (3) | 08 1.49% (15) | 09 3.21% (7) | 10 -0.11% (23)
+   by month trail10: 07 0.65% (3) | 08 5.70% (15) | 09 5.06% (7) | 10 -1.60% (23)
+== G_range>=48h
+all                                              n= 2081 +10%_before_stop=30% (632) champions>=20%=343 >=50%=79 | +5%rule win=57% exp=-0.09% | exits/trade: take5=-0.10% half_trail=0.41% trail10=0.92% trail15=0.73% r_trail=0.32% | days=100
+first half                                       n= 1208 +10%_before_stop=34% (415) champions>=20%=237 >=50%=48 | +5%rule win=63% exp=0.76% | exits/trade: take5=0.76% half_trail=1.63% trail10=2.50% trail15=2.24% r_trail=0.50% | days=49
+second half                                      n=  873 +10%_before_stop=25% (217) champions>=20%=106 >=50%=31 | +5%rule win=48% exp=-1.26% | exits/trade: take5=-1.34% half_trail=-1.34% trail10=-1.34% trail15=-1.43% r_trail=0.06% | days=52
+   by month r_trail: 07 -0.89% (196) | 08 1.05% (786) | 09 0.63% (573) | 10 -0.72% (496)
+   by month trail10: 07 -0.76% (196) | 08 3.64% (786) | 09 0.90% (573) | 10 -2.71% (496)
+== H_range>=48h+retest
+all                                              n= 1371 +10%_before_stop=28% (389) champions>=20%=192 >=50%=42 | +5%rule win=54% exp=-0.30% | exits/trade: take5=-0.30% half_trail=0.20% trail10=0.70% trail15=0.33% r_trail=0.24% | days=99
+first half                                       n=  797 +10%_before_stop=33% (261) champions>=20%=125 >=50%=24 | +5%rule win=61% exp=0.62% | exits/trade: take5=0.62% half_trail=1.46% trail10=2.30% trail15=1.73% r_trail=0.52% | days=48
+second half                                      n=  574 +10%_before_stop=22% (128) champions>=20%=67 >=50%=18 | +5%rule win=46% exp=-1.58% | exits/trade: take5=-1.59% half_trail=-1.57% trail10=-1.56% trail15=-1.64% r_trail=-0.16% | days=52
+   by month r_trail: 07 -0.65% (111) | 08 1.20% (516) | 09 -0.02% (400) | 10 -0.64% (337)
+   by month trail10: 07 -0.74% (111) | 08 3.29% (516) | 09 0.73% (400) | 10 -2.85% (337)
+== I_live_proxy+retest
+all                                              n=   29 +10%_before_stop=41% (12) champions>=20%=6 >=50%=4 | +5%rule win=66% exp=0.61% | exits/trade: take5=0.61% half_trail=1.27% trail10=1.93% trail15=1.99% r_trail=1.42% | days=22
+first half                                       n=   13 +10%_before_stop=38% (5) champions>=20%=5 >=50%=4 | +5%rule win=62% exp=-0.10% | exits/trade: take5=-0.10% half_trail=0.83% trail10=1.75% trail15=4.51% r_trail=0.87% | days=11
+second half                                      n=   16 +10%_before_stop=44% (7) champions>=20%=1 >=50%=0 | +5%rule win=69% exp=1.18% | exits/trade: take5=1.18% half_trail=1.63% trail10=2.08% trail15=-0.06% r_trail=1.86% | days=11
+   by month r_trail: 07 -2.65% (2) | 08 3.06% (8) | 09 3.21% (7) | 10 -0.05% (12)
+   by month trail10: 07 1.03% (2) | 08 2.41% (8) | 09 5.06% (7) | 10 -0.06% (12)
+== O_dist1%+body1ATR
+all                                              n= 1117 +10%_before_stop=33% (364) champions>=20%=238 >=50%=62 | +5%rule win=57% exp=-0.18% | exits/trade: take5=-0.19% half_trail=0.35% trail10=0.89% trail15=0.72% r_trail=0.35% | days=99
+first half                                       n=  679 +10%_before_stop=35% (235) champions>=20%=164 >=50%=38 | +5%rule win=61% exp=0.35% | exits/trade: take5=0.35% half_trail=1.17% trail10=2.00% trail15=1.75% r_trail=0.58% | days=49
+second half                                      n=  438 +10%_before_stop=29% (129) champions>=20%=74 >=50%=24 | +5%rule win=52% exp=-0.99% | exits/trade: take5=-1.06% half_trail=-0.98% trail10=-0.89% trail15=-0.94% r_trail=-0.03% | days=50
+   by month r_trail: 07 -1.41% (116) | 08 1.33% (439) | 09 1.07% (307) | 10 -1.56% (235)
+   by month trail10: 07 -1.32% (116) | 08 3.27% (439) | 09 0.90% (307) | 10 -2.45% (235)
+== P_vol2x
+all                                              n=   84 +10%_before_stop=37% (31) champions>=20%=23 >=50%=12 | +5%rule win=61% exp=-0.17% | exits/trade: take5=-0.23% half_trail=0.56% trail10=1.35% trail15=0.44% r_trail=1.67% | days=48
+first half                                       n=   39 +10%_before_stop=33% (13) champions>=20%=14 >=50%=8 | +5%rule win=59% exp=-0.36% | exits/trade: take5=-0.36% half_trail=1.60% trail10=3.57% trail15=2.88% r_trail=0.73% | days=23
+second half                                      n=   45 +10%_before_stop=40% (18) champions>=20%=9 >=50%=4 | +5%rule win=62% exp=-0.01% | exits/trade: take5=-0.12% half_trail=-0.37% trail10=-0.62% trail15=-1.72% r_trail=2.50% | days=25
+   by month r_trail: 07 -8.48% (5) | 08 1.85% (26) | 09 8.54% (21) | 10 -1.50% (31)
+   by month trail10: 07 -4.82% (5) | 08 5.96% (26) | 09 1.94% (21) | 10 -1.92% (31)
