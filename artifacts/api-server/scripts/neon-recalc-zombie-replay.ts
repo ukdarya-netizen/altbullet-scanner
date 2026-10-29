@@ -15,19 +15,16 @@
  *    else expired), at the close of the last candle.
  * Within a candle the stop is checked before the high (conservative).
  *
- * Run (from artifacts/api-server, production DB):
- *   npx tsx scripts/neon-recalc-zombie-replay.ts            # read-only report
- *   npx tsx scripts/neon-recalc-zombie-replay.ts --apply    # backup + write
+ * Run (from artifacts/api-server): npx tsx scripts/neon-recalc-zombie-replay.ts
+ * Prints the report and the SQL; it never connects to a database.
  */
-import { pool } from "@workspace/db";
+import { NEON_NO_WAIT_ROWS } from "../src/lib/neon-no-wait-recalc-data.js";
 
 const IDS = [2763, 2768, 2771, 2778, 2783, 2796, 2868];
-const MARKER = "neon_zombie_replay_2026_10_29_v1";
 const BACKUP = "tracked_signals_backup_neon_zombie_20261029";
 const M15 = 15 * 60 * 1000;
 const LIFETIME_MS = 4 * 24 * 60 * 60 * 1000;
 const BU_AT = 8, FIRST_TARGET = 10, TRAIL_AT = 15, TRAIL_GAP = 10;
-const APPLY = process.argv.includes("--apply");
 
 type C = { time: number; open: number; high: number; low: number; close: number };
 type Row = {
@@ -85,58 +82,53 @@ function milestone(peakPct: number): number | null {
   return peakPct >= TRAIL_AT ? TRAIL_AT : peakPct >= FIRST_TARGET ? FIRST_TARGET : peakPct >= BU_AT ? BU_AT : null;
 }
 
+// The shell cannot reach the production DB (Replit gives it only through its
+// SQL tool), so the rows come from the reviewed 25.10 recalc data and the
+// script prints SQL to run there: a backup, then guarded UPDATEs that only
+// touch a row still closed exactly as the watcher closed it on 29.10.
+const CURRENT: Record<number, { status: string; closedAt: string }> = {
+  2763: { status: "stop_loss", closedAt: "2026-10-29 05:59:17.412" },
+  2768: { status: "stop_loss", closedAt: "2026-10-29 05:59:32.183" },
+  2771: { status: "stop_loss", closedAt: "2026-10-29 05:59:20.414" },
+  2778: { status: "stop_loss", closedAt: "2026-10-29 05:59:28.927" },
+  2783: { status: "stop_loss", closedAt: "2026-10-29 05:59:25.923" },
+  2796: { status: "bu_stop", closedAt: "2026-10-29 05:57:28.56" },
+  2868: { status: "expired", closedAt: "2026-10-29 05:59:23.169" },
+};
+
 async function main() {
-  const { rows } = await pool.query(
-    `SELECT id, symbol, status::text AS status, entry_price,
-            (extract(epoch FROM detected_at AT TIME ZONE 'UTC') * 1000)::bigint::text AS detected_ms,
-            stop_loss_pct, peak_price, exit_price, pnl_percent, closed_at::text AS closed_at_text, sentiment_key
-       FROM tracked_signals WHERE id = ANY($1::int[]) ORDER BY id`, [IDS]);
-  const plans: Array<{ row: Row; r: ReturnType<typeof replay> }> = [];
-  for (const row of rows as Row[]) {
-    if (row.sentiment_key !== "neon_support_bounce") { console.log(`${row.id} skipped: not ABNeon`); continue; }
+  const sql: string[] = [
+    "BEGIN;",
+    `CREATE TABLE IF NOT EXISTS ${BACKUP} (LIKE tracked_signals INCLUDING DEFAULTS);`,
+    `INSERT INTO ${BACKUP} SELECT * FROM tracked_signals WHERE id IN (${IDS.join(",")});`,
+  ];
+  for (const id of IDS) {
+    const src = NEON_NO_WAIT_ROWS.find((r) => r.id === id);
+    if (!src) { console.log(`${id}: not in the 25.10 recalc data — skipped`); continue; }
+    const row: Row = { id, symbol: src.symbol, status: src.status, entry_price: src.entryPrice,
+      detected_ms: String(Date.parse(src.detectedAt)), stop_loss_pct: src.stopPct, peak_price: src.peakPrice,
+      exit_price: null, pnl_percent: null, closed_at_text: CURRENT[id]!.closedAt, sentiment_key: "neon_support_bounce" };
     const start = Number(row.detected_ms);
     const end = Math.min(start + LIFETIME_MS, Date.now());
     const cs = await klines15m(row.symbol, start, end);
-    if (!cs.length) { console.log(`${row.id} ${row.symbol} skipped: no candles`); continue; }
+    if (!cs.length) { console.log(`${id} ${row.symbol}: no candles — skipped`); continue; }
     const r = replay(row, cs);
-    plans.push({ row, r });
     const entry = Number(row.entry_price);
-    console.log(`${row.id} ${row.symbol} entry ${entry} detected ${new Date(start).toISOString()} candles ${cs.length}`);
-    console.log(`   now:    ${row.status} pnl ${row.pnl_percent} closed ${row.closed_at_text ?? "-"}`);
-    console.log(`   replay: ${r.status} pnl ${r.pnl.toFixed(4)} exit ${r.exitPrice} closed ${r.closedAt.toISOString()} peak ${(r.peak / entry * 100 - 100).toFixed(2)}% | ${r.evidence}`);
+    const peakPct = r.peak / entry * 100 - 100;
+    console.log(`${id} ${row.symbol} entry ${entry} from ${new Date(start).toISOString()} candles ${cs.length}`);
+    console.log(`   now:    ${CURRENT[id]!.status} closed ${CURRENT[id]!.closedAt}`);
+    console.log(`   replay: ${r.status} pnl ${r.pnl.toFixed(4)} exit ${r.exitPrice} closed ${r.closedAt.toISOString()} peak ${peakPct.toFixed(2)}% | ${r.evidence}`);
+    const trail = r.status === "profit" && peakPct >= TRAIL_AT ? String(r.exitPrice) : "NULL";
+    const ms = milestone(peakPct);
+    sql.push(
+      `UPDATE tracked_signals SET status = '${r.status}'::tracked_status, exit_price = ${r.exitPrice}, ` +
+      `pnl_percent = ${r.pnl.toFixed(6)}, closed_at = '${r.closedAt.toISOString().replace("T", " ").replace("Z", "")}', ` +
+      `peak_price = GREATEST(${r.peak}, entry_price), last_milestone = ${ms ?? "NULL"}, trailing_stop_level = ${trail}, ` +
+      `updated_at = now() WHERE id = ${id} AND status::text = '${CURRENT[id]!.status}' AND closed_at = '${CURRENT[id]!.closedAt}';`);
   }
-  if (!APPLY) { console.log("\nread-only: nothing written (add --apply to write)"); await pool.end(); return; }
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("CREATE TABLE IF NOT EXISTS neon_recalc_markers (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())");
-    if ((await client.query("SELECT 1 FROM neon_recalc_markers WHERE name = $1", [MARKER])).rowCount) {
-      console.log("already applied"); await client.query("COMMIT"); return;
-    }
-    await client.query(`CREATE TABLE IF NOT EXISTS ${BACKUP} (LIKE tracked_signals INCLUDING DEFAULTS)`);
-    await client.query(`INSERT INTO ${BACKUP} SELECT * FROM tracked_signals WHERE id = ANY($1::int[])`, [plans.map((p) => p.row.id)]);
-    for (const { row, r } of plans) {
-      const entry = Number(row.entry_price);
-      const peakPct = r.peak / entry * 100 - 100;
-      // Only the row exactly as read (status and closed_at unchanged since).
-      const res = await client.query(
-        `UPDATE tracked_signals SET status = $2::tracked_status, exit_price = $3, pnl_percent = $4,
-           closed_at = $5::timestamptz AT TIME ZONE 'UTC', peak_price = GREATEST($6, entry_price),
-           last_milestone = $7, trailing_stop_level = $8, updated_at = now()
-         WHERE id = $1 AND status::text = $9 AND closed_at::text IS NOT DISTINCT FROM $10`,
-        [row.id, r.status, r.exitPrice, r.pnl, r.closedAt.toISOString(), r.peak, milestone(peakPct),
-          r.status === "profit" && peakPct >= TRAIL_AT ? r.exitPrice : null, row.status, row.closed_at_text]);
-      console.log(`${row.id} ${row.symbol}: ${res.rowCount ? "written" : "NOT written (row changed since read)"}`);
-    }
-    await client.query("INSERT INTO neon_recalc_markers (name) VALUES ($1)", [MARKER]);
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK").catch(() => {});
-    throw error;
-  } finally {
-    client.release();
-    await pool.end();
-  }
+  sql.push("COMMIT;");
+  console.log("\n-- SQL for production (run only after the owner's OK):");
+  console.log(sql.join("\n"));
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
