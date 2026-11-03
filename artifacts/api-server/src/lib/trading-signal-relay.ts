@@ -19,8 +19,9 @@ import {
   IMPULSE_RUNNER_TRAILING_GAP_PCT,
 } from "./impulse-runner-policy.js";
 
+// The trading bot's address (owner 2026-11-03: its domain changes) — Secret TRADING_SIGNAL_ENDPOINT, else the old one.
 export const TRADING_SIGNAL_ENDPOINT =
-  "https://bybit-trading-bot.replit.app/api/trading/signals";
+  process.env.TRADING_SIGNAL_ENDPOINT?.trim() || "https://bybit-trading-bot.replit.app/api/trading/signals";
 export const TRADING_SIGNAL_TTL_MS = 10 * 60_000;
 const RELAY_INTERVAL_MS = 15_000;
 // Owner decision 2026-10-03: every active pattern is relayed.
