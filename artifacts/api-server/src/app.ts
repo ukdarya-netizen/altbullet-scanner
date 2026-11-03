@@ -5,6 +5,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import { requireDashboardAccess } from "./middleware/dashboardAccess.js";
 import tradingPositionSyncRouter from "./routes/trading-position-sync.js";
+import tradingStrategyReportRouter from "./routes/trading-strategy-report.js";
 import { tradingCommandAcksRouter } from "./routes/trading-commands.js";
 
 const app: Express = express();
@@ -34,6 +35,7 @@ app.use(
 // The receiver has no dashboard session. Keep this narrowly authenticated
 // machine route ahead of the browser CORS and dashboard middleware.
 app.use("/api/trading/position-sync", tradingPositionSyncRouter);
+app.use("/api/trading/strategy-report", tradingStrategyReportRouter);
 app.use("/api/trading/command-acks", tradingCommandAcksRouter);
 app.use(cors());
 app.use(express.json());
