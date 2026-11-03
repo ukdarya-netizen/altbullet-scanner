@@ -122,6 +122,8 @@ export type TradingSignalPayload = {
   patternStatus: "approved";
   symbol: string;
   signalAt: string;
+  /** When CAB released the signal (its confirmation message) — freshness is counted from here. */
+  releasedAt?: string;
   referencePrice: string;
   side: "buy";
   orderType: "market";
@@ -199,6 +201,7 @@ export const CAPTURE_CONFIRMED_SIGNALS_SQL = `
         'patternStatus', 'approved',
         'symbol', replace(upper(s.symbol), '-', ''),
         'signalAt', to_char(t.detected_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+        'releasedAt', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
         'referencePrice', t.entry_price::numeric::text,
         'side', 'buy',
         'orderType', 'market',
@@ -247,7 +250,10 @@ export const CAPTURE_CONFIRMED_SIGNALS_SQL = `
     ) stop_plan
     WHERE cfg.singleton = true
       AND t.detected_at >= cfg.activated_at AT TIME ZONE 'UTC'
-      AND t.detected_at >= (now() AT TIME ZONE 'UTC') - interval '10 minutes'
+      -- Captured at the confirmation itself ($2 set) whatever the detection time:
+      -- a signal confirmed later than 10 min after detection is still a fresh
+      -- message (owner 2026-11-03). The catch-up pass keeps the 10-minute window.
+      AND ($2::integer IS NOT NULL OR t.detected_at >= (now() AT TIME ZONE 'UTC') - interval '10 minutes')
       AND t.detected_at <= now() AT TIME ZONE 'UTC'
       AND ($2::integer IS NULL OR s.id = $2::integer)
       AND s.sentiment_key = ANY($1::text[])
@@ -437,7 +443,8 @@ async function sendClaimedSignal(claim: ClaimedSignal, token: string) {
     await finishSignal(claim, "quarantined", null, "incomplete_trade_plan");
     return;
   }
-  const signalTime = Date.parse(claim.payload.signalAt);
+  // Age from the release (confirmation message), not from the detection candle.
+  const signalTime = Date.parse(claim.payload.releasedAt ?? claim.payload.signalAt);
   if (
     !Number.isFinite(signalTime) ||
     Date.now() - signalTime > TRADING_SIGNAL_TTL_MS ||
