@@ -59,6 +59,30 @@ const dirOf = (b: Bar | undefined) => (!b ? "-" : b.close > b.open ? "U" : b.clo
 /** Close position in the bar: 0 = at the low, 1 = at the high. */
 const closePos = (b: Bar | undefined) => (b && b.high > b.low ? (b.close - b.low) / (b.high - b.low) : null);
 
+/**
+ * Owner's «Welkin VSA» (TradingView, Pine v5), one to one: SMA(20) and population stdev(20) of the
+ * volume INCLUDING the current bar; colour of a bar:
+ *   > avg+4σ white (W) · > avg+3σ magenta (M) · > avg+2σ orange (O) · > avg blue (A)
+ *   · else volume ≥ 1.25 × previous bar yellow (Y) · else below average grey (N)
+ *   · else (volume exactly at the average) plain candle (=).
+ * Grey = «пустой» bar; anything else is not empty.
+ */
+export function welkinColor(vols: number[], i: number): string | null {
+  if (i < 19) return null;
+  const w = vols.slice(i - 19, i + 1);
+  const avg = w.reduce((a, b) => a + b, 0) / 20;
+  const sd = Math.sqrt(w.reduce((a, b) => a + (b - avg) ** 2, 0) / 20);
+  const v = vols[i]!;
+  if (v > avg + 4 * sd) return "W";
+  if (v > avg + 3 * sd) return "M";
+  if (v > avg + 2 * sd) return "O";
+  if (v > avg) return "A";
+  const prev = i > 0 ? vols[i - 1]! : 0;
+  if (prev > 0 && v / prev >= 1.25) return "Y";
+  if (v < avg) return "N";
+  return "=";
+}
+
 export function colorWindow(barTimes: number[], vol: (t: number) => number | null, entry: number, candle: (t: number) => Bar | undefined = () => undefined) {
   let ma = 0;
   const ratio = new Map<number, number>();
@@ -78,6 +102,17 @@ export function colorWindow(barTimes: number[], vol: (t: number) => number | nul
   // Owner 2026-11-04 (VSA proper): which candle carried the volume. Same 48 bars, BingX price.
   const bars = Array.from({ length: WINDOW }, (_, i) => candle(entry - (WINDOW - i) * H1));
   const dirs = bars.map(dirOf);
+  // Welkin colours of the same 48 bars and of the entry candle.
+  const vols = barTimes.map((t) => vol(t)!);
+  const idx = new Map(barTimes.map((t, i) => [t, i]));
+  const welkinAt = (t: number) => { const i = idx.get(t); return i === undefined ? "-" : (welkinColor(vols, i) ?? "-"); };
+  const welkin = Array.from({ length: WINDOW }, (_, i) => welkinAt(entry - (WINDOW - i) * H1));
+  const notGrey = (n: number) => welkin.slice(-n).filter((c) => c !== "N" && c !== "-").length;
+  const welkinCounts = (n: number) => {
+    const w = welkin.slice(-n);
+    const c = (x: string) => w.filter((y) => y === x).length;
+    return { W: c("W"), M: c("M"), O: c("O"), A: c("A"), Y: c("Y"), N: c("N"), notGrey: notGrey(n) };
+  };
   const last = (n: number) => before.slice(-n);
   const colored = (c: string) => c === "P" || c === "R" || c === "O";
   /** Counts over the last n bars of coloured (P/R/O) bars by candle type. */
@@ -117,6 +152,14 @@ export function colorWindow(barTimes: number[], vol: (t: number) => number | nul
     const w = last(n);
     out[`last${n}h`] = { P: count(w, "P"), R: count(w, "R"), O: count(w, "O"), G: count(w, "G"), B: count(w, "B"), S: count(w, "S"), colored: count(w, "P") + count(w, "R") + count(w, "O"), ...vsaCounts(n) };
   }
+  out.welkinEntry = welkinAt(entry);
+  /** Welkin colours of the 48 bars before the entry, oldest → newest (N = grey / empty). */
+  out.welkin48 = welkin.join("");
+  for (const n of [3, 6, 12, 24, 48]) out[`welkin${n}h`] = welkinCounts(n);
+  /** Hours from the last grey bar back to the entry: how many non-empty bars in a row right before it. */
+  let run = 0;
+  for (let k = WINDOW - 1; k >= 0 && welkin[k] !== "N" && welkin[k] !== "-"; k--) run++;
+  out.welkinNonGreyRunBeforeEntry = run;
   const e = candle(entry);
   out.entryCandle = dirOf(e);
   out.entryClosePos = closePos(e) === null ? null : Math.round(closePos(e)! * 100) / 100;
@@ -182,7 +225,7 @@ export async function recordVolumeColors(t: SignalRef, priority: "high" | "low" 
        VALUES ($1, $2, $3, $4::jsonb)
        ON CONFLICT (tracked_signal_id) DO UPDATE SET metrics = EXCLUDED.metrics, recorded_at = now()`,
       [t.id, t.symbol, t.sentimentKey, JSON.stringify({
-        version: 2,
+        version: 3,
         entryCandle: new Date(entry).toISOString(),
         bingx, agg: aggOut,
         missing: reasons.length ? reasons : null,
@@ -210,7 +253,7 @@ export async function runVolumeColorsBackfillCycle(limit = 40, gapMs = 2_000, pr
      LEFT JOIN signal_volume_colors c ON c.tracked_signal_id = t.id
      WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
        AND t.detected_at < now() - interval '5 minutes'
-       AND (c.tracked_signal_id IS NULL OR COALESCE(c.metrics->>'version', '1') <> '2')
+       AND (c.tracked_signal_id IS NULL OR COALESCE(c.metrics->>'version', '1') <> '3')
        AND NOT (t.id = ANY($3::int[]))
      ORDER BY t.detected_at > now() - interval '30 days' DESC, t.detected_at DESC
      LIMIT $4`, [[...VOLUME_COLOR_KEYS], BACKFILL_DAYS, cooling, limit]);
@@ -229,7 +272,7 @@ export async function runVolumeColorsBackfillCycle(limit = 40, gapMs = 2_000, pr
 export async function volumeColorsCoverage() {
   await ensureVolumeColorsTable();
   const { rows } = await pool.query(
-    `SELECT t.sentiment_key AS key, count(c.tracked_signal_id) FILTER (WHERE c.metrics->>'version' = '2')::int AS n
+    `SELECT t.sentiment_key AS key, count(c.tracked_signal_id) FILTER (WHERE c.metrics->>'version' = '3')::int AS n
      FROM tracked_signals t LEFT JOIN signal_volume_colors c ON c.tracked_signal_id = t.id
      WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
      GROUP BY 1`, [[...VOLUME_COLOR_KEYS], BACKFILL_DAYS]);
