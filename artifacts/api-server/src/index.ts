@@ -6325,7 +6325,7 @@ app.listen(port, async (err) => {
       );
     // Owner 2026-11-04: VSA and Wyckoff at the entry of every signal — restore the missing ones (60 days),
     // one signal after another; CoinGlass requests wait at low priority behind the scanner.
-    startEntryReadingsRestoreLoop();
+    if (process.env.CAB_RESTORE_ONLY !== "1") startEntryReadingsRestoreLoop();
     setTimeout(runStealthCutoffOutcomes, 180_000);
     setInterval(runStealthCutoffOutcomes, 30 * 60 * 1000);
     setTimeout(runStealthCandleSnapshots, 150_000);
@@ -6452,7 +6452,15 @@ app.listen(port, async (err) => {
         logger.error({ err }, "Failed to auto-start scanner");
       }
     };
-    void startAfterRequestedStops();
+    // Owner 2026-11-04: CAB_RESTORE_ONLY=1 — restore VSA / Wyckoff at full speed with the scanner and the
+    // FastCycle watcher stopped (the whole CoinGlass budget goes to the restore). Remove it and republish
+    // to trade again.
+    if (process.env.CAB_RESTORE_ONLY === "1") {
+      logger.warn("CAB_RESTORE_ONLY=1: scanner and watcher NOT started — restoring entry VSA/Wyckoff only");
+      startEntryReadingsRestoreLoop({ fast: true });
+    } else {
+      void startAfterRequestedStops();
+    }
 
     // Бэкфилл growth_leader_log — ОТКЛЮЧЁН (2026-07-18): запись лидеров роста остановлена.
 

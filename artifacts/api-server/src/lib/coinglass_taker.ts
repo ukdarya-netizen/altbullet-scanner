@@ -88,7 +88,7 @@ async function fetchAggFuturesTakerCandles(
   apiKey: string,
   limit: number,
   timeoutMs = 6000,
-  priority?: "high",
+  priority?: "high" | "low",
   interval = "15m",
 ): Promise<CgTakerCandle[] | null> {
   const base = applyCgAlias(bingxSymbol.replace(/-?USDT$/i, "").toUpperCase());
@@ -679,7 +679,7 @@ export async function getAggFuturesVolumeByInterval(
   interval: "15m" | "1h" | "4h",
   limit: number,
   nowMs: number = Date.now(),
-  /** "low" for background backfills (owner 2026-11-04: entry VSA / Wyckoff history). */
+  /** "low" for background backfills (owner 2026-11-04: entry VSA / Wyckoff history) — waits behind the scanner. */
   priority: "high" | "low" = "high",
   /** A background request may wait behind the scanner in the CoinGlass queue: give it longer. */
   timeoutMs = 15_000,
@@ -699,7 +699,7 @@ export async function getAggFuturesVolumeByInterval(
     apiKey,
     Math.min(4500, Math.max(1, Math.round(limit))),
     timeoutMs,
-    priority === "high" ? "high" : undefined,
+    priority,
     interval,
   );
   if (!rows) return null;

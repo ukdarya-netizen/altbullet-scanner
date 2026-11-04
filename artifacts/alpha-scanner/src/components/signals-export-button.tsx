@@ -10,6 +10,7 @@ type Coverage = {
   patterns: Array<{ key: string; total: number; vsa: number; vsa_with_volume: number; wyckoff: number }>;
   failedNow: number;
   reasons: Record<string, number>;
+  restoreOnly?: boolean;
 };
 const NAMES: Record<string, string> = {
   impulse_buy: "Impulse Buy", stealth_breakout: "Stealth", neon_support_bounce: "ABNeon", liquidation_cascade: "Liquidation Cascade",
@@ -36,6 +37,11 @@ function CoverageLine() {
   if (!d) return null;
   return (
     <div className="text-xs space-y-1">
+      {d.restoreOnly && (
+        <p className="font-semibold text-destructive">
+          Режим восстановления (CAB_RESTORE_ONLY=1): сканер и быстрый цикл ОСТАНОВЛЕНЫ — новых сигналов нет, открытые позиции не ведутся. Когда VSA и Вайкофф дойдут до числа сигналов — удалите Secret CAB_RESTORE_ONLY и опубликуйте.
+        </p>
+      )}
       <p className="font-semibold">VSA и Вайкофф на входе за {d.days} дней (восстанавливаются в фоне по одному сигналу: сначала IB и Stealth, потом ABNeon и LC):</p>
       {d.patterns.map((p) => (
         <p key={p.key} className="tabular-nums">
