@@ -80,6 +80,9 @@ interface CgTakerCandle {
 }
 
 /** Aggregated futures taker candles (oldest → newest); null when unavailable. */
+/** Why the last aggregated taker-volume request failed (owner 2026-11-04: shown on «Аналитика»). */
+export let lastAggVolumeError: string | null = null;
+
 async function fetchAggFuturesTakerCandles(
   bingxSymbol: string,
   apiKey: string,
@@ -111,10 +114,12 @@ async function fetchAggFuturesTakerCandles(
     if (res.status === 429) {
       logCg429(apiKey, { symbol: base });
       reportApiFailure("coinglass", 429);
+      lastAggVolumeError = "CoinGlass 429 (лимит запросов)";
       return null;
     }
-    if (!res.ok) return null;
+    if (!res.ok) { lastAggVolumeError = `CoinGlass HTTP ${res.status}`; return null; }
     const body = (await res.json()) as {
+      msg?: string;
       code?: string;
       data?: {
         time: number;
@@ -122,14 +127,19 @@ async function fetchAggFuturesTakerCandles(
         aggregated_sell_volume_usd: unknown;
       }[];
     };
-    if (body.code !== "0" || !body.data?.length) return null;
+    if (body.code !== "0" || !body.data?.length) {
+      lastAggVolumeError = body.code !== "0" ? `CoinGlass код ${body.code}: ${String(body.msg ?? "").slice(0, 80)}` : "CoinGlass: по монете нет данных";
+      return null;
+    }
     reportApiSuccess("coinglass");
+    lastAggVolumeError = null;
     return body.data.map((r) => ({
       time: r.time,
       taker_buy_volume_usd: String(r.aggregated_buy_volume_usd),
       taker_sell_volume_usd: String(r.aggregated_sell_volume_usd),
     }));
-  } catch {
+  } catch (err) {
+    lastAggVolumeError = `CoinGlass: ${err instanceof Error && /abort|timeout/i.test(`${err.name} ${err.message}`) ? "таймаут (ждал в очереди)" : err instanceof Error ? err.message.slice(0, 80) : String(err)}`;
     return null;
   }
 }
@@ -671,6 +681,8 @@ export async function getAggFuturesVolumeByInterval(
   nowMs: number = Date.now(),
   /** "low" for background backfills (owner 2026-11-04: entry VSA / Wyckoff history). */
   priority: "high" | "low" = "high",
+  /** A background request may wait behind the scanner in the CoinGlass queue: give it longer. */
+  timeoutMs = 15_000,
 ): Promise<Map<number, number> | null> {
   const cacheKey = `${applyCgAlias(bingxSymbol.replace(/-?USDT$/i, "")).toUpperCase()}|${interval}`;
   const barMs = INTERVAL_MS[interval];
@@ -686,7 +698,7 @@ export async function getAggFuturesVolumeByInterval(
     bingxSymbol,
     apiKey,
     Math.min(4500, Math.max(1, Math.round(limit))),
-    15_000,
+    timeoutMs,
     priority === "high" ? "high" : undefined,
     interval,
   );

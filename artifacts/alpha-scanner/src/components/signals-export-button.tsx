@@ -44,7 +44,7 @@ function CoverageLine() {
       ))}
       {d.failedNow > 0 && (
         <p className="text-muted-foreground">
-          Не получилось сейчас: {d.failedNow} — {Object.entries(d.reasons).map(([r, n]) => `${r}: ${n}`).join(" · ")}. Повтор через 6 часов.
+          Не получилось сейчас: {d.failedNow} — {Object.entries(d.reasons).map(([r, n]) => `${r}: ${n}`).join(" · ")}. Повтор: без объёма CoinGlass — через 30 минут, остальное — через 6 часов.
         </p>
       )}
     </div>

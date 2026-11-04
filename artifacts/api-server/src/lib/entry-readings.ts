@@ -11,7 +11,7 @@
  */
 import { db, pool, vsaEntryMetricsTable, wyckoffEntryMetricsTable } from "@workspace/db";
 import { getKlinesRange } from "./bingx.js";
-import { getAggFuturesVolumeByInterval } from "./coinglass_taker.js";
+import * as cgTaker from "./coinglass_taker.js";
 import { computeVsa, type Ohlc } from "./vsa-metrics.js";
 import { computeWyckoff } from "./wyckoff-metrics.js";
 import { logger } from "./logger.js";
@@ -21,6 +21,8 @@ const H1 = 3_600_000;
 const LOOKBACK_BARS = 120;
 const BACKFILL_DAYS = 60;
 const RETRY_AFTER_MS = 6 * H1;
+/** CoinGlass not answering is temporary: retry sooner. */
+const RETRY_NO_VOLUME_MS = 30 * 60_000;
 
 type SignalRef = { id: number; symbol: string; sentimentKey: string | null; detectedAt: Date };
 export type ReadingResult = { vsa: "written" | "exists" | "failed"; wyckoff: "written" | "exists" | "failed"; reason: string | null };
@@ -64,7 +66,7 @@ async function loadInputs(symbol: string, entryCandle: number, priority: "high" 
     .sort((a, b) => a.time - b.time);
   const bars = Math.ceil((Date.now() - entryCandle) / H1) + LOOKBACK_BARS + 2;
   const volumes = bars <= 4500
-    ? await getAggFuturesVolumeByInterval(symbol, "1h", bars, Date.now(), priority).catch(() => null)
+    ? await cgTaker.getAggFuturesVolumeByInterval(symbol, "1h", bars, Date.now(), priority, priority === "low" ? 60_000 : 15_000).catch(() => null)
     : null;
   return { candles, volumes };
 }
@@ -88,7 +90,7 @@ export async function recordEntryReadings(t: SignalRef, opts: { priority?: "high
     const { candles, volumes } = await loadInputs(t.symbol, entryCandle, opts.priority ?? "low");
     const reasons: string[] = [];
     if (!candles.some((c) => c.time === entryCandle)) reasons.push("нет свечи входа BingX 1H");
-    if (!volumes) reasons.push("нет агрегированного объёма CoinGlass");
+    if (!volumes) reasons.push(`нет агрегированного объёма CoinGlass (${cgTaker.lastAggVolumeError ?? "кэш/ключ"})`);
     const source = Date.now() - t.detectedAt.getTime() <= 30 * 60_000 ? "live" : "backfill";
     const base = { trackedSignalId: t.id, symbol: t.symbol, sentimentKey: t.sentimentKey ?? "unknown", source };
 
@@ -154,7 +156,7 @@ export async function runEntryReadingsBackfillCycle(limit = 40, gapMs = 2_000): 
   for (const r of rows) {
     if (tried >= limit) break;
     const f = failures.get(r.id);
-    if (f && Date.now() - f.at < RETRY_AFTER_MS) continue;
+    if (f && Date.now() - f.at < (f.reason.includes("CoinGlass") ? RETRY_NO_VOLUME_MS : RETRY_AFTER_MS)) continue;
     tried += 1;
     const res = await recordEntryReadings(
       { id: r.id, symbol: r.symbol, sentimentKey: r.sentiment_key, detectedAt: new Date(r.detected_at) },
