@@ -13,6 +13,7 @@ type Coverage = {
   extrasFailedNow?: number;
   extrasReasons?: Record<string, number>;
   restoreOnly?: boolean;
+  restoreEnv?: string;
   loops?: Record<string, { mode: string; passes: number; lastPassAt: string | null; lastTried: number; lastWritten: number; running: boolean; lastError: string | null }>;
 };
 const NAMES: Record<string, string> = {
@@ -52,7 +53,7 @@ function CoverageLine() {
           {p.extras !== null && p.extras !== undefined ? ` · параметры ${p.key === "impulse_buy" ? "IB" : "пробоя"} ${p.extras}` : ""}
         </p>
       ))}
-      {!d.restoreOnly && <p className="font-semibold">Режим восстановления: ВЫКЛЮЧЕН (сервер не видит CAB_RESTORE_ONLY=1) — сканер работает.</p>}
+      {!d.restoreOnly && <p className="font-semibold">Режим восстановления: ВЫКЛЮЧЕН — сервер видит CAB_RESTORE_ONLY: {d.restoreEnv ?? "нет данных"}. Сканер работает.</p>}
       {Object.keys(d.loops ?? {}).length === 0 && <p className="font-semibold text-destructive">Очереди восстановления на этом сервере НЕ запущены.</p>}
       {Object.entries(d.loops ?? {}).map(([name, l]) => (
         <p key={name} className="tabular-nums">

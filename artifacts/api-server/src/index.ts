@@ -22,7 +22,7 @@ import {
 } from "./lib/schedulerLease.js";
 import { runWhenMarketCycleIdle } from "./lib/market-job-guard.js";
 import { runOptionalDbJob } from "./lib/optionalDbAdmission.js";
-import { startEntryReadingsRestoreLoop } from "./lib/entry-readings.js";
+import { restoreOnlyMode, startEntryReadingsRestoreLoop } from "./lib/entry-readings.js";
 import {
   pool,
   db,
@@ -6325,7 +6325,7 @@ app.listen(port, async (err) => {
       );
     // Owner 2026-11-04: VSA and Wyckoff at the entry of every signal — restore the missing ones (60 days),
     // one signal after another; CoinGlass requests wait at low priority behind the scanner.
-    if (process.env.CAB_RESTORE_ONLY !== "1") startEntryReadingsRestoreLoop();
+    if (!restoreOnlyMode()) startEntryReadingsRestoreLoop();
     setTimeout(runStealthCutoffOutcomes, 180_000);
     setInterval(runStealthCutoffOutcomes, 30 * 60 * 1000);
     setTimeout(runStealthCandleSnapshots, 150_000);
@@ -6455,7 +6455,7 @@ app.listen(port, async (err) => {
     // Owner 2026-11-04: CAB_RESTORE_ONLY=1 — restore VSA / Wyckoff at full speed with the scanner and the
     // FastCycle watcher stopped (the whole CoinGlass budget goes to the restore). Remove it and republish
     // to trade again.
-    if (process.env.CAB_RESTORE_ONLY === "1") {
+    if (restoreOnlyMode()) {
       logger.warn("CAB_RESTORE_ONLY=1: scanner and watcher NOT started — restoring entry VSA/Wyckoff only");
       startEntryReadingsRestoreLoop({ fast: true });
     } else {

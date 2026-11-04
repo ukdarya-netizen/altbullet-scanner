@@ -186,7 +186,14 @@ let loopStarted = false;
 /** What each restore loop is doing — shown on «Аналитика» (owner 2026-11-04: no guessing). */
 type LoopStatus = { mode: string; passes: number; lastPassAt: string | null; lastTried: number; lastWritten: number; running: boolean; lastError: string | null };
 const loopStatus: Record<string, LoopStatus> = {};
-export const restoreOnlyMode = () => process.env.CAB_RESTORE_ONLY === "1";
+/** Tolerant: «1», «true», «yes», «on», with spaces or quotes around (owner 2026-11-04: the server did not see the Secret). */
+export const restoreOnlyMode = () =>
+  /^(1|true|yes|on)$/i.test(String(process.env.CAB_RESTORE_ONLY ?? "").trim().replace(/^["']+|["']+$/g, "").trim());
+/** What the server actually sees in CAB_RESTORE_ONLY (not a credential) — shown on «Аналитика». */
+const restoreEnvSeen = () => {
+  const v = process.env.CAB_RESTORE_ONLY;
+  return v === undefined ? "переменной нет" : `значение «${v.slice(0, 12)}» (длина ${v.length})`;
+};
 export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): void {
   if (loopStarted) return;
   loopStarted = true;
@@ -241,6 +248,7 @@ export async function entryReadingsCoverage() {
     extrasFailedNow: extras?.failedNow ?? 0,
     extrasReasons: extras?.reasons ?? {},
     restoreOnly: restoreOnlyMode(),
+    restoreEnv: restoreEnvSeen(),
     loops: loopStatus,
   };
 }
