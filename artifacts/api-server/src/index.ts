@@ -5439,6 +5439,11 @@ app.listen(port, async (err) => {
 
   logger.info({ port }, "Server listening");
   startProcessHealthSampler();
+  // Owner 2026-11-04: in restore mode start the restore queues right away — a slow startup step
+  // further down (schema checks, Telegram) must not keep them waiting. Idempotent.
+  if (restoreOnlyMode() && process.env.NODE_ENV !== "development") {
+    startEntryReadingsRestoreLoop({ fast: true });
+  }
 
   // Webhook регистрируем ТОЛЬКО в production.
   // В dev-режиме dev-домен (.replit.dev) умирает при idle и перебивает
