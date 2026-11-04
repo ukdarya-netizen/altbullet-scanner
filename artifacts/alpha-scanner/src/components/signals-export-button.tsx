@@ -13,6 +13,7 @@ type Coverage = {
   extrasFailedNow?: number;
   extrasReasons?: Record<string, number>;
   restoreOnly?: boolean;
+  loops?: Record<string, { mode: string; passes: number; lastPassAt: string | null; lastTried: number; lastWritten: number; running: boolean; lastError: string | null }>;
 };
 const NAMES: Record<string, string> = {
   impulse_buy: "Impulse Buy", stealth_breakout: "Stealth", neon_support_bounce: "ABNeon", liquidation_cascade: "Liquidation Cascade",
@@ -49,6 +50,13 @@ function CoverageLine() {
         <p key={p.key} className="tabular-nums">
           {NAMES[p.key] ?? p.key}: сигналов {p.total} · VSA {p.vsa} · Вайкофф {p.wyckoff}
           {p.extras !== null && p.extras !== undefined ? ` · параметры ${p.key === "impulse_buy" ? "IB" : "пробоя"} ${p.extras}` : ""}
+        </p>
+      ))}
+      {!d.restoreOnly && <p className="font-semibold">Режим восстановления: ВЫКЛЮЧЕН (сервер не видит CAB_RESTORE_ONLY=1) — сканер работает.</p>}
+      {Object.keys(d.loops ?? {}).length === 0 && <p className="font-semibold text-destructive">Очереди восстановления на этом сервере НЕ запущены.</p>}
+      {Object.entries(d.loops ?? {}).map(([name, l]) => (
+        <p key={name} className="tabular-nums">
+          Очередь «{name}» ({l.mode}): проходов {l.passes}{l.running ? " · идёт проход" : ""} · последний проход {l.lastPassAt ? new Date(l.lastPassAt).toLocaleTimeString() : "ещё не закончен"} · взято {l.lastTried}, записано {l.lastWritten}{l.lastError ? ` · ошибка: ${l.lastError}` : ""}
         </p>
       ))}
       {d.failedNow > 0 && (

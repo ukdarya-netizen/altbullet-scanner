@@ -183,6 +183,9 @@ export async function runEntryReadingsBackfillCycle(limit = 40, gapMs = 2_000, p
  * Order: Impulse Buy and Stealth first (last 30 days, then older), then ABNeon and LC.
  */
 let loopStarted = false;
+/** What each restore loop is doing — shown on «Аналитика» (owner 2026-11-04: no guessing). */
+type LoopStatus = { mode: string; passes: number; lastPassAt: string | null; lastTried: number; lastWritten: number; running: boolean; lastError: string | null };
+const loopStatus: Record<string, LoopStatus> = {};
 export const restoreOnlyMode = () => process.env.CAB_RESTORE_ONLY === "1";
 export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): void {
   if (loopStarted) return;
@@ -191,14 +194,19 @@ export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): vo
   const idleMs = opts.fast ? 60_000 : 10 * 60_000;
   // Two independent loops (owner 2026-11-04: breakout / IB parameters must not wait for VSA / Wyckoff).
   const loop = (name: string, pass: () => Promise<{ tried: number }>) => {
+    const st: LoopStatus = (loopStatus[name] = { mode: opts.fast ? "быстрый" : "фоновый", passes: 0, lastPassAt: null, lastTried: 0, lastWritten: 0, running: false, lastError: null });
     const tick = async () => {
       let next = idleMs;
+      st.running = true;
       try {
-        const r = await pass();
+        const r = await pass() as { tried: number; written?: number };
+        st.lastTried = r.tried; st.lastWritten = r.written ?? 0; st.lastError = null;
         if (r.tried > 0) next = gapMs;
       } catch (err) {
+        st.lastError = err instanceof Error ? err.message.slice(0, 200) : String(err);
         logger.warn({ err }, `${name} restore loop failed (non-critical)`);
       }
+      st.running = false; st.passes += 1; st.lastPassAt = new Date().toISOString();
       setTimeout(() => void tick(), next).unref?.();
     };
     setTimeout(() => void tick(), opts.fast ? 5_000 : 60_000).unref?.();
@@ -233,5 +241,6 @@ export async function entryReadingsCoverage() {
     extrasFailedNow: extras?.failedNow ?? 0,
     extrasReasons: extras?.reasons ?? {},
     restoreOnly: restoreOnlyMode(),
+    loops: loopStatus,
   };
 }
