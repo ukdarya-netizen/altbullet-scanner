@@ -4,6 +4,7 @@ import LcRepeatWatchPanel from "@/components/lc-repeat-watch-panel";
 import LcWaitingShadowPanel from "@/components/lc-waiting-shadow-panel";
 import LcRapidReboundPanel from "@/components/lc-rapid-rebound-panel";
 import TradingCommandsPanel from "@/components/trading-commands-panel";
+import SignalsExportButton from "@/components/signals-export-button";
 import { getStoredUser } from "@/hooks/useAuth";
 
 export default function Analytics() {
@@ -13,6 +14,7 @@ export default function Analytics() {
 
   return (
     <div className="space-y-8">
+      {getStoredUser()?.role === "owner" && <SignalsExportButton />}
       <SignalHistory initialSymbol={symbolFromUrl} />
       {getStoredUser()?.role === "owner" && (
         <>

@@ -9,6 +9,7 @@ import liqCascadeRouter from "./liq-cascade.js";
 import authRouter from "./auth.js";
 import clientErrorsRouter from "./client-errors.js";
 import tradingCommandsRouter from "./trading-commands.js";
+import signalsExportRouter from "./signals-export.js";
 const router: IRouter = Router();
 
 router.use(healthRouter);
@@ -21,5 +22,6 @@ router.use(liqCascadeRouter);
 router.use(authRouter);
 router.use(clientErrorsRouter);
 router.use(tradingCommandsRouter);
+router.use(signalsExportRouter);
 
 export default router;
