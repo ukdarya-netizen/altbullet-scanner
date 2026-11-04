@@ -23,7 +23,10 @@ function CoverageLine() {
       const r = await fetch(`${API_BASE}/api/signals-export/coverage`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("authToken") ?? ""}` },
       });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) {
+        const body = (await r.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(`HTTP ${r.status}${body?.error ? ` — ${body.error}` : ""}`);
+      }
       return (await r.json()) as Coverage;
     },
     refetchInterval: 60_000,

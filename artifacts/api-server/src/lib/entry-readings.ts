@@ -25,6 +25,30 @@ const RETRY_AFTER_MS = 6 * H1;
 type SignalRef = { id: number; symbol: string; sentimentKey: string | null; detectedAt: Date };
 export type ReadingResult = { vsa: "written" | "exists" | "failed"; wyckoff: "written" | "exists" | "failed"; reason: string | null };
 
+/**
+ * The two tables, created here if missing (owner 2026-11-04: production never ran the startup
+ * maintenance that created them, so nothing could be written). Same DDL as the startup migration.
+ */
+let tablesReady: Promise<void> | null = null;
+export function ensureEntryReadingTables(): Promise<void> {
+  tablesReady ??= (async () => {
+    for (const t of ["vsa_entry_metrics", "wyckoff_entry_metrics"]) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS ${t} (
+          id                serial PRIMARY KEY,
+          tracked_signal_id integer NOT NULL,
+          symbol            text NOT NULL,
+          sentiment_key     text NOT NULL,
+          source            text NOT NULL,
+          recorded_at       timestamp NOT NULL DEFAULT now(),
+          metrics           jsonb NOT NULL
+        )`);
+      await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS ${t}_signal_unique ON ${t} (tracked_signal_id)`);
+    }
+  })().catch((err) => { tablesReady = null; throw err; });
+  return tablesReady;
+}
+
 /** Last failure per signal (reason, when) — shown on «Аналитика», retried after RETRY_AFTER_MS. */
 const failures = new Map<number, { reason: string; at: number }>();
 const inflight = new Set<number>();
@@ -52,6 +76,7 @@ export async function recordEntryReadings(t: SignalRef, opts: { priority?: "high
   if (inflight.has(t.id)) return out;
   inflight.add(t.id);
   try {
+    await ensureEntryReadingTables();
     const have = opts.have ?? await (async () => {
       const r = await pool.query(
         `SELECT EXISTS (SELECT 1 FROM vsa_entry_metrics WHERE tracked_signal_id = $1) AS vsa,
@@ -114,6 +139,7 @@ export async function recordEntryReadings(t: SignalRef, opts: { priority?: "high
 
 /** One restore pass: signals of the last 60 days missing a reading, newest first, one at a time. */
 export async function runEntryReadingsBackfillCycle(limit = 40, gapMs = 2_000): Promise<{ tried: number; written: number; failed: number }> {
+  await ensureEntryReadingTables();
   const { rows } = await pool.query(
     `SELECT t.id, t.symbol, t.sentiment_key, t.detected_at,
             (v.tracked_signal_id IS NOT NULL) AS has_vsa, (w.tracked_signal_id IS NOT NULL) AS has_wy
@@ -144,6 +170,7 @@ export async function runEntryReadingsBackfillCycle(limit = 40, gapMs = 2_000): 
 
 /** For «Аналитика»: per pattern, signals of the last 60 days and how many have each reading; recent failures. */
 export async function entryReadingsCoverage() {
+  await ensureEntryReadingTables();
   const { rows } = await pool.query(
     `SELECT t.sentiment_key AS key, count(*)::int AS total,
             count(v.tracked_signal_id)::int AS vsa,
