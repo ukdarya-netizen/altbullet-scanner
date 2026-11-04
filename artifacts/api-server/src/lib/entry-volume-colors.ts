@@ -53,7 +53,13 @@ export function colorOf(ratio: number): string {
  * Pure: colours of the window. `bars` = consecutive 1H bars (ascending) from the start of the
  * available history up to and including the entry candle; `vol(t)` = volume of the bar or null.
  */
-export function colorWindow(barTimes: number[], vol: (t: number) => number | null, entry: number) {
+type Bar = { open: number; high: number; low: number; close: number };
+/** Candle letter: U green (close > open), D red, F flat. */
+const dirOf = (b: Bar | undefined) => (!b ? "-" : b.close > b.open ? "U" : b.close < b.open ? "D" : "F");
+/** Close position in the bar: 0 = at the low, 1 = at the high. */
+const closePos = (b: Bar | undefined) => (b && b.high > b.low ? (b.close - b.low) / (b.high - b.low) : null);
+
+export function colorWindow(barTimes: number[], vol: (t: number) => number | null, entry: number, candle: (t: number) => Bar | undefined = () => undefined) {
   let ma = 0;
   const ratio = new Map<number, number>();
   for (const t of barTimes) {
@@ -69,7 +75,28 @@ export function colorWindow(barTimes: number[], vol: (t: number) => number | nul
     const r = ratio.get(entry - k * H1);
     before.push(r === undefined ? "-" : colorOf(r));
   }
+  // Owner 2026-11-04 (VSA proper): which candle carried the volume. Same 48 bars, BingX price.
+  const bars = Array.from({ length: WINDOW }, (_, i) => candle(entry - (WINDOW - i) * H1));
+  const dirs = bars.map(dirOf);
   const last = (n: number) => before.slice(-n);
+  const colored = (c: string) => c === "P" || c === "R" || c === "O";
+  /** Counts over the last n bars of coloured (P/R/O) bars by candle type. */
+  const vsaCounts = (n: number) => {
+    let up = 0, down = 0, downStopping = 0, closeNearLow = 0, upCloseNearHigh = 0;
+    for (let i = WINDOW - n; i < WINDOW; i++) {
+      if (!colored(before[i]!)) continue;
+      const d = dirs[i], p = closePos(bars[i]);
+      if (d === "U") up++;
+      if (d === "D") down++;
+      // stopping volume: red bar on high volume that closed in the upper half (buyers absorbed the selling)
+      if (d === "D" && p !== null && p >= 0.5) downStopping++;
+      // weakness: high volume bar that closed in the lower third (sellers on top)
+      if (p !== null && p <= 0.33) closeNearLow++;
+      // strength: green bar on high volume closing in the upper third
+      if (d === "U" && p !== null && p >= 0.67) upCloseNearHigh++;
+    }
+    return { up, down, downStopping, closeNearLow, upCloseNearHigh };
+  };
   const count = (arr: string[], c: string) => arr.filter((x) => x === c).length;
   const sinceLast = (set: string) => { for (let k = 1; k <= WINDOW; k++) if (set.includes(before[WINDOW - k]!)) return k; return null; };
   const out: Record<string, unknown> = {
@@ -77,6 +104,10 @@ export function colorWindow(barTimes: number[], vol: (t: number) => number | nul
     entryRatio: Math.round(entryRatio * 100) / 100,
     /** 48 bars before the entry candle, oldest → newest (the last letter = the bar right before the entry). */
     colors48: before.join(""),
+    /** Candle of each of the same 48 bars: U green, D red, F flat (BingX price). */
+    candles48: dirs.join(""),
+    /** Volume colour + candle, e.g. «Pd» = purple on a red candle, «Ou» = orange on a green one. */
+    colorCandle48: before.map((c, i) => c + (dirs[i] === "-" ? "-" : dirs[i]!.toLowerCase())).join(" "),
     historyBars: barTimes.length,
     hoursSincePurple: sinceLast("P"),
     hoursSinceRedOrPurple: sinceLast("PR"),
@@ -84,8 +115,11 @@ export function colorWindow(barTimes: number[], vol: (t: number) => number | nul
   };
   for (const n of [6, 12, 24, 48]) {
     const w = last(n);
-    out[`last${n}h`] = { P: count(w, "P"), R: count(w, "R"), O: count(w, "O"), G: count(w, "G"), B: count(w, "B"), S: count(w, "S"), colored: count(w, "P") + count(w, "R") + count(w, "O") };
+    out[`last${n}h`] = { P: count(w, "P"), R: count(w, "R"), O: count(w, "O"), G: count(w, "G"), B: count(w, "B"), S: count(w, "S"), colored: count(w, "P") + count(w, "R") + count(w, "O"), ...vsaCounts(n) };
   }
+  const e = candle(entry);
+  out.entryCandle = dirOf(e);
+  out.entryClosePos = closePos(e) === null ? null : Math.round(closePos(e)! * 100) / 100;
   return out;
 }
 
@@ -112,7 +146,9 @@ export async function recordVolumeColors(t: SignalRef, priority: "high" | "low" 
     let startIdx = 0;
     for (let i = 1; i < barTimes.length; i++) if (barTimes[i]! - barTimes[i - 1]! !== H1) startIdx = i;
     const series = barTimes.slice(startIdx);
-    const bingx = reasons.length ? null : colorWindow(series, (x) => bingxVol.get(x) ?? null, entry);
+    const priceBar = new Map(bars.map((k) => [k.time, { open: Number(k.open), high: Number(k.high), low: Number(k.low), close: Number(k.close) }]));
+    const candleAt = (x: number) => priceBar.get(x);
+    const bingx = reasons.length ? null : colorWindow(series, (x) => bingxVol.get(x) ?? null, entry, candleAt);
     if (!reasons.length && !bingx) reasons.push("BingX: дыра в истории объёма");
 
     const hours = Math.ceil((Date.now() - from) / H1) + 2;
@@ -129,7 +165,7 @@ export async function recordVolumeColors(t: SignalRef, priority: "high" | "low" 
       const aggTimes = series.filter((x) => agg.has(x));
       let s = 0;
       for (let i = 1; i < aggTimes.length; i++) if (aggTimes[i]! - aggTimes[i - 1]! !== H1) s = i;
-      aggOut = colorWindow(aggTimes.slice(s), (x) => agg.get(x) ?? null, entry);
+      aggOut = colorWindow(aggTimes.slice(s), (x) => agg.get(x) ?? null, entry, candleAt);
       if (!aggOut) reasons.push("CoinGlass: нет объёма свечи входа");
     }
     if (!bingx && !aggOut) {
@@ -143,8 +179,10 @@ export async function recordVolumeColors(t: SignalRef, priority: "high" | "low" 
     }
     await pool.query(
       `INSERT INTO signal_volume_colors (tracked_signal_id, symbol, sentiment_key, metrics)
-       VALUES ($1, $2, $3, $4::jsonb) ON CONFLICT (tracked_signal_id) DO NOTHING`,
+       VALUES ($1, $2, $3, $4::jsonb)
+       ON CONFLICT (tracked_signal_id) DO UPDATE SET metrics = EXCLUDED.metrics, recorded_at = now()`,
       [t.id, t.symbol, t.sentimentKey, JSON.stringify({
+        version: 2,
         entryCandle: new Date(entry).toISOString(),
         bingx, agg: aggOut,
         missing: reasons.length ? reasons : null,
@@ -172,7 +210,8 @@ export async function runVolumeColorsBackfillCycle(limit = 40, gapMs = 2_000, pr
      LEFT JOIN signal_volume_colors c ON c.tracked_signal_id = t.id
      WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
        AND t.detected_at < now() - interval '5 minutes'
-       AND c.tracked_signal_id IS NULL AND NOT (t.id = ANY($3::int[]))
+       AND (c.tracked_signal_id IS NULL OR COALESCE(c.metrics->>'version', '1') <> '2')
+       AND NOT (t.id = ANY($3::int[]))
      ORDER BY t.detected_at > now() - interval '30 days' DESC, t.detected_at DESC
      LIMIT $4`, [[...VOLUME_COLOR_KEYS], BACKFILL_DAYS, cooling, limit]);
   let tried = 0, written = 0, failed = 0;
@@ -190,7 +229,7 @@ export async function runVolumeColorsBackfillCycle(limit = 40, gapMs = 2_000, pr
 export async function volumeColorsCoverage() {
   await ensureVolumeColorsTable();
   const { rows } = await pool.query(
-    `SELECT t.sentiment_key AS key, count(c.tracked_signal_id)::int AS n
+    `SELECT t.sentiment_key AS key, count(c.tracked_signal_id) FILTER (WHERE c.metrics->>'version' = '2')::int AS n
      FROM tracked_signals t LEFT JOIN signal_volume_colors c ON c.tracked_signal_id = t.id
      WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
      GROUP BY 1`, [[...VOLUME_COLOR_KEYS], BACKFILL_DAYS]);
