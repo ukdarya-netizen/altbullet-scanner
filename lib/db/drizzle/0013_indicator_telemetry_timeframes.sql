@@ -1,0 +1,1 @@
+ALTER TABLE "tracked_signals" ADD COLUMN IF NOT EXISTS "entry_indicator_telemetry" jsonb;

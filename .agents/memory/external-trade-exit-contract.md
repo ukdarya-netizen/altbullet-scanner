@@ -1,0 +1,12 @@
+---
+name: External trade exit contract
+description: Why the signal receiver must not infer Bullet exits from a scalar target or a queued receipt
+---
+
+Bullet's first target is a milestone with advice to take some profit, not a verified automatic partial fill or a full-position exit. Its protection and trailing decisions are based on percentage moves, and Impulse Buy has a separate core/runner lifecycle. Do not translate these into the other bot's R-multiple TP1/TP2/TP3 strategy.
+
+**Why:** The receiver's optional scalar take-profit can be interpreted as an order to close the entire position at the first target, which silently contradicts Bullet's remaining-position protection and trailing policy. A queued response says only that the payload was stored; it does not establish that the receiver understands or executes the nested strategy. Paper-mode status was observed historically, not verified for the current receiver. A green default suite once skipped the opt-in database-backed relay test and missed a BTC payload field required by its contract.
+
+**How to apply:** Send versioned structured exit instructions without a misleading scalar full-position take-profit. Distinguish advisory partial-profit messages from actual fills. For release preparation involving the relay, explicitly exercise its opt-in database-backed contract test; the default suite alone does not cover that path. When handing off receiver code without the other bot's source, make receipt fail closed unless the actual exit worker confirms support and a durable deduplicated queue confirms persistence; validation alone must never produce a successful receipt. Never claim end-to-end exit parity or enable real orders from sender-side tests alone; verify the receiver's interpretation and observed paper lifecycle separately.
+
+**Live-activation boundary:** A full-position exchange stop attached to an Impulse entry can liquidate the runner when the core's stop is touched. PAPER logic for the 80/20 split is not evidence that exchange-managed partial stops, fills, and margin top-ups behave the same way. **Why:** The runner must survive a core exit, while a full-position stop acts on both portions; sending a close request and updating the stop afterward leaves a race window. **How to apply:** Keep real orders disabled until an independent core/runner stop arrangement and all ambiguous order outcomes are reconciled with exchange state and demonstrated on testnet, then obtain explicit owner approval.

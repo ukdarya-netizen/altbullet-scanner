@@ -1,0 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=JetBrains+Mono:wght@400;600;800&display=swap');
+@import 'tailwindcss';
+:root{
+  --ink:#0b1020; --ink2:#141b33; --lime:#c6ff3d; --coral:#ff5a4e; --fog:#e9ecf5; --dim:#7c86a8;
+  --color-bg-light:#0b1020;
+  --font-display:'Unbounded',sans-serif; --font-mono:'JetBrains Mono',monospace;
+}
+html,body,#root{margin:0;background:#0b1020;color:var(--fog);}
+.disp{font-family:var(--font-display);}
+.mono{font-family:var(--font-mono);}
+.grid-bg{background-image:linear-gradient(rgba(198,255,61,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(198,255,61,.05) 1px,transparent 1px);background-size:6vmin 6vmin;}

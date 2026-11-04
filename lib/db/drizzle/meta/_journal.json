@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1777962137835,
+      "tag": "0000_grey_miracleman",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784296039965,
+      "tag": "0001_ambitious_doctor_faustus",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753178400000,
+      "tag": "0002_overheat_log_layers_type_fix",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787139093345,
+      "tag": "0003_subscription_warning_deliveries",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787140853000,
+      "tag": "0004_milestone_delivery_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787142000000,
+      "tag": "0005_cancellation_72h_observation_time",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787216157544,
+      "tag": "0006_scheduler_leases",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787217000000,
+      "tag": "0007_bu_stop_followup_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787813100000,
+      "tag": "0008_tracked_signal_expired_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787824800000,
+      "tag": "0009_all_signal_post_close_followup",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1787828400000,
+      "tag": "0010_stealth_quiet_zone_4h_cursor",
+      "breakpoints": true
+    }
+  ]
+}

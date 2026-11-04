@@ -1,0 +1,91 @@
+@import 'tailwindcss';
+
+/* REPLACE THESE -- define your own palette and fonts for each video */
+:root {
+  --color-primary: #15171D;
+  --color-secondary: #5A5A5E;
+  --color-accent: #FF4A1C;
+  --color-bg-light: #ECE6DA;
+  --color-bg-dark: #15171D;
+  --color-bg-muted: #E2DACB;
+  --color-text-primary: #15171D;
+  --color-text-secondary: #5A5A5E;
+  --color-text-muted: #8C877C;
+  --color-text-inverse: #ECE6DA;
+  --color-success: #0E9F6E;
+  --color-warning: #F2B33D;
+  --color-error: #FF4A1C;
+  --cobalt: #2F3FD8;
+  --font-display: 'Unbounded', sans-serif;
+  --font-body: 'JetBrains Mono', monospace;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  --color-bg-light: var(--color-bg-light);
+  --color-bg-dark: var(--color-bg-dark);
+  --color-bg-muted: var(--color-bg-muted);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.video-media-frame {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.video-media-frame > :is(img, video) {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+}
+
+.video-media-frame[data-media-fit='contain'] > :is(img, video) {
+  object-fit: contain;
+}
+
+.video-media-frame[data-media-position='top'] > :is(img, video) {
+  object-position: top;
+}
+
+.video-media-frame[data-media-position='right'] > :is(img, video) {
+  object-position: right;
+}
+
+.video-media-frame[data-media-position='bottom'] > :is(img, video) {
+  object-position: bottom;
+}
+
+.video-media-frame[data-media-position='left'] > :is(img, video) {
+  object-position: left;
+}
+
+.f-disp { font-family: var(--font-display); }
+.f-mono { font-family: var(--font-mono); }
+.outline-word { -webkit-text-stroke: 0.3vmin var(--outline-color, currentColor); color: transparent !important; }
+.grain::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .08;
+  background-image: radial-gradient(rgba(0,0,0,.6) 0.5px, transparent 0.6px); background-size: 3px 3px; }
+@keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }

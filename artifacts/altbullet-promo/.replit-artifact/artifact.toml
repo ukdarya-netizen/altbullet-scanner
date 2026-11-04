@@ -1,0 +1,29 @@
+kind = "video"
+videoAspectRatio = "16:9"
+previewPath = "/altbullet-promo/"
+title = "AltBullet — презентация"
+description = "15-секундный ролик-презентация сканера и бота BingX AltBullet."
+version = "1.0.0"
+id = "artifacts/altbullet-promo"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/altbullet-promo/" ]
+localPort = 23183
+
+[services.development]
+run = "pnpm --filter @workspace/altbullet-promo run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/altbullet-promo", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/altbullet-promo/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23183"
+BASE_PATH = "/altbullet-promo/"

@@ -1,0 +1,29 @@
+kind = "video"
+videoAspectRatio = "16:9"
+previewPath = "/altbullet-patterns/"
+title = "AltBullet — паттерны"
+description = "30-секундная анимация о паттернах сканера BingX AltBullet."
+version = "1.0.0"
+id = "artifacts/altbullet-patterns"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/altbullet-patterns/" ]
+localPort = 18106
+
+[services.development]
+run = "pnpm --filter @workspace/altbullet-patterns run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/altbullet-patterns", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/altbullet-patterns/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18106"
+BASE_PATH = "/altbullet-patterns/"

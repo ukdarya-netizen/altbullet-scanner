@@ -1,0 +1,82 @@
+name: Scanner recovery validation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scanner-recovery:
+    name: Scanner recovery and watchdog state tests
+    runs-on: ubuntu-latest
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:test@127.0.0.1:5432/dashboard_access_test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: dashboard_access_test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d dashboard_access_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run scanner recovery and watchdog state tests
+        run: pnpm test
+
+  scanner-lease-outage:
+    name: PostgreSQL scanner lease outage drill
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install PostgreSQL tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y postgresql postgresql-client
+          postgres_bin="$(find /usr/lib/postgresql -type f -name pg_ctl -printf '%h\n' -quit)"
+          test -n "$postgres_bin"
+          echo "$postgres_bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run PostgreSQL scanner lease outage drill
+        run: pnpm --filter @workspace/api-server run test:scheduler-lease:outage

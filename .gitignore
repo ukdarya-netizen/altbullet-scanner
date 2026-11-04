@@ -1,0 +1,60 @@
+# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# compiled output
+dist
+# api-server dist is committed so production deploys don't need a build step
+!artifacts/api-server/dist/
+# lib/db dist is committed so api-server typecheck works without a prior typecheck:libs run
+!lib/db/dist/
+# lib/api-client-react dist is committed so typecheck works in a fresh checkout
+!lib/api-client-react/dist/
+tmp
+out-tsc
+*.tsbuildinfo
+.expo
+.expo-shared
+
+# dependencies
+node_modules
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
+
+# System Files
+.DS_Store
+Thumbs.db
+
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
+
+# Replit
+.cache/
+.local/
+artifacts/api-server/dist/index.mjs.map
+artifacts/api-server/.test-dist/
+artifacts/archetype-detector/archetype_detector.db-shm
+artifacts/archetype-detector/archetype_detector.db-wal
+/generated-artifacts/
