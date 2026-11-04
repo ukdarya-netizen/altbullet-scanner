@@ -669,6 +669,8 @@ export async function getAggFuturesVolumeByInterval(
   interval: "15m" | "1h" | "4h",
   limit: number,
   nowMs: number = Date.now(),
+  /** "low" for background backfills (owner 2026-11-04: entry VSA / Wyckoff history). */
+  priority: "high" | "low" = "high",
 ): Promise<Map<number, number> | null> {
   const cacheKey = `${applyCgAlias(bingxSymbol.replace(/-?USDT$/i, "")).toUpperCase()}|${interval}`;
   const barMs = INTERVAL_MS[interval];
@@ -683,15 +685,16 @@ export async function getAggFuturesVolumeByInterval(
   const rows = await fetchAggFuturesTakerCandles(
     bingxSymbol,
     apiKey,
-    limit,
+    Math.min(4500, Math.max(1, Math.round(limit))),
     15_000,
-    "high",
+    priority === "high" ? "high" : undefined,
     interval,
   );
   if (!rows) return null;
   const volumes = new Map(
     rows.map((r) => [
-      r.time,
+      // CoinGlass candle time in ms (seconds are converted, so keys match BingX candles).
+      r.time < 1e12 ? r.time * 1000 : r.time,
       (Number(r.taker_buy_volume_usd) || 0) +
         (Number(r.taker_sell_volume_usd) || 0),
     ]),

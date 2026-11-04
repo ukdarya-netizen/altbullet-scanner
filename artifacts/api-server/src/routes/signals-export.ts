@@ -9,15 +9,17 @@
 import { Router, type IRouter } from "express";
 import { pool } from "@workspace/db";
 import { requireAdminToken } from "../middleware/adminAuth.js";
+import { entryReadingsCoverage } from "../lib/entry-readings.js";
 
 const router: IRouter = Router();
 
-/** Flattens one level of a JSON object into prefixed columns; deeper values stay JSON text. */
-export function flatten(prefix: string, v: unknown, out: Record<string, unknown>): void {
+/** Flattens a JSON object into prefixed columns, `depth` levels deep; deeper values and arrays stay JSON text. */
+export function flatten(prefix: string, v: unknown, out: Record<string, unknown>, depth = 1): void {
   if (v === null || v === undefined) return;
   if (typeof v !== "object" || Array.isArray(v)) { out[prefix] = Array.isArray(v) ? JSON.stringify(v) : v; return; }
   for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
-    out[`${prefix}_${k}`] = x !== null && typeof x === "object" ? JSON.stringify(x) : x;
+    if (x !== null && typeof x === "object" && !Array.isArray(x) && depth > 1) flatten(`${prefix}_${k}`, x, out, depth - 1);
+    else out[`${prefix}_${k}`] = x !== null && typeof x === "object" ? JSON.stringify(x) : x;
   }
 }
 
@@ -51,8 +53,8 @@ router.get("/signals-export", requireAdminToken, async (req, res) => {
         if (JSON_COLS[k]) { flatten(JSON_COLS[k]!, v, o); continue; }
         o[k] = v instanceof Date ? v.toISOString() : typeof v === "bigint" ? Number(v) : v !== null && typeof v === "object" ? JSON.stringify(v) : v;
       }
-      flatten("vsa", r.vsa, o);
-      flatten("wy", r.wy, o);
+      flatten("vsa", r.vsa, o, 2);
+      flatten("wy", r.wy, o, 2);
       return o;
     });
     const first = ["id", "symbol", "sentiment_key", "sentiment", "stealth_detection_method", "is_short", "status", "detected_at", "closed_at",
@@ -62,6 +64,16 @@ router.get("/signals-export", requireAdminToken, async (req, res) => {
     const columns = [...first.filter((c) => all.has(c)), ...[...all].filter((c) => !first.includes(c)).sort()];
     res.setHeader("Cache-Control", "no-store");
     res.json({ days, joined: [...have], columns, rows: flat.map((o) => columns.map((c) => o[c] ?? null)) });
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message.slice(0, 400) : String(e) });
+  }
+});
+
+/** How many signals already have VSA / Wyckoff at the entry, per pattern (owner 2026-11-04). */
+router.get("/signals-export/coverage", requireAdminToken, async (_req, res) => {
+  try {
+    res.setHeader("Cache-Control", "no-store");
+    res.json(await entryReadingsCoverage());
   } catch (e) {
     res.status(500).json({ error: e instanceof Error ? e.message.slice(0, 400) : String(e) });
   }

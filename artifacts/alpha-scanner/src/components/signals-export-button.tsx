@@ -1,8 +1,52 @@
 // Our signals with every metric as a CSV file (owner 2026-11-04: analysis on our own signals, by name).
 // «;» between columns and a decimal comma, so it opens as a table in Excel / Numbers.
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+type Coverage = {
+  days: number;
+  patterns: Array<{ key: string; total: number; vsa: number; vsa_with_volume: number; wyckoff: number }>;
+  failedNow: number;
+  reasons: Record<string, number>;
+};
+const NAMES: Record<string, string> = {
+  impulse_buy: "Impulse Buy", stealth_breakout: "Stealth", neon_support_bounce: "ABNeon", liquidation_cascade: "Liquidation Cascade",
+};
+
+/** VSA and Wyckoff at the entry: how many signals already have them (restored in the background). */
+function CoverageLine() {
+  const q = useQuery({
+    queryKey: ["signals-export-coverage"],
+    queryFn: async () => {
+      const r = await fetch(`${API_BASE}/api/signals-export/coverage`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("authToken") ?? ""}` },
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return (await r.json()) as Coverage;
+    },
+    refetchInterval: 60_000,
+  });
+  if (q.error) return <p className="text-xs text-destructive">VSA / Вайкофф: не удалось проверить ({(q.error as Error).message})</p>;
+  const d = q.data;
+  if (!d) return null;
+  return (
+    <div className="text-xs space-y-1">
+      <p className="font-semibold">VSA и Вайкофф на входе за {d.days} дней (восстанавливаются в фоне, порциями каждые 10 минут):</p>
+      {d.patterns.map((p) => (
+        <p key={p.key} className="tabular-nums">
+          {NAMES[p.key] ?? p.key}: сигналов {p.total} · VSA {p.vsa} · Вайкофф {p.wyckoff}
+        </p>
+      ))}
+      {d.failedNow > 0 && (
+        <p className="text-muted-foreground">
+          Не получилось сейчас: {d.failedNow} — {Object.entries(d.reasons).map(([r, n]) => `${r}: ${n}`).join(" · ")}. Повтор через 6 часов.
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function SignalsExportButton() {
   const [days, setDays] = useState(30);
@@ -49,6 +93,7 @@ export default function SignalsExportButton() {
           className="h-9 rounded bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-50">Скачать</button>
         {status && <span className="text-xs text-muted-foreground">{status}</span>}
       </div>
+      <CoverageLine />
     </section>
   );
 }

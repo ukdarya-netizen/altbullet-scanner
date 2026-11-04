@@ -1,0 +1,160 @@
+/**
+ * VSA and Wyckoff at the entry of every signal (owner 2026-11-04): Impulse Buy, Stealth, ABNeon and
+ * Liquidation Cascade. Before this they were written only for open positions from FastCycle, both
+ * were skipped together when the entry candle was missing, and signals older than ~20 days never got
+ * a volume — so production had none. Now:
+ *   - each reading is written on its own (a failed VSA never blocks Wyckoff and back);
+ *   - a background pass restores both for every signal of the last 60 days that lacks them;
+ *   - the reason of every failed attempt is kept in memory and shown on «Аналитика».
+ * Price OHLC from BingX 1H candles, volume = aggregated CoinGlass futures volume (all exchanges).
+ * Observation only — no decision reads these.
+ */
+import { db, pool, vsaEntryMetricsTable, wyckoffEntryMetricsTable } from "@workspace/db";
+import { getKlinesRange } from "./bingx.js";
+import { getAggFuturesVolumeByInterval } from "./coinglass_taker.js";
+import { computeVsa, type Ohlc } from "./vsa-metrics.js";
+import { computeWyckoff } from "./wyckoff-metrics.js";
+import { logger } from "./logger.js";
+
+export const ENTRY_READING_KEYS = ["impulse_buy", "stealth_breakout", "neon_support_bounce", "liquidation_cascade"] as const;
+const H1 = 3_600_000;
+const LOOKBACK_BARS = 120;
+const BACKFILL_DAYS = 60;
+const RETRY_AFTER_MS = 6 * H1;
+
+type SignalRef = { id: number; symbol: string; sentimentKey: string | null; detectedAt: Date };
+export type ReadingResult = { vsa: "written" | "exists" | "failed"; wyckoff: "written" | "exists" | "failed"; reason: string | null };
+
+/** Last failure per signal (reason, when) — shown on «Аналитика», retried after RETRY_AFTER_MS. */
+const failures = new Map<number, { reason: string; at: number }>();
+const inflight = new Set<number>();
+
+/** The last closed 1H candle before the signal. */
+export const entryCandleOf = (detectedAt: Date) => Math.floor(detectedAt.getTime() / H1) * H1 - H1;
+
+async function loadInputs(symbol: string, entryCandle: number, priority: "high" | "low") {
+  const raw = await getKlinesRange(symbol, "1h", entryCandle - LOOKBACK_BARS * H1, entryCandle + H1).catch(() => []);
+  const candles: Ohlc[] = raw
+    .map((k) => ({ time: Number(k.time), open: Number(k.open), high: Number(k.high), low: Number(k.low), close: Number(k.close) }))
+    .filter((k) => k.time <= entryCandle && Number.isFinite(k.close))
+    .sort((a, b) => a.time - b.time);
+  const bars = Math.ceil((Date.now() - entryCandle) / H1) + LOOKBACK_BARS + 2;
+  const volumes = bars <= 4500
+    ? await getAggFuturesVolumeByInterval(symbol, "1h", bars, Date.now(), priority).catch(() => null)
+    : null;
+  return { candles, volumes };
+}
+
+/** Writes the missing VSA and/or Wyckoff reading of one signal. Never throws. */
+export async function recordEntryReadings(t: SignalRef, opts: { priority?: "high" | "low"; have?: { vsa: boolean; wyckoff: boolean } } = {}): Promise<ReadingResult> {
+  const out: ReadingResult = { vsa: "exists", wyckoff: "exists", reason: null };
+  if (!ENTRY_READING_KEYS.includes((t.sentimentKey ?? "") as (typeof ENTRY_READING_KEYS)[number])) return out;
+  if (inflight.has(t.id)) return out;
+  inflight.add(t.id);
+  try {
+    const have = opts.have ?? await (async () => {
+      const r = await pool.query(
+        `SELECT EXISTS (SELECT 1 FROM vsa_entry_metrics WHERE tracked_signal_id = $1) AS vsa,
+                EXISTS (SELECT 1 FROM wyckoff_entry_metrics WHERE tracked_signal_id = $1) AS wyckoff`, [t.id]);
+      return { vsa: Boolean(r.rows[0]?.vsa), wyckoff: Boolean(r.rows[0]?.wyckoff) };
+    })();
+    if (have.vsa && have.wyckoff) return out;
+    const entryCandle = entryCandleOf(t.detectedAt);
+    const { candles, volumes } = await loadInputs(t.symbol, entryCandle, opts.priority ?? "low");
+    const reasons: string[] = [];
+    if (!candles.some((c) => c.time === entryCandle)) reasons.push("нет свечи входа BingX 1H");
+    if (!volumes) reasons.push("нет агрегированного объёма CoinGlass");
+    const source = Date.now() - t.detectedAt.getTime() <= 30 * 60_000 ? "live" : "backfill";
+    const base = { trackedSignalId: t.id, symbol: t.symbol, sentimentKey: t.sentimentKey ?? "unknown", source };
+
+    if (!have.vsa) {
+      const read = computeVsa(candles, volumes, [entryCandle - 2 * H1, entryCandle - H1, entryCandle]);
+      const entry = read.find((c) => Date.parse(c.time) === entryCandle);
+      if (entry && entry.volumeRatio !== null) {
+        await db.insert(vsaEntryMetricsTable).values({
+          ...base,
+          metrics: {
+            entryCandle: entry,
+            prev1: read.find((c) => Date.parse(c.time) === entryCandle - H1) ?? null,
+            prev2: read.find((c) => Date.parse(c.time) === entryCandle - 2 * H1) ?? null,
+            source: "bingx_price_ohlc+coinglass_agg_volume",
+          },
+        }).onConflictDoNothing();
+        out.vsa = "written";
+      } else {
+        out.vsa = "failed";
+        if (entry && entry.volumeRatio === null) reasons.push("объём свечи входа не сопоставился с историей");
+      }
+    }
+    if (!have.wyckoff) {
+      const w = computeWyckoff(candles, volumes, entryCandle);
+      if (w.phase !== "insufficient_history" && volumes) {
+        const counts: Record<string, number> = {};
+        for (const e of w.events) counts[e.type] = (counts[e.type] ?? 0) + 1;
+        await db.insert(wyckoffEntryMetricsTable).values({ ...base, metrics: { ...w, counts } }).onConflictDoNothing();
+        out.wyckoff = "written";
+      } else {
+        out.wyckoff = "failed";
+        if (w.phase === "insufficient_history") reasons.push("мало истории свечей до входа");
+      }
+    }
+    out.reason = reasons.length ? [...new Set(reasons)].join("; ") : null;
+    if (out.vsa === "failed" || out.wyckoff === "failed") failures.set(t.id, { reason: out.reason ?? "неизвестно", at: Date.now() });
+    else failures.delete(t.id);
+    return out;
+  } catch (err) {
+    const reason = `ошибка: ${err instanceof Error ? err.message.slice(0, 160) : String(err)}`;
+    failures.set(t.id, { reason, at: Date.now() });
+    logger.warn({ err, symbol: t.symbol }, "entry VSA/Wyckoff reading failed (non-critical)");
+    return { vsa: "failed", wyckoff: "failed", reason };
+  } finally {
+    inflight.delete(t.id);
+  }
+}
+
+/** One restore pass: signals of the last 60 days missing a reading, newest first, one at a time. */
+export async function runEntryReadingsBackfillCycle(limit = 40, gapMs = 2_000): Promise<{ tried: number; written: number; failed: number }> {
+  const { rows } = await pool.query(
+    `SELECT t.id, t.symbol, t.sentiment_key, t.detected_at,
+            (v.tracked_signal_id IS NOT NULL) AS has_vsa, (w.tracked_signal_id IS NOT NULL) AS has_wy
+     FROM tracked_signals t
+     LEFT JOIN vsa_entry_metrics v ON v.tracked_signal_id = t.id
+     LEFT JOIN wyckoff_entry_metrics w ON w.tracked_signal_id = t.id
+     WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
+       AND t.detected_at < now() - interval '5 minutes'
+       AND (v.tracked_signal_id IS NULL OR w.tracked_signal_id IS NULL)
+     ORDER BY t.detected_at DESC LIMIT 400`, [[...ENTRY_READING_KEYS], BACKFILL_DAYS]);
+  let tried = 0, written = 0, failed = 0;
+  for (const r of rows) {
+    if (tried >= limit) break;
+    const f = failures.get(r.id);
+    if (f && Date.now() - f.at < RETRY_AFTER_MS) continue;
+    tried += 1;
+    const res = await recordEntryReadings(
+      { id: r.id, symbol: r.symbol, sentimentKey: r.sentiment_key, detectedAt: new Date(r.detected_at) },
+      { priority: "low", have: { vsa: r.has_vsa, wyckoff: r.has_wy } },
+    );
+    if (res.vsa === "written" || res.wyckoff === "written") written += 1;
+    if (res.vsa === "failed" || res.wyckoff === "failed") failed += 1;
+    await new Promise((resolve) => setTimeout(resolve, gapMs));
+  }
+  if (tried) logger.info({ tried, written, failed }, "entry VSA/Wyckoff restore pass");
+  return { tried, written, failed };
+}
+
+/** For «Аналитика»: per pattern, signals of the last 60 days and how many have each reading; recent failures. */
+export async function entryReadingsCoverage() {
+  const { rows } = await pool.query(
+    `SELECT t.sentiment_key AS key, count(*)::int AS total,
+            count(v.tracked_signal_id)::int AS vsa,
+            count(v.tracked_signal_id) FILTER (WHERE (v.metrics->'entryCandle'->>'volumeRatio') IS NOT NULL)::int AS vsa_with_volume,
+            count(w.tracked_signal_id)::int AS wyckoff
+     FROM tracked_signals t
+     LEFT JOIN vsa_entry_metrics v ON v.tracked_signal_id = t.id
+     LEFT JOIN wyckoff_entry_metrics w ON w.tracked_signal_id = t.id
+     WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
+     GROUP BY 1 ORDER BY 1`, [[...ENTRY_READING_KEYS], BACKFILL_DAYS]);
+  const reasons: Record<string, number> = {};
+  for (const f of failures.values()) reasons[f.reason] = (reasons[f.reason] ?? 0) + 1;
+  return { days: BACKFILL_DAYS, patterns: rows, failedNow: failures.size, reasons };
+}

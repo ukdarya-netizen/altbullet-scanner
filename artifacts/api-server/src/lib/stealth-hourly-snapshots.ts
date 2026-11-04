@@ -2,8 +2,6 @@ import {
   db,
   neonSnapshotsTable,
   stealthHourlySnapshotsTable,
-  vsaEntryMetricsTable,
-  wyckoffEntryMetricsTable,
 } from "@workspace/db";
 import type { trackedSignalsTable } from "@workspace/db";
 import { logger } from "./logger.js";
@@ -16,14 +14,7 @@ import {
 import { getSpotCvdMtf } from "./coinglass_spot_cvd.js";
 import { getSpotVolume } from "./coinglass_spot_volume.js";
 import { computeVsa, loadVsaInputs } from "./vsa-metrics.js";
-import { computeWyckoff } from "./wyckoff-metrics.js";
-
-const ENTRY_ANALYTICS_KEYS = new Set([
-  "stealth_breakout",
-  "neon_support_bounce",
-  "impulse_buy",
-  "liquidation_cascade",
-]);
+import { recordEntryReadings } from "./entry-readings.js";
 
 const HOUR_MS = 3_600_000;
 const MAX_HOURS = 72;
@@ -36,65 +27,18 @@ const SLOT_MS_BY_KEY: Record<string, number> = {
 const METRIC_TIMEOUT_MS = 8_000;
 
 const done = new Set<string>();
-const vsaEntryDone = new Set<number>();
-const vsaEntryInflight = new Set<number>();
+const entryReadingsDone = new Set<number>();
 
 /**
- * One VSA reading per signal on the last closed 1H candle before it (the entry
- * candle). Runs for every open Stealth/Neon position once per process, so
- * signals opened before this existed are filled from history ("backfill").
+ * VSA and Wyckoff at the entry (owner 2026-11-04: moved to entry-readings.ts — each reading on its
+ * own, history restored by a background pass). Here: once per process for every open position.
  */
 async function recordVsaEntry(
   tracked: typeof trackedSignalsTable.$inferSelect,
 ): Promise<void> {
-  if (!ENTRY_ANALYTICS_KEYS.has(tracked.sentimentKey ?? "")) return;
-  if (vsaEntryDone.has(tracked.id) || vsaEntryInflight.has(tracked.id)) return;
-  vsaEntryInflight.add(tracked.id);
-  try {
-    const entryCandle =
-      Math.floor(tracked.detectedAt.getTime() / HOUR_MS) * HOUR_MS - HOUR_MS;
-    const { candles, volumes } = await loadVsaInputs(
-      tracked.symbol,
-      entryCandle + HOUR_MS,
-      Date.now(),
-      100,
-    );
-    const [entry] = computeVsa(candles, volumes, [entryCandle]);
-    if (!entry) return;
-    const ageMs = Date.now() - tracked.detectedAt.getTime();
-    const source = ageMs <= 30 * 60_000 ? "live" : "backfill";
-    await db
-      .insert(wyckoffEntryMetricsTable)
-      .values({
-        trackedSignalId: tracked.id,
-        symbol: tracked.symbol,
-        sentimentKey: tracked.sentimentKey ?? "unknown",
-        source,
-        metrics: computeWyckoff(candles, volumes, entryCandle),
-      })
-      .onConflictDoNothing();
-    await db
-      .insert(vsaEntryMetricsTable)
-      .values({
-        trackedSignalId: tracked.id,
-        symbol: tracked.symbol,
-        sentimentKey: tracked.sentimentKey ?? "unknown",
-        source,
-        metrics: {
-          entryCandle: entry,
-          source: "bingx_price_ohlc+coinglass_agg_volume",
-        },
-      })
-      .onConflictDoNothing();
-    vsaEntryDone.add(tracked.id);
-  } catch (err) {
-    logger.warn(
-      { err, symbol: tracked.symbol },
-      "vsa entry record failed (non-critical)",
-    );
-  } finally {
-    vsaEntryInflight.delete(tracked.id);
-  }
+  if (entryReadingsDone.has(tracked.id)) return;
+  const r = await recordEntryReadings(tracked, { priority: "low" });
+  if (r.vsa !== "failed" && r.wyckoff !== "failed") entryReadingsDone.add(tracked.id);
 }
 const inflight = new Set<string>();
 
@@ -117,7 +61,7 @@ export async function maybeRecordStealthHourlySnapshot(
   pnlPct: number,
   peakPct: number,
 ): Promise<void> {
-  void recordVsaEntry(tracked);
+  void recordVsaEntry(tracked).catch(() => null);
   const slotMs = SLOT_MS_BY_KEY[tracked.sentimentKey ?? ""];
   if (!slotMs) return;
   const elapsedMs = Date.now() - tracked.detectedAt.getTime();
