@@ -151,7 +151,9 @@ export async function runEntryReadingsBackfillCycle(limit = 40, gapMs = 2_000): 
      WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
        AND t.detected_at < now() - interval '5 minutes'
        AND (v.tracked_signal_id IS NULL OR w.tracked_signal_id IS NULL)
-     ORDER BY t.detected_at DESC LIMIT 400`, [[...ENTRY_READING_KEYS], BACKFILL_DAYS]);
+     ORDER BY CASE WHEN t.sentiment_key IN ('impulse_buy', 'stealth_breakout') THEN 0 ELSE 1 END,
+              t.detected_at > now() - interval '30 days' DESC, t.detected_at DESC
+     LIMIT 400`, [[...ENTRY_READING_KEYS], BACKFILL_DAYS]);
   let tried = 0, written = 0, failed = 0;
   for (const r of rows) {
     if (tried >= limit) break;
@@ -168,6 +170,29 @@ export async function runEntryReadingsBackfillCycle(limit = 40, gapMs = 2_000): 
   }
   if (tried) logger.info({ tried, written, failed }, "entry VSA/Wyckoff restore pass");
   return { tried, written, failed };
+}
+
+/**
+ * The restore loop (owner 2026-11-04: the 10-minute job waited for an idle scanner and almost never
+ * ran). One signal after another, a short pause between them; each CoinGlass request still waits in
+ * the shared queue at low priority behind the scanner, so the scan cycle is not lengthened.
+ * Order: Impulse Buy and Stealth first (last 30 days, then older), then ABNeon and LC.
+ */
+let loopStarted = false;
+export function startEntryReadingsRestoreLoop(gapMs = 5_000, idleMs = 10 * 60_000): void {
+  if (loopStarted) return;
+  loopStarted = true;
+  const tick = async () => {
+    let next = idleMs;
+    try {
+      const r = await runEntryReadingsBackfillCycle(20, gapMs);
+      if (r.tried > 0) next = gapMs;
+    } catch (err) {
+      logger.warn({ err }, "entry VSA/Wyckoff restore loop failed (non-critical)");
+    }
+    setTimeout(() => void tick(), next).unref?.();
+  };
+  setTimeout(() => void tick(), 60_000).unref?.();
 }
 
 /** For «Аналитика»: per pattern, signals of the last 60 days and how many have each reading; recent failures. */

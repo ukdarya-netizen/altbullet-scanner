@@ -36,7 +36,7 @@ function CoverageLine() {
   if (!d) return null;
   return (
     <div className="text-xs space-y-1">
-      <p className="font-semibold">VSA и Вайкофф на входе за {d.days} дней (восстанавливаются в фоне, порциями каждые 10 минут):</p>
+      <p className="font-semibold">VSA и Вайкофф на входе за {d.days} дней (восстанавливаются в фоне по одному сигналу: сначала IB и Stealth, потом ABNeon и LC):</p>
       {d.patterns.map((p) => (
         <p key={p.key} className="tabular-nums">
           {NAMES[p.key] ?? p.key}: сигналов {p.total} · VSA {p.vsa} · Вайкофф {p.wyckoff}
