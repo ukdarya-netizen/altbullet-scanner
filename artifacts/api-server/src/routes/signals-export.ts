@@ -36,11 +36,12 @@ async function existing(names: string[]): Promise<Set<string>> {
 router.get("/signals-export", requireAdminToken, async (req, res) => {
   try {
     const days = Math.min(120, Math.max(1, Math.round(Number(req.query.days)) || 30));
-    const have = await existing(["signal_drawdown_extrema", "vsa_entry_metrics", "wyckoff_entry_metrics", "signal_entry_extras"]);
+    const have = await existing(["signal_drawdown_extrema", "vsa_entry_metrics", "wyckoff_entry_metrics", "signal_entry_extras", "signal_volume_colors"]);
     const sel = ["t.*"], joins: string[] = [];
     if (have.has("signal_drawdown_extrema")) { sel.push("d.min_pct_from_entry AS worst_pct"); joins.push("LEFT JOIN signal_drawdown_extrema d ON d.signal_id = t.id"); }
     if (have.has("vsa_entry_metrics")) { sel.push("v.metrics AS vsa"); joins.push("LEFT JOIN vsa_entry_metrics v ON v.tracked_signal_id = t.id"); }
     if (have.has("wyckoff_entry_metrics")) { sel.push("w.metrics AS wy"); joins.push("LEFT JOIN wyckoff_entry_metrics w ON w.tracked_signal_id = t.id"); }
+    if (have.has("signal_volume_colors")) { sel.push("c.metrics AS vc"); joins.push("LEFT JOIN signal_volume_colors c ON c.tracked_signal_id = t.id"); }
     if (have.has("signal_entry_extras")) { sel.push("x.metrics AS ex"); joins.push("LEFT JOIN signal_entry_extras x ON x.tracked_signal_id = t.id"); }
     const { rows } = await pool.query(
       `SELECT ${sel.join(", ")} FROM tracked_signals t ${joins.join(" ")}
@@ -50,13 +51,14 @@ router.get("/signals-export", requireAdminToken, async (req, res) => {
       const entry = Number(r.entry_price), peak = Number(r.peak_price);
       o.peak_pct = entry > 0 && peak > 0 ? Math.round(((r.is_short ? entry / peak - 1 : peak / entry - 1) * 100) * 100) / 100 : null;
       for (const [k, v] of Object.entries(r)) {
-        if (SKIP.has(k) || k === "vsa" || k === "wy" || k === "ex") continue;
+        if (SKIP.has(k) || k === "vsa" || k === "wy" || k === "ex" || k === "vc") continue;
         if (JSON_COLS[k]) { flatten(JSON_COLS[k]!, v, o); continue; }
         o[k] = v instanceof Date ? v.toISOString() : typeof v === "bigint" ? Number(v) : v !== null && typeof v === "object" ? JSON.stringify(v) : v;
       }
       flatten("vsa", r.vsa, o, 2);
       flatten("wy", r.wy, o, 2);
       flatten("ex", r.ex, o, 2);
+      flatten("vc", r.vc, o, 3);
       return o;
     });
     const first = ["id", "symbol", "sentiment_key", "sentiment", "stealth_detection_method", "is_short", "status", "detected_at", "closed_at",

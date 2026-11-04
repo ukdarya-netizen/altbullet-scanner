@@ -16,6 +16,7 @@ import { computeVsa, type Ohlc } from "./vsa-metrics.js";
 import { computeWyckoff } from "./wyckoff-metrics.js";
 import { logger } from "./logger.js";
 import { entryExtrasCoverage, runEntryExtrasBackfillCycle } from "./entry-extras.js";
+import { runVolumeColorsBackfillCycle, volumeColorsCoverage } from "./entry-volume-colors.js";
 
 export const ENTRY_READING_KEYS = ["impulse_buy", "stealth_breakout", "neon_support_bounce", "liquidation_cascade"] as const;
 const H1 = 3_600_000;
@@ -222,6 +223,8 @@ export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): vo
   const priority = opts.fast ? "high" : "low";
   loop("entry VSA/Wyckoff", () => runEntryReadingsBackfillCycle(batch, gapMs, priority));
   loop("entry extras", () => runEntryExtrasBackfillCycle(batch, gapMs, priority));
+  // Owner's «VSA Wyckoff Volume» colours on the 48 hours before the entry (owner 2026-11-04).
+  loop("volume colours", () => runVolumeColorsBackfillCycle(batch, gapMs, priority));
 }
 
 /** For «Аналитика»: per pattern, signals of the last 60 days and how many have each reading; recent failures. */
@@ -240,13 +243,16 @@ export async function entryReadingsCoverage() {
   const reasons: Record<string, number> = {};
   for (const f of failures.values()) reasons[f.reason] = (reasons[f.reason] ?? 0) + 1;
   const extras = await entryExtrasCoverage().catch(() => null);
+  const colors = await volumeColorsCoverage().catch(() => null);
   return {
     days: BACKFILL_DAYS,
-    patterns: rows.map((r) => ({ ...r, extras: extras?.byKey[r.key] ?? null })),
+    patterns: rows.map((r) => ({ ...r, extras: extras?.byKey[r.key] ?? null, colors: colors?.byKey[r.key] ?? null })),
     failedNow: failures.size,
     reasons,
     extrasFailedNow: extras?.failedNow ?? 0,
     extrasReasons: extras?.reasons ?? {},
+    colorsFailedNow: colors?.failedNow ?? 0,
+    colorsReasons: colors?.reasons ?? {},
     restoreOnly: restoreOnlyMode(),
     restoreEnv: restoreEnvSeen(),
     loops: loopStatus,

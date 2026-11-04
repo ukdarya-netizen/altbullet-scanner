@@ -7,11 +7,13 @@ const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 type Coverage = {
   days: number;
-  patterns: Array<{ key: string; total: number; vsa: number; vsa_with_volume: number; wyckoff: number; extras?: number | null }>;
+  patterns: Array<{ key: string; total: number; vsa: number; vsa_with_volume: number; wyckoff: number; extras?: number | null; colors?: number | null }>;
   failedNow: number;
   reasons: Record<string, number>;
   extrasFailedNow?: number;
   extrasReasons?: Record<string, number>;
+  colorsFailedNow?: number;
+  colorsReasons?: Record<string, number>;
   restoreOnly?: boolean;
   restoreEnv?: string;
   loops?: Record<string, { mode: string; passes: number; lastPassAt: string | null; lastTried: number; lastWritten: number; running: boolean; lastError: string | null }>;
@@ -51,6 +53,7 @@ function CoverageLine() {
         <p key={p.key} className="tabular-nums">
           {NAMES[p.key] ?? p.key}: сигналов {p.total} · VSA {p.vsa} · Вайкофф {p.wyckoff}
           {p.extras !== null && p.extras !== undefined ? ` · параметры ${p.key === "impulse_buy" ? "IB" : "пробоя"} ${p.extras}` : ""}
+          {p.colors !== null && p.colors !== undefined ? ` · цвета объёма 48ч ${p.colors}` : ""}
         </p>
       ))}
       {!d.restoreOnly && <p className="font-semibold">Режим восстановления: ВЫКЛЮЧЕН — сервер видит CAB_RESTORE_ONLY: {d.restoreEnv ?? "нет данных"}. Сканер работает.</p>}
@@ -63,6 +66,11 @@ function CoverageLine() {
       {d.failedNow > 0 && (
         <p className="text-muted-foreground">
           Не получилось сейчас: {d.failedNow} — {Object.entries(d.reasons).map(([r, n]) => `${r}: ${n}`).join(" · ")}. Повтор: без объёма CoinGlass — через 30 минут, остальное — через 6 часов.
+        </p>
+      )}
+      {(d.colorsFailedNow ?? 0) > 0 && (
+        <p className="text-muted-foreground">
+          Цвета объёма не получились сейчас: {d.colorsFailedNow} — {Object.entries(d.colorsReasons ?? {}).map(([r, n]) => `${r}: ${n}`).join(" · ")}.
         </p>
       )}
       {(d.extrasFailedNow ?? 0) > 0 && (
