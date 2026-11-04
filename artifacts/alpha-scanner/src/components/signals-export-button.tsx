@@ -7,9 +7,11 @@ const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 type Coverage = {
   days: number;
-  patterns: Array<{ key: string; total: number; vsa: number; vsa_with_volume: number; wyckoff: number }>;
+  patterns: Array<{ key: string; total: number; vsa: number; vsa_with_volume: number; wyckoff: number; extras?: number | null }>;
   failedNow: number;
   reasons: Record<string, number>;
+  extrasFailedNow?: number;
+  extrasReasons?: Record<string, number>;
   restoreOnly?: boolean;
 };
 const NAMES: Record<string, string> = {
@@ -39,18 +41,24 @@ function CoverageLine() {
     <div className="text-xs space-y-1">
       {d.restoreOnly && (
         <p className="font-semibold text-destructive">
-          Режим восстановления (CAB_RESTORE_ONLY=1): сканер и быстрый цикл ОСТАНОВЛЕНЫ — новых сигналов нет, открытые позиции не ведутся. Когда VSA и Вайкофф дойдут до числа сигналов — удалите Secret CAB_RESTORE_ONLY и опубликуйте.
+          Режим восстановления (CAB_RESTORE_ONLY=1): сканер и быстрый цикл ОСТАНОВЛЕНЫ — новых сигналов нет, открытые позиции не ведутся. Когда VSA, Вайкофф и параметры пробоя/IB дойдут до числа сигналов — удалите Secret CAB_RESTORE_ONLY и опубликуйте.
         </p>
       )}
-      <p className="font-semibold">VSA и Вайкофф на входе за {d.days} дней (восстанавливаются в фоне по одному сигналу: сначала IB и Stealth, потом ABNeon и LC):</p>
+      <p className="font-semibold">VSA, Вайкофф и параметры пробоя / IB на входе за {d.days} дней (восстанавливаются в фоне по одному сигналу: сначала IB и Stealth, потом ABNeon и LC):</p>
       {d.patterns.map((p) => (
         <p key={p.key} className="tabular-nums">
           {NAMES[p.key] ?? p.key}: сигналов {p.total} · VSA {p.vsa} · Вайкофф {p.wyckoff}
+          {p.extras !== null && p.extras !== undefined ? ` · параметры ${p.key === "impulse_buy" ? "IB" : "пробоя"} ${p.extras}` : ""}
         </p>
       ))}
       {d.failedNow > 0 && (
         <p className="text-muted-foreground">
           Не получилось сейчас: {d.failedNow} — {Object.entries(d.reasons).map(([r, n]) => `${r}: ${n}`).join(" · ")}. Повтор: без объёма CoinGlass — через 30 минут, остальное — через 6 часов.
+        </p>
+      )}
+      {(d.extrasFailedNow ?? 0) > 0 && (
+        <p className="text-muted-foreground">
+          Параметры пробоя / IB не получились сейчас: {d.extrasFailedNow} — {Object.entries(d.extrasReasons ?? {}).map(([r, n]) => `${r}: ${n}`).join(" · ")}. Повтор: сбой CoinGlass — через 30 минут, остальное — через 6 часов.
         </p>
       )}
     </div>

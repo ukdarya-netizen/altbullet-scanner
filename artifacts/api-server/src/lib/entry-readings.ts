@@ -15,6 +15,7 @@ import * as cgTaker from "./coinglass_taker.js";
 import { computeVsa, type Ohlc } from "./vsa-metrics.js";
 import { computeWyckoff } from "./wyckoff-metrics.js";
 import { logger } from "./logger.js";
+import { entryExtrasCoverage, runEntryExtrasBackfillCycle } from "./entry-extras.js";
 
 export const ENTRY_READING_KEYS = ["impulse_buy", "stealth_breakout", "neon_support_bounce", "liquidation_cascade"] as const;
 const H1 = 3_600_000;
@@ -192,7 +193,10 @@ export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): vo
     let next = idleMs;
     try {
       const r = await runEntryReadingsBackfillCycle(opts.fast ? 100 : 20, gapMs, opts.fast ? "high" : "low");
-      if (r.tried > 0) next = gapMs;
+      // Breakout / Impulse Buy parameters (owner 2026-11-04), same loop, after VSA / Wyckoff.
+      const x = await runEntryExtrasBackfillCycle(opts.fast ? 100 : 20, gapMs, opts.fast ? "high" : "low")
+        .catch((err) => { logger.warn({ err }, "entry extras pass failed (non-critical)"); return { tried: 0 }; });
+      if (r.tried > 0 || x.tried > 0) next = gapMs;
     } catch (err) {
       logger.warn({ err }, "entry VSA/Wyckoff restore loop failed (non-critical)");
     }
@@ -216,5 +220,14 @@ export async function entryReadingsCoverage() {
      GROUP BY 1 ORDER BY 1`, [[...ENTRY_READING_KEYS], BACKFILL_DAYS]);
   const reasons: Record<string, number> = {};
   for (const f of failures.values()) reasons[f.reason] = (reasons[f.reason] ?? 0) + 1;
-  return { days: BACKFILL_DAYS, patterns: rows, failedNow: failures.size, reasons, restoreOnly: restoreOnlyMode() };
+  const extras = await entryExtrasCoverage().catch(() => null);
+  return {
+    days: BACKFILL_DAYS,
+    patterns: rows.map((r) => ({ ...r, extras: extras?.byKey[r.key] ?? null })),
+    failedNow: failures.size,
+    reasons,
+    extrasFailedNow: extras?.failedNow ?? 0,
+    extrasReasons: extras?.reasons ?? {},
+    restoreOnly: restoreOnlyMode(),
+  };
 }

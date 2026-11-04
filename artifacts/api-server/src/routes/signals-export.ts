@@ -4,7 +4,7 @@
  * signal of the last `days` days (default 30): pattern, status, entry, peak and worst move so far
  * (open signals included: a signal that already went +10% counts as good), stop, result, every
  * entry_* column, the decision metrics (dm_*), Impulse decision metrics (idm_*), VSA (vsa_*) and
- * Wyckoff (wy_*) readings. Owner only; the dashboard turns it into a CSV file.
+ * Wyckoff (wy_*) readings, and the restored breakout / Impulse Buy parameters (ex_*). Owner only; the dashboard turns it into a CSV file.
  */
 import { Router, type IRouter } from "express";
 import { pool } from "@workspace/db";
@@ -36,11 +36,12 @@ async function existing(names: string[]): Promise<Set<string>> {
 router.get("/signals-export", requireAdminToken, async (req, res) => {
   try {
     const days = Math.min(120, Math.max(1, Math.round(Number(req.query.days)) || 30));
-    const have = await existing(["signal_drawdown_extrema", "vsa_entry_metrics", "wyckoff_entry_metrics"]);
+    const have = await existing(["signal_drawdown_extrema", "vsa_entry_metrics", "wyckoff_entry_metrics", "signal_entry_extras"]);
     const sel = ["t.*"], joins: string[] = [];
     if (have.has("signal_drawdown_extrema")) { sel.push("d.min_pct_from_entry AS worst_pct"); joins.push("LEFT JOIN signal_drawdown_extrema d ON d.signal_id = t.id"); }
     if (have.has("vsa_entry_metrics")) { sel.push("v.metrics AS vsa"); joins.push("LEFT JOIN vsa_entry_metrics v ON v.tracked_signal_id = t.id"); }
     if (have.has("wyckoff_entry_metrics")) { sel.push("w.metrics AS wy"); joins.push("LEFT JOIN wyckoff_entry_metrics w ON w.tracked_signal_id = t.id"); }
+    if (have.has("signal_entry_extras")) { sel.push("x.metrics AS ex"); joins.push("LEFT JOIN signal_entry_extras x ON x.tracked_signal_id = t.id"); }
     const { rows } = await pool.query(
       `SELECT ${sel.join(", ")} FROM tracked_signals t ${joins.join(" ")}
        WHERE t.detected_at > now() - ($1::int * interval '1 day') ORDER BY t.detected_at DESC`, [days]);
@@ -49,12 +50,13 @@ router.get("/signals-export", requireAdminToken, async (req, res) => {
       const entry = Number(r.entry_price), peak = Number(r.peak_price);
       o.peak_pct = entry > 0 && peak > 0 ? Math.round(((r.is_short ? entry / peak - 1 : peak / entry - 1) * 100) * 100) / 100 : null;
       for (const [k, v] of Object.entries(r)) {
-        if (SKIP.has(k) || k === "vsa" || k === "wy") continue;
+        if (SKIP.has(k) || k === "vsa" || k === "wy" || k === "ex") continue;
         if (JSON_COLS[k]) { flatten(JSON_COLS[k]!, v, o); continue; }
         o[k] = v instanceof Date ? v.toISOString() : typeof v === "bigint" ? Number(v) : v !== null && typeof v === "object" ? JSON.stringify(v) : v;
       }
       flatten("vsa", r.vsa, o, 2);
       flatten("wy", r.wy, o, 2);
+      flatten("ex", r.ex, o, 2);
       return o;
     });
     const first = ["id", "symbol", "sentiment_key", "sentiment", "stealth_detection_method", "is_short", "status", "detected_at", "closed_at",
