@@ -189,20 +189,24 @@ export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): vo
   loopStarted = true;
   const gapMs = opts.fast ? 200 : 5_000;
   const idleMs = opts.fast ? 60_000 : 10 * 60_000;
-  const tick = async () => {
-    let next = idleMs;
-    try {
-      const r = await runEntryReadingsBackfillCycle(opts.fast ? 100 : 20, gapMs, opts.fast ? "high" : "low");
-      // Breakout / Impulse Buy parameters (owner 2026-11-04), same loop, after VSA / Wyckoff.
-      const x = await runEntryExtrasBackfillCycle(opts.fast ? 100 : 20, gapMs, opts.fast ? "high" : "low")
-        .catch((err) => { logger.warn({ err }, "entry extras pass failed (non-critical)"); return { tried: 0 }; });
-      if (r.tried > 0 || x.tried > 0) next = gapMs;
-    } catch (err) {
-      logger.warn({ err }, "entry VSA/Wyckoff restore loop failed (non-critical)");
-    }
-    setTimeout(() => void tick(), next).unref?.();
+  // Two independent loops (owner 2026-11-04: breakout / IB parameters must not wait for VSA / Wyckoff).
+  const loop = (name: string, pass: () => Promise<{ tried: number }>) => {
+    const tick = async () => {
+      let next = idleMs;
+      try {
+        const r = await pass();
+        if (r.tried > 0) next = gapMs;
+      } catch (err) {
+        logger.warn({ err }, `${name} restore loop failed (non-critical)`);
+      }
+      setTimeout(() => void tick(), next).unref?.();
+    };
+    setTimeout(() => void tick(), opts.fast ? 5_000 : 60_000).unref?.();
   };
-  setTimeout(() => void tick(), opts.fast ? 5_000 : 60_000).unref?.();
+  const batch = opts.fast ? 25 : 20;
+  const priority = opts.fast ? "high" : "low";
+  loop("entry VSA/Wyckoff", () => runEntryReadingsBackfillCycle(batch, gapMs, priority));
+  loop("entry extras", () => runEntryExtrasBackfillCycle(batch, gapMs, priority));
 }
 
 /** For «Аналитика»: per pattern, signals of the last 60 days and how many have each reading; recent failures. */

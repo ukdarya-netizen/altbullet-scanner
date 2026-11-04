@@ -248,7 +248,19 @@ export async function recordEntryExtras(t: SignalRef, priority: "high" | "low" =
 }
 
 /** One pass: Impulse Buy and Stealth signals of the last 60 days without extras, last 30 days first. */
+/** Last error of a whole pass (e.g. SQL) — shown on «Аналитика» so a stuck pass is visible. */
+let lastPassError: string | null = null;
 export async function runEntryExtrasBackfillCycle(limit = 40, gapMs = 2_000, priority: "high" | "low" = "low") {
+  try {
+    const r = await extrasPass(limit, gapMs, priority);
+    lastPassError = null;
+    return r;
+  } catch (err) {
+    lastPassError = err instanceof Error ? err.message.slice(0, 200) : String(err);
+    throw err;
+  }
+}
+async function extrasPass(limit: number, gapMs: number, priority: "high" | "low") {
   await ensureExtrasTable();
   const cooling = [...failures.entries()]
     .filter(([, f]) => Date.now() - f.at < (f.temporary ? RETRY_TEMP_MS : RETRY_AFTER_MS))
@@ -283,5 +295,6 @@ export async function entryExtrasCoverage() {
      GROUP BY 1`, [[...EXTRAS_KEYS], BACKFILL_DAYS]);
   const reasons: Record<string, number> = {};
   for (const f of failures.values()) reasons[f.reason] = (reasons[f.reason] ?? 0) + 1;
-  return { byKey: Object.fromEntries(rows.map((r) => [r.key, r.extras])) as Record<string, number>, failedNow: failures.size, reasons };
+  if (lastPassError) reasons[`проход целиком упал: ${lastPassError}`] = 1;
+  return { byKey: Object.fromEntries(rows.map((r) => [r.key, r.extras])) as Record<string, number>, failedNow: failures.size + (lastPassError ? 1 : 0), reasons };
 }
