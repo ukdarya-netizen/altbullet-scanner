@@ -13,7 +13,10 @@ export default function SignalsExportButton() {
       const r = await fetch(`${API_BASE}/api/signals-export?days=${days}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("authToken") ?? ""}` },
       });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) {
+        const body = (await r.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(`HTTP ${r.status}${body?.error ? ` — ${body.error}` : ""}`);
+      }
       const d = (await r.json()) as { columns: string[]; rows: unknown[][] };
       const cell = (v: unknown) => {
         if (v === null || v === undefined) return "";
