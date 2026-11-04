@@ -9,7 +9,6 @@ import {
   Bug,
   HeartPulse,
   BookOpen,
-  Eye,
   LogOut,
   Bitcoin,
   ChartCandlestick,
@@ -284,13 +283,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       label: "Справочник",
       sub: "идеи · назначение",
       icon: BookOpen,
-    },
-    {
-      href: "/health-events",
-      label: "Health & Outcomes",
-      sub: "события · исходы отмен",
-      icon: Eye,
-      ownerOnly: true,
     },
     {
       href: "/btc",

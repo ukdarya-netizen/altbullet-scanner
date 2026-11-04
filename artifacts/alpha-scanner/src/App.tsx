@@ -15,7 +15,6 @@ const Analytics = lazy(() => import("@/pages/analytics"));
 const PatternDebug = lazy(() => import("@/pages/pattern-debug"));
 const BotHealth = lazy(() => import("@/pages/bot-health"));
 const PatternReference = lazy(() => import("@/pages/pattern-reference"));
-const HealthOutcomes = lazy(() => import("@/pages/health-outcomes"));
 const TokenCharts = lazy(() => import("@/pages/token-charts"));
 const BtcAnalysis = lazy(() => import("@/pages/btc-analysis"));
 const Login = lazy(() => import("@/pages/login"));
@@ -158,11 +157,6 @@ function Router() {
                   </OwnerRoute>
                 </Route>
                 <Route path="/pattern-reference" component={PatternReference} />
-                <Route path="/health-events">
-                  <OwnerRoute>
-                    <HealthOutcomes />
-                  </OwnerRoute>
-                </Route>
                 <Route path="/btc" component={BtcAnalysis} />
                 <Route path="/charts/:symbol">
                   {(params) => <TokenCharts symbol={params.symbol} />}

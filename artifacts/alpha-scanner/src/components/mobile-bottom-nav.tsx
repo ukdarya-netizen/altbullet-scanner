@@ -9,7 +9,6 @@ import {
   Bug,
   HeartPulse,
   BookOpen,
-  Eye,
   MoreHorizontal,
   X,
   Bitcoin,
@@ -55,12 +54,6 @@ const ALL_NAV = [
     href: "/bot-health",
     label: "Bot Health",
     icon: HeartPulse,
-    ownerOnly: true as const,
-  },
-  {
-    href: "/health-events",
-    label: "Health & Outcomes",
-    icon: Eye,
     ownerOnly: true as const,
   },
   {
