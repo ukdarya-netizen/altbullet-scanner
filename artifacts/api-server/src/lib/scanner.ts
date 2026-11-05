@@ -3,6 +3,7 @@ import {
   stealthOi4hPasses,
   stealth1hVolumeRatioPasses,
 } from "./stealth-oi-breakout-filter.js";
+import { impulseWyckoffPhaseNow } from "./entry-readings.js";
 import { calcStealthScore } from "./stealth-score.js";
 import { registerProcessHealthSource } from "./process-health.js";
 import {
@@ -9336,6 +9337,22 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 }
               }
               _impulseDecision = evaluateImpulseBuy(_buildImpulseInput(true));
+            }
+            // Owner 2026-11-05: Impulse Buy is not sent when the Wyckoff phase at the entry is
+            // «breakout without base» (the price already jumped on volume with no accumulation
+            // before it). Phase not measurable (no data / CoinGlass down) → the signal passes.
+            if (_impulseDecision.passes) {
+              const _impulseWyPhase = await impulseWyckoffPhaseNow(symbol);
+              if (_impulseWyPhase === "breakout_without_base") {
+                _impulseDecision = {
+                  ..._impulseDecision,
+                  passes: false,
+                  rejectReasons: [
+                    ..._impulseDecision.rejectReasons,
+                    "wyckoff_breakout_without_base",
+                  ],
+                };
+              }
             }
             const _impulseLiveDecision: ImpulseBuyDecision =
               shouldEmitImpulseBuyLive(

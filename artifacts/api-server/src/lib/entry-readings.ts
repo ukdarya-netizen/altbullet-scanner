@@ -73,6 +73,24 @@ async function loadInputs(symbol: string, entryCandle: number, priority: "high" 
   return { candles, volumes };
 }
 
+/**
+ * Impulse Buy live gate (owner 2026-11-05): Wyckoff phase at the entry — the same reading as the one
+ * written after the signal (last closed 1H candle, BingX price, aggregated CoinGlass volume, 48 bars).
+ * 30 days, 111 signals: «breakout_without_base» 34 → 5 reached +10%, 9 stopped, closed sum −87.6%;
+ * the rest 77 → 19 / 7, +14.8%. Returns null when the phase cannot be measured (caller lets it pass).
+ */
+export async function impulseWyckoffPhaseNow(symbol: string, nowMs = Date.now()): Promise<string | null> {
+  try {
+    const entryCandle = entryCandleOf(new Date(nowMs));
+    const { candles, volumes } = await loadInputs(symbol, entryCandle, "high");
+    if (!volumes || !candles.some((c) => c.time === entryCandle)) return null;
+    const w = computeWyckoff(candles, volumes, entryCandle);
+    return w.phase === "insufficient_history" ? null : w.phase;
+  } catch {
+    return null;
+  }
+}
+
 /** Writes the missing VSA and/or Wyckoff reading of one signal. Never throws. */
 export async function recordEntryReadings(t: SignalRef, opts: { priority?: "high" | "low"; have?: { vsa: boolean; wyckoff: boolean } } = {}): Promise<ReadingResult> {
   const out: ReadingResult = { vsa: "exists", wyckoff: "exists", reason: null };

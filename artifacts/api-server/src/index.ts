@@ -70,6 +70,7 @@ import { reclassifyReviewedOpenLiqCascadeSpikes } from "./lib/liq-cascade-open-r
 import { moveReviewedNoObLcToWait } from "./lib/lc-no-ob-wait-migration.js";
 import { neutralizeReviewedBalancedGrindDashboardSignals } from "./lib/balanced-grind-dashboard-close.js";
 import { neutralizeReviewedImpulseBuySignals } from "./lib/impulse-buy-filter-neutral-close.js";
+import { neutralizeIbWyckoffSignals } from "./lib/ib-wyckoff-neutral-close.js";
 import { neutralizePlmP24hSignals } from "./lib/plm-p24h-neutral-close.js";
 import { reclassifyPlmNegativeTrades } from "./lib/plm-negative-reclassification.js";
 import { neutralizeOpenPlmSignals } from "./lib/plm-retirement-neutral-close.js";
@@ -5744,6 +5745,13 @@ app.listen(port, async (err) => {
       );
     } catch (err) {
       logger.error({ err }, "Legacy Whale Futures neutral close failed");
+    }
+    try {
+      // Owner 2026-11-05: November IB with Wyckoff «breakout without base» leave stats and PnL.
+      const ibWy = await neutralizeIbWyckoffSignals();
+      logger.info(ibWy, "IB Wyckoff no-base positions closed / removed from statistics neutrally");
+    } catch (err) {
+      logger.error({ err }, "IB Wyckoff neutral close failed");
     }
     try {
       const ibNeutralized = await neutralizeReviewedImpulseBuySignals();
