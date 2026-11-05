@@ -4,6 +4,7 @@ import {
   stealth1hVolumeRatioPasses,
 } from "./stealth-oi-breakout-filter.js";
 import { impulseWyckoffPhaseNow } from "./entry-readings.js";
+import { welkinEmptyBeforeBreakout } from "./entry-volume-colors.js";
 import { calcStealthScore } from "./stealth-score.js";
 import { registerProcessHealthSource } from "./process-health.js";
 import {
@@ -432,6 +433,7 @@ async function runStealthRange4h(now = Date.now()): Promise<void> {
               high: Number(k.high),
               low: Number(k.low),
               close: Number(k.close),
+              volume: Number(k.volume),
             }))
             .filter(
               (c) =>
@@ -461,6 +463,24 @@ async function runStealthRange4h(now = Date.now()): Promise<void> {
           }
           if (!decision.pass) {
             count(decision.reason);
+            continue;
+          }
+          // Owner 2026-11-05: no Stealth when the 3 hourly bars before the breakout candle are all
+          // grey on the owner's «Welkin VSA» (BingX volume below its 20-bar SMA and < 1.25× the
+          // previous bar). 1–4.11: 42 such breakouts → 2 reached +10%, 23 stopped. Missing data → pass.
+          if (STEALTH_RANGE_TF === "1h" && welkinEmptyBeforeBreakout(candles, candleStart)) {
+            count("stealth_r1h_welkin_empty_3h");
+            _symRej(
+              symbol,
+              "stealth_breakout",
+              "stealth_r1h_welkin_empty_3h",
+              null,
+              decision.volRatio,
+              null,
+              null,
+              "rejected",
+              { rangeTop: decision.rangeTop },
+            );
             continue;
           }
           const [takerBars, spot] = await Promise.all([

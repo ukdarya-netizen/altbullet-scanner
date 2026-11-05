@@ -83,6 +83,23 @@ export function welkinColor(vols: number[], i: number): string | null {
   return "=";
 }
 
+/**
+ * Stealth live gate (owner 2026-11-05): true when the 3 hourly bars right before the breakout
+ * candle are all grey on Welkin (BingX volume). Any missing bar or volume → false (signal passes).
+ */
+export function welkinEmptyBeforeBreakout(candles: { time: number; volume?: number }[], breakoutStart: number): boolean {
+  const i = candles.findIndex((c) => c.time === breakoutStart);
+  if (i < 23) return false;
+  const vols = candles.map((c) => Number(c.volume));
+  for (let k = 1; k <= 3; k++) {
+    const j = i - k;
+    if (candles[j]!.time !== breakoutStart - k * H1) return false;
+    for (let m = j - 19; m <= j; m++) if (!Number.isFinite(vols[m]!) || candles[m]!.time !== breakoutStart - (i - m) * H1) return false;
+    if (welkinColor(vols, j) !== "N") return false;
+  }
+  return true;
+}
+
 export function colorWindow(barTimes: number[], vol: (t: number) => number | null, entry: number, candle: (t: number) => Bar | undefined = () => undefined) {
   let ma = 0;
   const ratio = new Map<number, number>();

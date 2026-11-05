@@ -5749,7 +5749,7 @@ app.listen(port, async (err) => {
     try {
       // Owner 2026-11-05: November IB with Wyckoff «breakout without base» leave stats and PnL.
       const ibWy = await neutralizeIbWyckoffSignals();
-      logger.info(ibWy, "IB Wyckoff no-base positions closed / removed from statistics neutrally");
+      logger.info(ibWy, "New IB (Wyckoff) and Stealth (Welkin) filter rejects closed / removed from statistics neutrally");
     } catch (err) {
       logger.error({ err }, "IB Wyckoff neutral close failed");
     }
