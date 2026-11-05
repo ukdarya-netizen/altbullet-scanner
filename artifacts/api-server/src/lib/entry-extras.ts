@@ -23,6 +23,7 @@ import { getAllSpotExchanges } from "./coinglass-exchanges.js";
 import { getAggFuturesTakerExchanges } from "./coinglass_taker.js";
 import { evaluateRange1hBreakout } from "./stealth-range-4h.js";
 import { computeSupportZones } from "./stealth-abneon-detectors.js";
+import { detectAutoRangePine1h } from "./auto-range-pine.js";
 import { logger } from "./logger.js";
 
 export const EXTRAS_KEYS = ["impulse_buy", "stealth_breakout"] as const;
@@ -365,5 +366,95 @@ export async function runNeonLevelBackfillCycle(limit = 25, gapMs = 1_000) {
     await new Promise((resolve) => setTimeout(resolve, gapMs));
   }
   if (tried) logger.info({ tried, written }, "neon level at Stealth breakout pass");
+  return { tried, written };
+}
+
+// ── Inside the range before the breakout (owner 2026-11-05) ────────────────────────────────────
+type HBar = { time: number; open: number; high: number; low: number; close: number; volume: number };
+/**
+ * Pure: how price behaved inside the live range before the breakout candle.
+ * bars = closed 1H BingX bars (ascending) up to and including the breakout candle.
+ */
+export function rangeInsideReading(bars: HBar[], top: number, bottom: number, rangeHours: number, breakoutAt: number) {
+  const start = breakoutAt - Math.max(1, Math.round(rangeHours)) * H1;
+  const inside = bars.filter((b) => b.time >= start && b.time < breakoutAt);
+  if (inside.length < 6 || !(top > bottom)) return { bars: inside.length, reason: "мало свечей внутри диапазона" };
+  const h = top - bottom;
+  const r2 = (v: number | null) => (v === null || !Number.isFinite(v) ? null : Math.round(v * 100) / 100);
+  const third = Math.max(1, Math.floor(inside.length / 3));
+  const first = inside.slice(0, third), last = inside.slice(-third);
+  const minLow = (a: HBar[]) => Math.min(...a.map((b) => b.low));
+  const avg = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  const last6 = inside.slice(-6);
+  const spreadAll = avg(inside.map((b) => b.high - b.low));
+  const spread6 = avg(last6.map((b) => b.high - b.low));
+  const volFirst = avg(first.map((b) => b.volume)), volLast = avg(last.map((b) => b.volume));
+  // Pine deviations of the same range timeframe inside the range window.
+  const pine = detectAutoRangePine1h(bars.filter((b) => b.time < breakoutAt).map((b) => ({ ...b, closed: true })), { mergeDeviations: false });
+  const devs = (pine.deviations ?? []).filter((d) => d.breakoutCloseTime > start && d.reentryCloseTime <= breakoutAt);
+  const down = devs.filter((d) => d.direction === "down"), up = devs.filter((d) => d.direction === "up");
+  const lastDown = down.length ? Math.max(...down.map((d) => d.reentryCloseTime)) : null;
+  return {
+    bars: inside.length,
+    /** 1H highs within 0.5% under the top (or above it) that closed back inside: pressing the top. */
+    touchesTop: inside.filter((b) => b.high >= top * 0.995 && b.close <= top).length,
+    /** Wicks above the top that closed back inside (false breaks up before the real one). */
+    wicksAboveTop: inside.filter((b) => b.high > top && b.close <= top).length,
+    /** Wicks below the bottom that closed back inside. */
+    wicksBelowBottom: inside.filter((b) => b.low < bottom && b.close >= bottom).length,
+    /** Lowest low of the last third vs the first third, % (positive = rising lows). */
+    lowsRisePct: r2(((minLow(last) - minLow(first)) / minLow(first)) * 100),
+    /** Share of 1H closes in the upper half of the range. */
+    upperHalfShare: r2(inside.filter((b) => b.close >= bottom + h / 2).length / inside.length),
+    /** Average position of the last 6 closes in the range (0 = bottom, 1 = top). */
+    last6hPosition: r2(avg(last6.map((b) => (b.close - bottom) / h))),
+    /** Bar range of the last 6 hours vs the whole range (< 1 = compression before the break). */
+    compression6h: spreadAll ? r2(spread6! / spreadAll) : null,
+    /** BingX volume of the last third vs the first third (< 1 = volume drying up). */
+    volumeLastVsFirst: volFirst ? r2(volLast! / volFirst) : null,
+    /** Indicator deviations (Pine Auto Range, 1H): closed outside and re-entered, inside the window. */
+    deviationsDown: down.length,
+    deviationsUp: up.length,
+    maxDeviationDownPct: down.length ? r2(Math.max(...down.map((d) => d.extremePct))) : null,
+    maxDeviationUpPct: up.length ? r2(Math.max(...up.map((d) => d.extremePct))) : null,
+    hoursSinceDeviationDown: lastDown === null ? null : r2((breakoutAt - lastDown) / H1),
+  };
+}
+
+const insideFailures = new Map<number, number>();
+export async function runRangeInsideBackfillCycle(limit = 25, gapMs = 1_000) {
+  await ensureExtrasTable();
+  const cooling = [...insideFailures.entries()].filter(([, at]) => Date.now() - at < RETRY_AFTER_MS).map(([id]) => id);
+  const { rows } = await pool.query(
+    `SELECT x.tracked_signal_id AS id, x.symbol, t.decision_metrics->'stealthRange4h' AS rng
+       FROM signal_entry_extras x JOIN tracked_signals t ON t.id = x.tracked_signal_id
+      WHERE x.sentiment_key = 'stealth_breakout' AND t.stealth_detection_method = 'range_1h_breakout'
+        AND NOT (x.metrics ? 'rangeInside')
+        AND NOT (x.tracked_signal_id = ANY($1::int[]))
+      ORDER BY x.tracked_signal_id DESC LIMIT $2`, [cooling, limit]);
+  let tried = 0, written = 0;
+  for (const r of rows) {
+    tried++;
+    try {
+      const top = Number(r.rng?.rangeTop), bottom = Number(r.rng?.rangeBottom), hours = Number(r.rng?.rangeHours);
+      const at = Date.parse(r.rng?.candleOpenAt ?? "");
+      if (!(top > 0 && bottom > 0 && hours > 0 && Number.isFinite(at))) { insideFailures.set(r.id, Date.now()); continue; }
+      const raw = await getKlinesRange(r.symbol, "1h", at - (hours + 320) * H1, at + H1).catch(() => []);
+      const bars = raw
+        .map((k) => ({ time: Number(k.time), open: Number(k.open), high: Number(k.high), low: Number(k.low), close: Number(k.close), volume: Number(k.volume) }))
+        .filter((k) => k.time <= at && Number.isFinite(k.close))
+        .sort((a, b) => a.time - b.time);
+      const reading = rangeInsideReading(bars, top, bottom, hours, at);
+      await pool.query(
+        `UPDATE signal_entry_extras SET metrics = metrics || jsonb_build_object('rangeInside', $2::jsonb) WHERE tracked_signal_id = $1`,
+        [r.id, JSON.stringify({ ...reading, rangeTop: top, rangeBottom: bottom, rangeHours: hours, source: "bingx_1h_live_range" })]);
+      written++;
+    } catch (err) {
+      insideFailures.set(r.id, Date.now());
+      logger.warn({ err, symbol: r.symbol }, "range inside reading failed (non-critical)");
+    }
+    await new Promise((resolve) => setTimeout(resolve, gapMs));
+  }
+  if (tried) logger.info({ tried, written }, "range inside before Stealth breakout pass");
   return { tried, written };
 }
