@@ -343,14 +343,15 @@ router.post("/auth/register", async (req, res) => {
       });
 
       if (!isOwner && OWNER_CHAT_ID) {
-        const { sendMessage } = await import("../lib/telegram.js");
+        // Owner 2026-11-05: the repeat request carries the same approve/block buttons as a new one.
+        const { sendMessageWithKeyboard } = await import("../lib/telegram.js");
         const tgLine = normalizedUsername
           ? `@${normalizedUsername} · ID: <code>${normalizedChatId}</code>`
           : `ID: <code>${normalizedChatId}</code>`;
         const reason = canResubmitBlockedAccount
-          ? `Аккаунт был заблокирован — пользователь повторно запросил доступ: Dashboard → Пользователи`
-          : `Подписка истекла — проверь и одобри повторный доступ: Dashboard → Пользователи`;
-        await sendMessage(
+          ? `Аккаунт был заблокирован — пользователь повторно запросил доступ`
+          : `Подписка истекла — пользователь повторно запросил доступ`;
+        await sendMessageWithKeyboard(
           OWNER_CHAT_ID,
           [
             `🔐 <b>Повторный запрос доступа к Dashboard</b>`,
@@ -361,6 +362,18 @@ router.post("/auth/register", async (req, res) => {
             ``,
             reason,
           ].join("\n"),
+          [
+            [
+              {
+                text: "✅ Одобрить",
+                callback_data: `approve_user:${existingUser.id}`,
+              },
+              {
+                text: "❌ Заблокировать",
+                callback_data: `block_user:${existingUser.id}`,
+              },
+            ],
+          ],
         ).catch(() => {});
       }
 
