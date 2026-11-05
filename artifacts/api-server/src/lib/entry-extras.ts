@@ -236,7 +236,7 @@ export async function recordEntryExtras(t: SignalRef, priority: "high" | "low" =
     const metrics = buildExtras({ isIb, at, candles, fut: fut.rows, spot: spot.rows, oi: oi.rows, reasons, fromScanner: Number.isFinite(fromIdm) });
     await pool.query(
       `INSERT INTO signal_entry_extras (tracked_signal_id, symbol, sentiment_key, metrics)
-       VALUES ($1, $2, $3, $4::jsonb) ON CONFLICT (tracked_signal_id) DO NOTHING`,
+       VALUES ($1, $2, $3, $4::jsonb) ON CONFLICT (tracked_signal_id) DO UPDATE SET metrics = signal_entry_extras.metrics || EXCLUDED.metrics`,
       [t.id, t.symbol, t.sentimentKey, JSON.stringify(metrics)]);
     failures.delete(t.id);
     return "written";
@@ -273,7 +273,7 @@ async function extrasPass(limit: number, gapMs: number, priority: "high" | "low"
      LEFT JOIN signal_entry_extras x ON x.tracked_signal_id = t.id
      WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
        AND t.detected_at < now() - interval '5 minutes'
-       AND x.tracked_signal_id IS NULL AND NOT (t.id = ANY($3::int[]))
+       AND (x.tracked_signal_id IS NULL OR NOT (x.metrics ? 'candle')) AND NOT (t.id = ANY($3::int[]))
      ORDER BY t.detected_at > now() - interval '30 days' DESC, t.detected_at DESC
      LIMIT $4`, [[...EXTRAS_KEYS], BACKFILL_DAYS, cooling, limit]);
   let tried = 0, written = 0, failed = 0;
@@ -291,7 +291,7 @@ async function extrasPass(limit: number, gapMs: number, priority: "high" | "low"
 export async function entryExtrasCoverage() {
   await ensureExtrasTable();
   const { rows } = await pool.query(
-    `SELECT t.sentiment_key AS key, count(x.tracked_signal_id)::int AS extras
+    `SELECT t.sentiment_key AS key, count(x.tracked_signal_id) FILTER (WHERE x.metrics ? 'candle')::int AS extras
      FROM tracked_signals t LEFT JOIN signal_entry_extras x ON x.tracked_signal_id = t.id
      WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
      GROUP BY 1`, [[...EXTRAS_KEYS], BACKFILL_DAYS]);

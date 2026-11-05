@@ -58,7 +58,7 @@ router.get("/signals-export", requireAdminToken, async (req, res) => {
       }
       flatten("vsa", r.vsa, o, 2);
       flatten("wy", r.wy, o, 2);
-      flatten("ex", r.ex, o, 2);
+      flatten("ex", r.ex, o, 4);
       flatten("vc", r.vc, o, 3);
       return o;
     });

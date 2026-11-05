@@ -17,6 +17,7 @@ import { computeWyckoff } from "./wyckoff-metrics.js";
 import { logger } from "./logger.js";
 import { entryExtrasCoverage, runEntryExtrasBackfillCycle, runNeonLevelBackfillCycle, runRangeInsideBackfillCycle } from "./entry-extras.js";
 import { runVolumeColorsBackfillCycle, volumeColorsCoverage } from "./entry-volume-colors.js";
+import { runIctBackfillCycle } from "./entry-ict.js";
 
 export const ENTRY_READING_KEYS = ["impulse_buy", "stealth_breakout", "neon_support_bounce", "liquidation_cascade"] as const;
 const H1 = 3_600_000;
@@ -250,6 +251,8 @@ export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): vo
   loop("neon levels", () => runNeonLevelBackfillCycle(25, 1_000));
   // What price did inside the range before the breakout, deviations included (owner 2026-11-05).
   loop("range inside", () => runRangeInsideBackfillCycle(25, 1_000));
+  // ICT at the entry of every signal, 15m and 1H (owner 2026-11-05).
+  loop("ict", () => runIctBackfillCycle(25, 1_000));
 }
 
 /** For «Аналитика»: per pattern, signals of the last 60 days and how many have each reading; recent failures. */
