@@ -390,7 +390,8 @@ export function rangeInsideReading(bars: HBar[], top: number, bottom: number, ra
   const spread6 = avg(last6.map((b) => b.high - b.low));
   const volFirst = avg(first.map((b) => b.volume)), volLast = avg(last.map((b) => b.volume));
   // Pine deviations of the same range timeframe inside the range window.
-  const pine = detectAutoRangePine1h(bars.filter((b) => b.time < breakoutAt).map((b) => ({ ...b, closed: true })), { mergeDeviations: false });
+  // Deviations need the indicator's deviation window (the live breakout replay turns it off).
+  const pine = detectAutoRangePine1h(bars.filter((b) => b.time < breakoutAt).map((b) => ({ ...b, closed: true })));
   const devs = (pine.deviations ?? []).filter((d) => d.breakoutCloseTime > start && d.reentryCloseTime <= breakoutAt);
   const down = devs.filter((d) => d.direction === "down"), up = devs.filter((d) => d.direction === "up");
   const lastDown = down.length ? Math.max(...down.map((d) => d.reentryCloseTime)) : null;
@@ -429,7 +430,7 @@ export async function runRangeInsideBackfillCycle(limit = 25, gapMs = 1_000) {
     `SELECT x.tracked_signal_id AS id, x.symbol, t.decision_metrics->'stealthRange4h' AS rng
        FROM signal_entry_extras x JOIN tracked_signals t ON t.id = x.tracked_signal_id
       WHERE x.sentiment_key = 'stealth_breakout' AND t.stealth_detection_method = 'range_1h_breakout'
-        AND NOT (x.metrics ? 'rangeInside')
+        AND COALESCE((x.metrics->'rangeInside'->>'version')::int, 1) < 2
         AND NOT (x.tracked_signal_id = ANY($1::int[]))
       ORDER BY x.tracked_signal_id DESC LIMIT $2`, [cooling, limit]);
   let tried = 0, written = 0;
@@ -447,7 +448,7 @@ export async function runRangeInsideBackfillCycle(limit = 25, gapMs = 1_000) {
       const reading = rangeInsideReading(bars, top, bottom, hours, at);
       await pool.query(
         `UPDATE signal_entry_extras SET metrics = metrics || jsonb_build_object('rangeInside', $2::jsonb) WHERE tracked_signal_id = $1`,
-        [r.id, JSON.stringify({ ...reading, rangeTop: top, rangeBottom: bottom, rangeHours: hours, source: "bingx_1h_live_range" })]);
+        [r.id, JSON.stringify({ ...reading, version: 2, rangeTop: top, rangeBottom: bottom, rangeHours: hours, source: "bingx_1h_live_range" })]);
       written++;
     } catch (err) {
       insideFailures.set(r.id, Date.now());
