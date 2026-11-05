@@ -10,6 +10,7 @@ import { Router, type IRouter } from "express";
 import { pool } from "@workspace/db";
 import { requireAdminToken } from "../middleware/adminAuth.js";
 import { entryReadingsCoverage } from "../lib/entry-readings.js";
+import { exitSimJob, exitSimSummary, runStealthExitSim, EXIT_VARIANTS } from "../lib/stealth-exit-sim.js";
 
 const router: IRouter = Router();
 
@@ -81,6 +82,24 @@ router.get("/signals-export/coverage", requireAdminToken, async (_req, res) => {
   } catch (e) {
     res.status(500).json({ error: e instanceof Error ? e.message.slice(0, 400) : String(e) });
   }
+});
+
+/** Stealth exit variants on our signals (owner 2026-11-05): start the job, then poll. */
+router.post("/signals-export/stealth-exit-sim", requireAdminToken, (req, res) => {
+  const days = Math.min(60, Math.max(1, Math.round(Number(req.query.days)) || 30));
+  void runStealthExitSim(days);
+  res.json({ started: true, days });
+});
+router.get("/signals-export/stealth-exit-sim", requireAdminToken, (_req, res) => {
+  const j = exitSimJob();
+  res.setHeader("Cache-Control", "no-store");
+  res.json({
+    status: j.status, done: j.done, total: j.total, error: j.error, startedAt: j.startedAt, finishedAt: j.finishedAt,
+    variants: EXIT_VARIANTS,
+    summary: j.status === "done" ? exitSimSummary(true) : null,
+    summaryAll: j.status === "done" ? exitSimSummary(false) : null,
+    rows: j.status === "done" ? j.rows : null,
+  });
 });
 
 export default router;
