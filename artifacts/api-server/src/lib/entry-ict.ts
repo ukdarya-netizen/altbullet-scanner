@@ -46,7 +46,10 @@ export async function runIctBackfillCycle(limit = 25, gapMs = 1_000) {
   await ensureExtrasTable();
   const cooling = [...failures.entries()].filter(([, at]) => Date.now() - at < RETRY_MS).map(([id]) => id);
   // The ABNeon zone comes from the shadow candidates table when it exists (production).
-  const hasCandidates = Boolean((await pool.query("SELECT to_regclass('public.stealth_abneon_shadow_candidates') AS r")).rows[0]?.r);
+  // fired_signal_id is added by a startup migration that production may not have run: check it.
+  const hasCandidates = Boolean((await pool.query(
+    `SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'stealth_abneon_shadow_candidates' AND column_name = 'fired_signal_id'`)).rowCount);
   const neonLevelSql = hasCandidates
     ? `(SELECT c.frozen_level FROM stealth_abneon_shadow_candidates c
               WHERE c.fired_signal_id = t.signal_id AND c.detection_method = 'abneon_support_bounce'
