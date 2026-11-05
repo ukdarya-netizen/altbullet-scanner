@@ -17,7 +17,7 @@ import { getKlinesRange } from "./bingx.js";
 import * as cgTaker from "./coinglass_taker.js";
 import { logger } from "./logger.js";
 
-export const VOLUME_COLOR_KEYS = ["impulse_buy", "stealth_breakout"] as const;
+export const VOLUME_COLOR_KEYS = ["impulse_buy", "stealth_breakout", "neon_support_bounce"] as const;
 const H1 = 3_600_000;
 const WINDOW = 48;
 const WARMUP = 400;
