@@ -60,6 +60,8 @@ const VOLUME_LOOKBACK = 20;
 const SUPPORT_VOLUME_RATIO = 0;
 
 const SHADOW_ARM_TTL_MS = 24 * H1;
+/** A reaction candle that closed above the next Neon resistance: a breakout, not a bounce. */
+export const ABNEON_LEVEL_BREAKOUT_REASON = "abneon_level_breakout_not_bounce";
 function closed<T extends ClosedDetectorCandle>(
   candles: readonly T[],
   timeframe: number,
@@ -362,6 +364,22 @@ function nearestTouchedZone(
     )[0];
 }
 
+/**
+ * The nearest Neon zone above the support that the candle crossed and closed above (opened below
+ * its top, closed above its top). null = no resistance broken (the candle is a bounce).
+ */
+export function resistanceClosedAbove(
+  h4: readonly ClosedDetectorCandle[],
+  support: SupportZone,
+  open: number,
+  close: number,
+): SupportZone | null {
+  const above = computeSupportZones(h4)
+    .filter((z) => z.bottom > support.top && z.top < close && z.top >= open)
+    .sort((a, b) => a.bottom - b.bottom);
+  return above[0] ?? null;
+}
+
 /** Re-derive the frozen zone from the 4H candles that existed at arm time. */
 export function resolveFrozenZone(
   h4: readonly ClosedDetectorCandle[],
@@ -476,15 +494,45 @@ export function evaluateAbneonSupportBounce(input: {
               k.close >= zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE)
             : k.low >= zone.bottom && k.low <= zone.top + atr4h),
       );
-    const qualified =
+    const reactionLike =
       isLater &&
       reaction.close > reaction.open &&
       atr4h != null &&
       touchSeen &&
       reaction.low <= zone.top + 2 * atr4h &&
       reaction.close >= zone.bottom &&
-      (reactionVolumeEvidence.ratio ?? 0) >= SUPPORT_VOLUME_RATIO &&
-      true;
+      (reactionVolumeEvidence.ratio ?? 0) >= SUPPORT_VOLUME_RATIO;
+    // Owner 2026-11-05 (IDOL, LSK, FF, NMR): a reaction candle that closes above the next Neon
+    // resistance zone over the support is a breakout through that level, not a bounce. A strong
+    // bounce that closes above the support but below the next resistance still qualifies (owner
+    // 2026-10-21). Breakouts are not signals; they are reported for analysis (shadow).
+    const brokenResistance =
+      reactionLike && reaction
+        ? resistanceClosedAbove(h4, zone, reaction.open, reaction.close)
+        : null;
+    const closesAboveZone = brokenResistance != null;
+    const qualified = reactionLike && !closesAboveZone;
+    if (closesAboveZone && reaction) {
+      return {
+        method: "abneon_support_bounce",
+        status: "armed",
+        reason: ABNEON_LEVEL_BREAKOUT_REASON,
+        frozenLevel,
+        armCandleTime: arm,
+        triggerCandleTime: null,
+        volumeEvidence: reactionVolumeEvidence,
+        evidence: {
+          breakoutCandleTime: reaction.time,
+          supportTop: zone.top,
+          supportBottom: zone.bottom,
+          resistanceTop: brokenResistance!.top,
+          resistanceBottom: brokenResistance!.bottom,
+          close: reaction.close,
+          closeAboveResistancePct:
+            ((reaction.close - brokenResistance!.top) / brokenResistance!.top) * 100,
+        },
+      };
+    }
     // Owner 2026-10-22 (BTR): the volume reaction may itself be the move; wait
     // for the closed 15m candle instead of the closed 1H candle. Same touch,
     // volume (>= 4x of preceding 20 candles, aggregated) and turnover rules.
@@ -507,6 +555,7 @@ export function evaluateAbneonSupportBounce(input: {
           touch15 &&
           r15.low <= zone.top + 2 * atr4h &&
           r15.close >= zone.bottom &&
+          resistanceClosedAbove(h4, zone, r15.open, r15.close) == null &&
           (ev15.ratio ?? 0) >= SUPPORT_VOLUME_RATIO &&
           true
         ) {

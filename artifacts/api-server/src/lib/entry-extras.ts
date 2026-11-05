@@ -22,6 +22,7 @@ import { getNextCgKey } from "./coinglass_keys.js";
 import { getAllSpotExchanges } from "./coinglass-exchanges.js";
 import { getAggFuturesTakerExchanges } from "./coinglass_taker.js";
 import { evaluateRange1hBreakout } from "./stealth-range-4h.js";
+import { computeSupportZones } from "./stealth-abneon-detectors.js";
 import { logger } from "./logger.js";
 
 export const EXTRAS_KEYS = ["impulse_buy", "stealth_breakout"] as const;
@@ -297,4 +298,72 @@ export async function entryExtrasCoverage() {
   for (const f of failures.values()) reasons[f.reason] = (reasons[f.reason] ?? 0) + 1;
   if (lastPassError) reasons[`проход целиком упал: ${lastPassError}`] = 1;
   return { byKey: Object.fromEntries(rows.map((r) => [r.key, r.extras])) as Record<string, number>, failedNow: failures.size + (lastPassError ? 1 : 0), reasons };
+}
+
+// ── Neon levels at the Stealth breakout (owner 2026-11-05) ─────────────────────────────────────
+/**
+ * Did the Stealth breakout candle cross a Neon S/R zone (same zones as ABNeon: 4H pivots, 700 bars)?
+ * crossed = a zone whose top the candle opened at/below and closed above. Also the nearest zone
+ * above the close (overhead resistance). Written into signal_entry_extras.metrics.neonLevel.
+ * BingX price only — no CoinGlass.
+ */
+const H4 = 4 * H1;
+export function neonLevelAtBreakout(
+  h4: { time: number; open: number; high: number; low: number; close: number }[],
+  candle: { open: number; close: number },
+) {
+  const zones = computeSupportZones(h4.map((k) => ({ ...k, volume: 0 })));
+  if (zones.length === 0) return { zones: 0, crossed: null, crossedZone: null, nextAbovePct: null, nextBelowPct: null };
+  const crossedZones = zones.filter((z) => z.top >= candle.open && z.top < candle.close).sort((a, b) => b.top - a.top);
+  const above = zones.filter((z) => z.bottom > candle.close).sort((a, b) => a.bottom - b.bottom)[0];
+  const below = zones.filter((z) => z.top <= candle.close).sort((a, b) => b.top - a.top)[0];
+  const r = (v: number) => Math.round(v * 100) / 100;
+  return {
+    zones: zones.length,
+    crossed: crossedZones.length > 0,
+    crossedZone: crossedZones[0] ? { bottom: crossedZones[0].bottom, top: crossedZones[0].top, count: crossedZones[0].count } : null,
+    /** Distance from the close up to the nearest zone above, % (overhead resistance). */
+    nextAbovePct: above ? r(((above.bottom - candle.close) / candle.close) * 100) : null,
+    /** Distance from the close down to the nearest zone at/below, % (support under the breakout). */
+    nextBelowPct: below ? r(((candle.close - below.top) / candle.close) * 100) : null,
+  };
+}
+
+const neonFailures = new Map<number, number>();
+export async function runNeonLevelBackfillCycle(limit = 25, gapMs = 1_000) {
+  await ensureExtrasTable();
+  const cooling = [...neonFailures.entries()].filter(([, at]) => Date.now() - at < RETRY_AFTER_MS).map(([id]) => id);
+  const { rows } = await pool.query(
+    `SELECT x.tracked_signal_id AS id, x.symbol, x.metrics->>'candleTime' AS candle_time,
+            (x.metrics->'candle'->>'open')::float8 AS open, (x.metrics->'candle'->>'close')::float8 AS close
+       FROM signal_entry_extras x
+      WHERE x.sentiment_key = 'stealth_breakout' AND NOT (x.metrics ? 'neonLevel')
+        AND x.metrics->'candle'->>'close' IS NOT NULL
+        AND NOT (x.tracked_signal_id = ANY($1::int[]))
+      ORDER BY x.tracked_signal_id DESC LIMIT $2`, [cooling, limit]);
+  let tried = 0, written = 0;
+  for (const r of rows) {
+    tried++;
+    try {
+      const at = Date.parse(r.candle_time);
+      const closeAt = at + H1;
+      const raw = await getKlinesRange(r.symbol, "4h", closeAt - 700 * H4, closeAt).catch(() => []);
+      const h4 = raw
+        .map((k) => ({ time: Number(k.time), open: Number(k.open), high: Number(k.high), low: Number(k.low), close: Number(k.close) }))
+        .filter((k) => k.time + H4 <= closeAt && Number.isFinite(k.close))
+        .sort((a, b) => a.time - b.time);
+      if (h4.length < 20) { neonFailures.set(r.id, Date.now()); continue; }
+      const lvl = neonLevelAtBreakout(h4, { open: Number(r.open), close: Number(r.close) });
+      await pool.query(
+        `UPDATE signal_entry_extras SET metrics = metrics || jsonb_build_object('neonLevel', $2::jsonb) WHERE tracked_signal_id = $1`,
+        [r.id, JSON.stringify({ ...lvl, source: "bingx_4h_neon_zones" })]);
+      written++;
+    } catch (err) {
+      neonFailures.set(r.id, Date.now());
+      logger.warn({ err, symbol: r.symbol }, "neon level at breakout failed (non-critical)");
+    }
+    await new Promise((resolve) => setTimeout(resolve, gapMs));
+  }
+  if (tried) logger.info({ tried, written }, "neon level at Stealth breakout pass");
+  return { tried, written };
 }

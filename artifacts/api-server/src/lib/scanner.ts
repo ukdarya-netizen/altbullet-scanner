@@ -263,6 +263,7 @@ import { buildStealthAbneonArmSnapshotSafely } from "./stealth-abneon-arm-snapsh
 import {
   computeSupportZones,
   evaluateAbneonSupportBounce,
+  ABNEON_LEVEL_BREAKOUT_REASON,
   resolveFrozenZone,
   evaluateOrderBlockSupportBounce,
   hasConsecutiveClosesBelow,
@@ -6443,6 +6444,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           neonLastPrice <= arm.level + 3 * neonAtr4h);
       const neonSnapshotKey = `${symbol}:${support.armCandleTime}:${support.frozenLevel}`;
       const neonSnapshotDue =
+        // Owner 2026-11-05: every level breakout (not a bounce) is recorded for analysis.
+        support.reason === ABNEON_LEVEL_BREAKOUT_REASON ||
         neonNearZone ||
         Date.now() - (neonSnapshotLastAt.get(neonSnapshotKey) ?? 0) >=
           3_600_000;
