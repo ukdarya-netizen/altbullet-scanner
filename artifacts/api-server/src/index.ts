@@ -5445,6 +5445,11 @@ app.listen(port, async (err) => {
   if (restoreOnlyMode() && process.env.NODE_ENV !== "development") {
     startEntryReadingsRestoreLoop({ fast: true });
   }
+  // Owner 2026-11-05: the background readings (VSA, Wyckoff, colours, range, ICT) no longer wait for the
+  // scanner's first discovery cycle; they start with the server at low CoinGlass priority. Idempotent.
+  if (!restoreOnlyMode() && process.env.NODE_ENV !== "development") {
+    startEntryReadingsRestoreLoop();
+  }
 
   // Webhook регистрируем ТОЛЬКО в production.
   // В dev-режиме dev-домен (.replit.dev) умирает при idle и перебивает
