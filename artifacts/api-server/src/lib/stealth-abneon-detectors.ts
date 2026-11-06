@@ -258,6 +258,8 @@ export function wilderAtr(
 
 export function computeSupportZones(
   candles: readonly ClosedDetectorCandle[],
+  /** Research only (backtests): more zones than the indicator's 6. Production omits it. */
+  researchMaxZones?: number,
 ): SupportZone[] {
   const n = candles.length;
   const atr = wilderAtr(candles);
@@ -291,7 +293,7 @@ export function computeSupportZones(
   }
   const gapBins = Math.max(1, Math.ceil((atr * SR_GAP_ATR) / binW));
   const zones: SupportZone[] = [];
-  for (let picks = 0; picks < SR_MAX_ZONES; picks++) {
+  for (let picks = 0; picks < (researchMaxZones ?? SR_MAX_ZONES); picks++) {
     const mx = Math.max(...counts);
     if (mx <= 0) break;
     const best = counts.indexOf(mx);
@@ -389,10 +391,13 @@ export function resolveFrozenZone(
   frozenTop: number,
   /** Research only: timeframe of the zone candles (default 4H). */
   zoneTimeframeMs: number = H4,
+  /** Research only (backtest): same zone count as the detector run. */
+  researchMaxZones?: number,
 ): SupportZone {
   for (const through of [armTime, armTime + H1]) {
     const zones = computeSupportZones(
       h4.filter((c) => c.time + zoneTimeframeMs <= through),
+      researchMaxZones,
     );
     const hit = zones.find(
       (z) => Math.abs(z.top - frozenTop) / frozenTop <= 1e-6,
@@ -433,6 +438,10 @@ export function evaluateAbneonSupportBounce(input: {
    * from another timeframe (1H horizontal levels). Production omits it (4H).
    */
   zoneTimeframeMs?: number;
+  /** Research only (backtest, owner 2026-11-06): keep zones the 22.10 rule drops. Production omits it. */
+  researchKeepBrokenZones?: boolean;
+  /** Research only (backtest, owner 2026-11-06): up to N zones instead of 6. Production omits it. */
+  researchMaxZones?: number;
 }): ShadowDetectorResult<AbneonShadowMethod> {
   const sweep = input.sweepReclaimBars;
   const ZONE_TF = input.zoneTimeframeMs ?? H4;
@@ -454,7 +463,7 @@ export function evaluateAbneonSupportBounce(input: {
         volumeEvidence: volumeEvidence(h1, h1.length - 1),
       };
     }
-    const zone = resolveFrozenZone(h4, arm, frozenLevel, ZONE_TF);
+    const zone = resolveFrozenZone(h4, arm, frozenLevel, ZONE_TF, input.researchMaxZones);
     const brokenBelow = zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE);
     if (
       sweep != null
@@ -594,10 +603,12 @@ export function evaluateAbneonSupportBounce(input: {
     return empty("abneon_support_bounce", "insufficient_closed_candles");
   // Owner 2026-10-22 (SOPH): no support under a falling price — drop zones
   // that price has already traded through after their latest pivot.
-  const zones = computeSupportZones(h4).filter((z) =>
-    sweep != null
-      ? !zoneBrokenAfterPivot(h4, z, sweep)
-      : !zoneUndercutAfterPivot(h4, z),
+  const zones = computeSupportZones(h4, input.researchMaxZones).filter((z) =>
+    input.researchKeepBrokenZones
+      ? true
+      : sweep != null
+        ? !zoneBrokenAfterPivot(h4, z, sweep)
+        : !zoneUndercutAfterPivot(h4, z),
   );
   if (zones.length === 0)
     return empty("abneon_support_bounce", "no_retested_support");

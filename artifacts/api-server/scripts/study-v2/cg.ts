@@ -72,7 +72,7 @@ export async function cgHistory(cacheDir: string, symbol: string, src: Source, s
   if (existsSync(file)) {
     try {
       const c = JSON.parse(readFileSync(file, "utf8")) as { from: number; to: number; items: VBar[] | null };
-      if (c.from <= start && (OFFLINE || now - c.to < 6 * H1)) return c.items ? new Map(c.items.map((b) => [b.time, b])) : null;
+      if (c.from <= start && (OFFLINE || now - c.to < Number(process.env.STUDY_CG_MAXAGE_H ?? 6) * H1)) return c.items ? new Map(c.items.map((b) => [b.time, b])) : null;
     } catch { /* refetch */ }
   }
   if (OFFLINE) return null;
