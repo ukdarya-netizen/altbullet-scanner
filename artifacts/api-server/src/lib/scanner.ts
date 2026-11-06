@@ -338,6 +338,19 @@ import {
   lastClosed1hStart,
   type Range4hDecision,
 } from "./stealth-range-4h.js";
+import {
+  evaluateNeonLevelBreakout,
+  mergeCandles,
+  neonLevelTfLabel,
+  NEON_LEVEL_1D_METHOD,
+  NEON_LEVEL_4H_METHOD,
+  NEON_LEVEL_HISTORY_BARS,
+  NEON_LEVEL_STOP_PCT,
+  NEON_LEVEL_VERSION,
+  H4_MS as NL_H4_MS,
+  type NeonLevelBreakout,
+  type NlCandle,
+} from "./stealth-neon-level-breakout.js";
 
 // Owner 2026-10-28: Stealth fires only from the experimental fresh-24H-high
 // detection (live, no shadow). The quiet-zone / Range arm detection no longer
@@ -567,6 +580,109 @@ async function runStealthRange4h(now = Date.now()): Promise<void> {
 }
 /** A fresh-high event older than this after its candle close is not fired. */
 const STEALTH_FH_EVENT_TTL_MS = 30 * 60_000;
+
+// ── Stealth = ABNeon resistance breakout on closed 4H / 1D (owner 2026-11-06) ──────────────────────
+// Own timer, own candle cache: the main scan cycle is not touched and does not get longer.
+const STEALTH_NEON_LEVEL_LIVE = true as boolean;
+type NeonLevelEvent = NeonLevelBreakout & { symbol: string; detectedAt: number; quoteVolume24h: number | null };
+const stealthNeonLevelQueue = new Map<string, NeonLevelEvent>();
+const neonLevelCandles = new Map<string, NlCandle[]>();
+let stealthNeonLevelLastCandle = 0;
+let stealthNeonLevelRunning = false;
+let stealthNeonLevelTimer: NodeJS.Timeout | null = null;
+
+const toNl = (k: BingXKline): NlCandle => ({
+  time: Number(k.time),
+  open: Number(k.open),
+  high: Number(k.high),
+  low: Number(k.low),
+  close: Number(k.close),
+  volume: Number(k.volume),
+});
+
+/** The symbol's cached 4H candles up to and including `h4Start`; only missing bars are fetched. */
+async function neonLevel4hCandles(symbol: string, h4Start: number): Promise<NlCandle[]> {
+  const cached = neonLevelCandles.get(symbol) ?? [];
+  const lastCached = cached.at(-1)?.time ?? 0;
+  const missingBars = lastCached > 0 ? Math.round((h4Start - lastCached) / NL_H4_MS) : Infinity;
+  let merged: NlCandle[];
+  if (missingBars <= 0) merged = cached;
+  else if (missingBars <= 30 && cached.length >= NEON_LEVEL_HISTORY_BARS - 30) {
+    const rows = await getKlines(symbol, "4h", missingBars + 2, lastCached - NL_H4_MS, h4Start + NL_H4_MS - 1);
+    merged = mergeCandles(cached, rows.map(toNl));
+  } else {
+    const rows = await getKlines(
+      symbol,
+      "4h",
+      NEON_LEVEL_HISTORY_BARS,
+      h4Start - (NEON_LEVEL_HISTORY_BARS - 1) * NL_H4_MS,
+      h4Start + NL_H4_MS - 1,
+    );
+    merged = mergeCandles([], rows.map(toNl));
+  }
+  neonLevelCandles.set(symbol, merged);
+  return merged.filter((c) => c.time <= h4Start);
+}
+
+/** Every closed 4H candle (and the UTC day it closes) of every BingX USDT perpetual, once. */
+async function runStealthNeonLevel(now = Date.now()): Promise<void> {
+  if (!STEALTH_NEON_LEVEL_LIVE || stealthNeonLevelRunning) return;
+  const h4Start = Math.floor(now / NL_H4_MS) * NL_H4_MS - NL_H4_MS;
+  const closeAt = h4Start + NL_H4_MS;
+  if (h4Start <= stealthNeonLevelLastCandle) return;
+  if (now < closeAt + STEALTH_FH_SCAN_DELAY_MS) return;
+  stealthNeonLevelRunning = true;
+  const stats: Record<string, number> = { symbols: 0, errors: 0, cached: 0 };
+  const passes: string[] = [];
+  try {
+    const tickers = await getFutureTickers();
+    const symbols = tickers
+      .filter(
+        (t) =>
+          t.symbol.endsWith("-USDT") &&
+          t.symbol !== "BTC-USDT" &&
+          !isAnalysisBlockedSymbol(t.symbol) &&
+          !isSignalSymbolExcluded(t.symbol),
+      )
+      .map((t) => ({ symbol: t.symbol, qv: Number.parseFloat(t.quoteVolume) }));
+    if (symbols.length === 0) throw new Error("no BingX tickers");
+    stats.symbols = symbols.length;
+    // Late scan (e.g. after a restart): history is still cached, but events would be stale.
+    const fire = now <= closeAt + STEALTH_FH_EVENT_TTL_MS;
+    let next = 0;
+    const worker = async () => {
+      while (next < symbols.length) {
+        const { symbol, qv } = symbols[next++]!;
+        try {
+          if (neonLevelCandles.has(symbol)) stats.cached!++;
+          const candles = await neonLevel4hCandles(symbol, h4Start);
+          if (!fire) continue;
+          const ev = evaluateNeonLevelBreakout(candles, h4Start);
+          if (!ev) continue;
+          passes.push(`${symbol}:${ev.tf}`);
+          stealthNeonLevelQueue.set(`${symbol}:${ev.candleTime}:${ev.tf}`, {
+            ...ev,
+            symbol,
+            detectedAt: Date.now(),
+            quoteVolume24h: Number.isFinite(qv) ? qv : null,
+          });
+        } catch {
+          stats.errors!++;
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: 6 }, () => worker()));
+    stealthNeonLevelLastCandle = h4Start;
+    logger.info(
+      { candle: new Date(h4Start).toISOString(), stats, passes, fired: fire, durationMs: Date.now() - now },
+      "Stealth ABNeon level breakout scan done (4H / 1D)",
+    );
+  } catch (err) {
+    logger.warn({ err, candle: new Date(h4Start).toISOString() }, "Stealth ABNeon level breakout scan failed; retrying");
+  } finally {
+    stealthNeonLevelRunning = false;
+  }
+}
 const STEALTH_FH_SCAN_DELAY_MS = 45_000;
 const STEALTH_FH_HOUR_MS = 60 * 60_000;
 const stealthFreshHighQueue = new Map<
@@ -5287,7 +5403,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       | "abneon_support_bounce"
       | typeof STEALTH_FRESH_HIGH_METHOD
       | typeof STEALTH_RANGE_4H_METHOD
-      | typeof STEALTH_RANGE_1H_METHOD;
+      | typeof STEALTH_RANGE_1H_METHOD
+      | typeof NEON_LEVEL_4H_METHOD
+      | typeof NEON_LEVEL_1D_METHOD;
     stealthRangeConfirmingVenues?: string[];
     stealthBingxOnly?: boolean;
     stealthEntryPath?: string | null;
@@ -7121,7 +7239,10 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         _aggPattern === "stealth_breakout"
           ? base.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD ||
             base.stealthDetectionMethod === STEALTH_RANGE_4H_METHOD ||
-            base.stealthDetectionMethod === STEALTH_RANGE_1H_METHOD
+            base.stealthDetectionMethod === STEALTH_RANGE_1H_METHOD ||
+            // Owner 2026-11-06: the ABNeon level breakout is candles only — no other filter.
+            base.stealthDetectionMethod === NEON_LEVEL_4H_METHOD ||
+            base.stealthDetectionMethod === NEON_LEVEL_1D_METHOD
             ? []
             : _aggMissing.filter((m) => m === "oi")
           : _aggMissing;
@@ -7667,6 +7788,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               telegramSignal: res,
             });
             const _isRStealth =
+              res.stealthDetectionMethod === NEON_LEVEL_4H_METHOD ||
+              res.stealthDetectionMethod === NEON_LEVEL_1D_METHOD ||
               res.stealthDetectionMethod === STEALTH_FRESH_HIGH_METHOD ||
               res.stealthDetectionMethod === STEALTH_RANGE_4H_METHOD ||
               res.stealthDetectionMethod === STEALTH_RANGE_1H_METHOD;
@@ -7674,11 +7797,13 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               | {
                   stealthFreshHigh?: { stopPrice?: unknown };
                   stealthRange4h?: { stopPrice?: unknown };
+                  stealthNeonLevel?: { stopPrice?: unknown };
                 }
               | undefined;
             const _fhStopRaw = _isRStealth
               ? Number(
-                  _rMetrics?.stealthRange4h?.stopPrice ??
+                  _rMetrics?.stealthNeonLevel?.stopPrice ??
+                    _rMetrics?.stealthRange4h?.stopPrice ??
                     _rMetrics?.stealthFreshHigh?.stopPrice,
                 )
               : null;
@@ -13925,6 +14050,109 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       );
     }
   }
+  // ── Stealth = ABNeon resistance breakout on closed 4H / 1D (owner 2026-11-06) ──────────────────
+  if (STEALTH_NEON_LEVEL_LIVE && stealthNeonLevelQueue.size > 0) {
+    const _nlNow = Date.now();
+    const _nlEvents = [...stealthNeonLevelQueue.entries()];
+    stealthNeonLevelQueue.clear();
+    for (const [key, ev] of _nlEvents) {
+      const closeAt = ev.tf === "4h" ? ev.candleTime + NL_H4_MS : ev.candleTime + 24 * 60 * 60_000;
+      if (_nlNow - closeAt > STEALTH_FH_EVENT_TTL_MS) {
+        _symRej(ev.symbol, "stealth_breakout", "stealth_neon_level_event_expired_before_fire", null, null, null, null, "blocked");
+        continue;
+      }
+      try {
+        const already = await db
+          .select({ id: trackedSignalsTable.id })
+          .from(trackedSignalsTable)
+          .where(
+            and(
+              eq(trackedSignalsTable.symbol, ev.symbol),
+              eq(trackedSignalsTable.sentimentKey, "stealth_breakout"),
+              gte(trackedSignalsTable.detectedAt, new Date(closeAt)),
+            ),
+          )
+          .limit(1);
+        if (already.length > 0) continue;
+      } catch (err) {
+        logger.warn({ err, symbol: ev.symbol }, "Stealth ABNeon level duplicate check failed; event re-queued");
+        stealthNeonLevelQueue.set(key, ev);
+        continue;
+      }
+      const tfLabel = neonLevelTfLabel(ev.tf);
+      const p = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? "—" : v.toPrecision(6));
+      const _nlOi = coinglassOIMap.get(ev.symbol) ?? null;
+      candidates.push({
+        symbol: ev.symbol,
+        price: ev.close,
+        priceChange30m: 0,
+        price1hChange: null,
+        price3hChange: 0,
+        price4hChange: 0,
+        price24hChange: 0,
+        currentVolume: 0,
+        avgVolume: 0,
+        volumeMultiplier: 0,
+        oiChangePercent: _nlOi?.oiChange30m ?? 0,
+        oiChange1h: _nlOi?.oiChange1h ?? null,
+        oiChange4h: _nlOi?.oiChange4h ?? null,
+        oiChange24h: _nlOi?.oiChange24h ?? null,
+        openInterest: _nlOi?.oiUsd ?? 0,
+        sentiment: {
+          key: "stealth_breakout",
+          label: "Stealth Breakout",
+          traderAction: `LONG (пробой уровня сопротивления ABNeon на закрытой свече ${tfLabel}; уровень ${p(ev.level.bottom)}–${p(ev.level.top)}; закрытие ${p(ev.close)}; следующее сопротивление ${ev.nextResistance ? `${p(ev.nextResistance.bottom)}–${p(ev.nextResistance.top)}` : "нет"}; стоп ${p(ev.stopPrice)} (−${NEON_LEVEL_STOP_PCT}%))`,
+          oiFalling: false,
+        },
+        coinglassOI: _nlOi ?? {
+          available: false,
+          timedOut: false,
+          source: "coinglass",
+          oiUsd: 0,
+          oiChange30m: null,
+          prevOi30m: null,
+          oiChange1h: null,
+          oiChange4h: null,
+          oiChange24h: null,
+          bingxOiChange30m: null,
+          cgVolUsd: null,
+          positiveCandles6h: null,
+          oiConsecutiveUp: null,
+          oi4hConsecFromOhlc: null,
+        },
+        oiTriggerTf: ev.tf === "4h" ? "stealth_neon_level_4h" : "stealth_neon_level_1d",
+        isRepeatSignal: false,
+        isConfirmedFire: true,
+        stealthDetectionMethod: ev.method,
+        isScalpOnly: false,
+        futVolMult: 0,
+        spotVol24h: getSpotPoolEntry(ev.symbol)?.spotVol24h ?? null,
+        futVol24hUsd: ev.quoteVolume24h ?? 0,
+        decisionMetrics: {
+          stealthNeonLevel: {
+            version: NEON_LEVEL_VERSION,
+            tf: ev.tf,
+            candleOpenAt: new Date(ev.candleTime).toISOString(),
+            candleOpen: ev.open,
+            candleClose: ev.close,
+            prevClose: ev.prevClose,
+            levelTop: ev.level.top,
+            levelBottom: ev.level.bottom,
+            levelPivots: ev.level.count,
+            crossed: ev.crossed,
+            nextResistance: ev.nextResistance,
+            zones: ev.zones,
+            stopPrice: ev.stopPrice,
+            detectedAt: new Date(ev.detectedAt).toISOString(),
+          },
+        },
+      });
+      logger.info(
+        { symbol: ev.symbol, tf: ev.tf, close: ev.close, levelTop: ev.level.top, levelBottom: ev.level.bottom },
+        "STEALTH ABNeon level breakout candidate queued for confirmed fire",
+      );
+    }
+  }
   // ── Stealth 4H Range breakout (🧪 experimental, owner 2026-10-29) ────────
   // Events from the 4H scan fire in the first batch of the next cycle.
   // Entry = live price; stop = range top - 1%; R exit in the watcher.
@@ -14761,6 +14989,12 @@ export async function startScanner(): Promise<void> {
     }, 30_000);
     stealthRange4hTimer.unref();
   }
+  if (STEALTH_NEON_LEVEL_LIVE && !stealthNeonLevelTimer) {
+    stealthNeonLevelTimer = setInterval(() => {
+      void runStealthNeonLevel();
+    }, 30_000);
+    stealthNeonLevelTimer.unref();
+  }
   if (STEALTH_FH_LIVE && !stealthFreshHighTimer) {
     stealthFreshHighTimer = setInterval(() => {
       void runStealthFreshHighHour();
@@ -15004,6 +15238,10 @@ export async function stopScanner(): Promise<void> {
   if (stealthFreshHighTimer) {
     clearInterval(stealthFreshHighTimer);
     stealthFreshHighTimer = null;
+  }
+  if (stealthNeonLevelTimer) {
+    clearInterval(stealthNeonLevelTimer);
+    stealthNeonLevelTimer = null;
   }
   state.nextScanAt = null;
   if (activeScanAbortController && !activeScanAbortController.signal.aborted) {

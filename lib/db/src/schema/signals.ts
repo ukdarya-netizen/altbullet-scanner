@@ -24,6 +24,9 @@ export const stealthDetectionMethods = [
   "fresh_24h_high_breakout",
   "range_4h_breakout",
   "range_1h_breakout",
+  // Owner 2026-11-06: Stealth = ABNeon resistance breakout on a closed 4H / 1D candle.
+  "neon_level_4h_breakout",
+  "neon_level_1d_breakout",
 ] as const;
 export type StealthDetectionMethod = (typeof stealthDetectionMethods)[number];
 

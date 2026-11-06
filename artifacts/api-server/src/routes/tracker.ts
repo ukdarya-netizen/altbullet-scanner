@@ -224,7 +224,9 @@ type StealthLevelSource =
   | "continuation_shelf"
   | "fresh_24h_high"
   | "range_4h"
-  | "range_1h";
+  | "range_1h"
+  | "neon_level_4h"
+  | "neon_level_1d";
 
 async function loadStealthEntryPaths(
   signalIds: Array<number | null | undefined>,
@@ -300,6 +302,18 @@ async function loadStealthLevelSources(
   const r4hIds = new Map((r4h.rows as Array<Record<string, unknown>>).map((r) => [r.id, r.m]));
   for (const row of fresh.rows as Array<Record<string, unknown>>) {
     if (typeof row.id === "number") sources.set(row.id, r4hIds.get(row.id) === "range_1h_breakout" ? "range_1h" : r4hIds.has(row.id) ? "range_4h" : "fresh_24h_high");
+  }
+  // Owner 2026-11-06: Stealth = ABNeon resistance breakout on a closed 4H / 1D candle.
+  const neonLevel = await db.execute(sql`
+    SELECT id, stealth_detection_method AS m FROM signals
+     WHERE id IN (${sql.join(
+       ids.map((id) => sql`${id}`),
+       sql`, `,
+     )})
+       AND stealth_detection_method IN ('neon_level_4h_breakout', 'neon_level_1d_breakout')
+  `);
+  for (const row of neonLevel.rows as Array<Record<string, unknown>>) {
+    if (typeof row.id === "number") sources.set(row.id, row.m === "neon_level_1d_breakout" ? "neon_level_1d" : "neon_level_4h");
   }
   return sources;
 }

@@ -1091,6 +1091,8 @@ export interface AlphaResult {
     | "fresh_24h_high_breakout"
     | "range_4h_breakout"
     | "range_1h_breakout"
+    | "neon_level_4h_breakout"
+    | "neon_level_1d_breakout"
     | null;
 }
 
@@ -1175,6 +1177,11 @@ function telegramStealthSourceLabel(
   detectionMethod?: AlphaResult["stealthDetectionMethod"],
 ): string | null {
   if (sentimentKey !== "stealth_breakout") return null;
+  // Owner 2026-11-06: Stealth = ABNeon resistance breakout; the timeframe is always shown.
+  if (detectionMethod === "neon_level_4h_breakout")
+    return "🔵 Пробой уровня сопротивления ABNeon · 4ч";
+  if (detectionMethod === "neon_level_1d_breakout")
+    return "🔵 Пробой уровня сопротивления ABNeon · 1д";
   if (detectionMethod === "fresh_24h_high_breakout")
     return "🧪 ЭКСПЕРИМЕНТ · пробой 24ч-хая (1H)";
   if (detectionMethod === "range_4h_breakout")

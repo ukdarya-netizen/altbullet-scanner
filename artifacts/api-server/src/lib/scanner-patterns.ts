@@ -191,6 +191,8 @@ export interface AlphaResult {
     | "fresh_24h_high_breakout"
     | "range_4h_breakout"
     | "range_1h_breakout"
+    | "neon_level_4h_breakout"
+    | "neon_level_1d_breakout"
     | null;
   stealthRangeConfirmingVenues?: string[] | null;
   stealthBingxOnly?: boolean;

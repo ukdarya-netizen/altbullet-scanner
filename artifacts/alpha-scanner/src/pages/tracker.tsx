@@ -304,6 +304,17 @@ function StealthLevelSourceBadge({
   entryPath?: string | null;
 }) {
   if (sentimentKey !== "stealth_breakout") return null;
+  // Owner 2026-11-06: Stealth = ABNeon resistance breakout; the timeframe is always shown.
+  if (source === "neon_level_4h" || source === "neon_level_1d") {
+    return (
+      <span
+        className="mt-1 inline-flex rounded border border-amber-400/40 bg-amber-400/10 px-1 py-0.5 text-[9px] font-medium leading-none text-amber-300"
+        title="Пробой уровня сопротивления ABNeon на закрытой свече; стоп −8% от закрытия, Б/У после +8%, трейлинг с +15%"
+      >
+        Пробой уровня ABNeon · {source === "neon_level_4h" ? "4ч" : "1д"}
+      </span>
+    );
+  }
   if (source === "range_1h") {
     return (
       <span
