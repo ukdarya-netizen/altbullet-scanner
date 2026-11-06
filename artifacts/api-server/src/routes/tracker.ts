@@ -80,6 +80,7 @@ import { getFsVolume } from "../lib/coinglass_fs_volume.js";
 import { batchFetchMarketCap } from "../lib/whale_watch_v2.js";
 import { logger } from "../lib/logger.js";
 import {
+  getBuStopMilestone,
   getExitProfile,
   resolveBuStopProtection,
 } from "../lib/watcher-config.js";
@@ -1050,6 +1051,12 @@ router.get("/tracker", async (req, res) => {
               ? null
               : exitProfile.trailingActivation,
             trailingGapPct: isOpenRunner ? null : exitProfile.trailingGap,
+            // Owner 2026-11-06: where the B.U. stop switches on (status note on the tracker).
+            buActivationPct: isOpenRunner
+              ? null
+              : s.sentimentKey === "impulse_buy"
+                ? 5
+                : getBuStopMilestone(s.sentimentKey, s.symbol),
             // Current metrics never use an entry snapshot as a fallback. The
             // entry* fields remain in base and are rendered only when labelled
             // as entry-time context.

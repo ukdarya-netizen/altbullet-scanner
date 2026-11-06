@@ -236,12 +236,19 @@ function protectedExitPrice(signal: {
   return signal.status === "bu_stop" ? signal.entryPrice : signal.exitPrice;
 }
 
-function BuStopOutcome({ takePct }: { takePct: number | null | undefined }) {
+function BuStopOutcome({
+  takePct,
+  level,
+}: {
+  takePct: number | null | undefined;
+  level?: number | null;
+}) {
   return (
     <div
       className="mt-1 text-[9px] leading-snug text-emerald-300/80"
       title="BE STOP исключён из денежных PnL и средних; он учитывается только в счётчике и win rate."
     >
+      {level != null && level > 0 ? `Закрыт по Б/У ${fmtStopPx(level)} (вход) · ` : ""}
       {takePct != null
         ? `Тейк +${takePct}% · BE STOP исключён из PnL`
         : "BE STOP исключён из PnL"}
@@ -264,6 +271,56 @@ function ImpulseRunnerOutcome({ signal }: { signal: any }) {
       {signal.runnerPnlPercent != null
         ? ` · runner ${Number(signal.runnerPnlPercent).toFixed(1)}%`
         : ""}
+    </div>
+  );
+}
+
+/**
+ * Owner 2026-11-06: a short note under the status of an open position — which stop protects it now,
+ * at what price, how far the price is from it, and what comes next. For an open IB runner it is about
+ * the runner (the core is already closed).
+ */
+const fmtStopPx = (v: number) => {
+  const a = Math.abs(v);
+  return `$${a >= 100 ? v.toFixed(2) : a >= 1 ? v.toFixed(4) : Number(v.toPrecision(4)).toString()}`;
+};
+function ProtectionNote({ signal: s }: { signal: any }) {
+  if (s.status !== "active" && s.status !== "in_run") return null;
+  const entry = Number(s.originalEntryPrice ?? s.entryPrice);
+  const cur = s.currentPrice != null ? Number(s.currentPrice) : null;
+  const vsEntry = (p: number) => {
+    const d = entry > 0 ? ((p - entry) / entry) * 100 : null;
+    return d == null ? "" : Math.abs(d) < 0.05 ? "вход" : `${d > 0 ? "+" : ""}${d.toFixed(1)}%`;
+  };
+  const toStop = (p: number) =>
+    cur != null && cur > 0 ? ` · до стопа ${(((cur - p) / cur) * 100).toFixed(1)}%` : "";
+  const isRunner = s.status === "in_run" && s.runnerState === "open" && s.coreClosedAt != null;
+  let text: string | null = null;
+  let tone = "text-zinc-400";
+  if (isRunner) {
+    tone = "text-cyan-300/80";
+    const trail = s.runnerTrailingStopLevel != null ? Number(s.runnerTrailingStopLevel) : null;
+    const emerg = s.runnerEmergencyStopPrice != null ? Number(s.runnerEmergencyStopPrice) : entry;
+    text =
+      trail != null && trail > 0
+        ? `🧊 Runner 20%: трейлинг, стоп ${fmtStopPx(trail)} (${vsEntry(trail)})${toStop(trail)}`
+        : `🧊 Runner 20%: стоп в Б/У ${fmtStopPx(emerg)} (${vsEntry(emerg)})${toStop(emerg)} · трейлинг с +30%`;
+  } else if (s.protectedStopMode === "trailing" && s.trailingStopLevel != null) {
+    tone = "text-emerald-300/80";
+    const p = Number(s.trailingStopLevel);
+    text = `🛡 Трейлинг: стоп ${fmtStopPx(p)} (${vsEntry(p)})${toStop(p)}`;
+  } else if (s.protectedStopMode === "be" && s.trailingStopLevel != null) {
+    tone = "text-emerald-300/80";
+    const p = Number(s.trailingStopLevel);
+    text = `🛡 Б/У: стоп ${fmtStopPx(p)} (${vsEntry(p)})${toStop(p)}${s.trailingActivationPct != null ? ` · трейлинг с +${s.trailingActivationPct}%` : ""}`;
+  } else if (s.stopLossPrice != null && Number(s.stopLossPrice) > 0) {
+    const p = Number(s.stopLossPrice);
+    text = `🛡 Стоп ${fmtStopPx(p)} (${vsEntry(p)})${toStop(p)}${s.buActivationPct != null ? ` · Б/У с +${s.buActivationPct}%` : ""}${s.trailingActivationPct != null ? ` · трейлинг с +${s.trailingActivationPct}%` : ""}`;
+  }
+  if (!text) return null;
+  return (
+    <div className={`mt-1 text-[9px] leading-snug ${tone} max-w-[190px] mx-auto`} title="Какой стоп сейчас защищает позицию">
+      {text}
     </div>
   );
 }
@@ -1212,9 +1269,7 @@ function OpenPositions({
                   coreClosedAt={s.coreClosedAt}
                 />
               </div>
-              {s.status === "in_run" &&
-                s.runnerState === "open" &&
-                s.coreClosedAt != null && <ImpulseRunnerOutcome signal={s} />}
+              <ProtectionNote signal={s} />
               <div className="grid grid-cols-4 gap-3 mt-2">
                 <div>
                   <div className="text-[10px] text-muted-foreground mb-0.5">
@@ -1549,11 +1604,7 @@ function OpenPositions({
                     runnerState={s.runnerState}
                     coreClosedAt={s.coreClosedAt}
                   />
-                  {s.status === "in_run" &&
-                    s.runnerState === "open" &&
-                    s.coreClosedAt != null && (
-                      <ImpulseRunnerOutcome signal={s} />
-                    )}
+                  <ProtectionNote signal={s} />
                 </td>
                 <td className="px-2 py-3 text-right">
                   <OiCell value={s.entryOi15m} />
@@ -2153,13 +2204,9 @@ function SignalLog({
                             runnerState={s.runnerState}
                             coreClosedAt={s.coreClosedAt}
                           />
-                          {s.status === "in_run" &&
-                            s.runnerState === "open" &&
-                            s.coreClosedAt != null && (
-                              <ImpulseRunnerOutcome signal={s} />
-                            )}
+                          <ProtectionNote signal={s} />
                           {s.status === "bu_stop" && (
-                            <BuStopOutcome takePct={s.buStopTakePct} />
+                            <BuStopOutcome takePct={s.buStopTakePct} level={s.entryPrice} />
                           )}
                           {s.status === "cancelled" && s.cancelReason && (
                             <div
@@ -3026,9 +3073,13 @@ export default function Tracker() {
                             runnerState={s.runnerState}
                             coreClosedAt={s.coreClosedAt}
                           />
-                          <ImpulseRunnerOutcome signal={s} />
+                          {s.runnerState === "open" ? (
+                            <ProtectionNote signal={s} />
+                          ) : (
+                            <ImpulseRunnerOutcome signal={s} />
+                          )}
                           {s.status === "bu_stop" && (
-                            <BuStopOutcome takePct={s.buStopTakePct} />
+                            <BuStopOutcome takePct={s.buStopTakePct} level={s.entryPrice} />
                           )}
                         </td>
                         <td className="px-2 py-3 text-right">
