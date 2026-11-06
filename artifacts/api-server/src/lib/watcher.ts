@@ -176,7 +176,6 @@ import {
   type BingXLastPriceUpdate,
   type OrderBookAnalysis,
 } from "./bingx.js";
-import { captureRangeDeviation } from "./range-deviation-capture.js";
 import {
   buildEntryVolumeContext,
   type EntryVolumeContext,
@@ -3053,7 +3052,8 @@ export async function trackSignal(params: {
           );
     const [entryVolumeContext, rangeDeviationContext] = await Promise.all([
       captureEntryVolumeContext(params.symbol),
-      captureRangeDeviation(params.symbol, params.entryPrice),
+      // Owner 2026-11-06: Range is not tracked anywhere any more.
+      Promise.resolve(null),
     ]);
     const decisionMetrics: Record<string, unknown> = {
       ...(params.decisionMetrics ?? {}),
@@ -15284,7 +15284,8 @@ export function startWatcher(): void {
       stealthReentryTimer = setTimeout(runStealthReentry, FAST_CYCLE_MS);
     }
   };
-  stealthReentryTimer = setTimeout(runStealthReentry, FAST_CYCLE_MS);
+  // Owner 2026-11-06: no Stealth re-entry after a Range return (Range is not tracked any more).
+  void runStealthReentry;
 
   // Stealth fresh-24H-high (🧪 experimental): +1R → B.U., then 1R trailing.
   const runStealthFreshHighProtectionTick = async () => {
@@ -18511,12 +18512,38 @@ function resolveNextMilestoneWakePrice(
   return tracked.entryPrice * (1 + next / 100);
 }
 
+/**
+ * Owner 2026-11-06: on 05.11 at 22:51 UTC one fast cycle never finished (database pool timeouts) and,
+ * because cycles are exclusive, every later one was skipped: no stop, B.U. or target was checked for
+ * 6 hours (AIN −50%, Q runner below its entry). A cycle normally takes seconds. If one has been running
+ * for more than 10 minutes the process exits so the deployment restarts it; on start the watcher closes
+ * everything that passed its stop meanwhile.
+ */
+const FAST_CYCLE_HANG_MS = 10 * 60_000;
+let _fastCycleStartedAt = 0;
+let _fastCycleWatchdog: NodeJS.Timeout | null = null;
+function ensureFastCycleWatchdog(): void {
+  if (_fastCycleWatchdog) return;
+  _fastCycleWatchdog = setInterval(() => {
+    if (_fastCycleRunning && Date.now() - _fastCycleStartedAt > FAST_CYCLE_HANG_MS) {
+      logger.fatal(
+        { runningForMs: Date.now() - _fastCycleStartedAt },
+        "FastCycle watchdog: stop cycle hung for more than 10 minutes — restarting the process",
+      );
+      setTimeout(() => process.exit(1), 2_000).unref?.();
+    }
+  }, 60_000);
+  _fastCycleWatchdog.unref?.();
+}
+
 async function runFastCycleExclusive(generation?: number): Promise<void> {
+  ensureFastCycleWatchdog();
   if (_fastCycleRunning) {
     _fastCycleRerun = true;
     return;
   }
   _fastCycleRunning = true;
+  _fastCycleStartedAt = Date.now();
   try {
     await runInRunFastCycle(generation);
   } finally {

@@ -349,7 +349,9 @@ const STEALTH_LEGACY_DETECTION_LIVE = false as boolean;
 // Owner 2026-10-29: the fresh 24H-high detection is off; Stealth fires on a
 // closed 4H Range breakout with volume and buyers (stealth-range-4h.ts).
 const STEALTH_FH_LIVE = false as boolean;
-const STEALTH_R4H_LIVE = true as boolean;
+// Owner 2026-11-06: the Range breakout Stealth is retired (no difference between good and bad
+// signals). Stealth now fires on Neon resistance breakouts (stealth-neon-level-breakout.ts).
+const STEALTH_R4H_LIVE = false as boolean;
 // Owner 2026-10-29: the range breakout runs on 1H (narrow range, decisive
 // close); "4h" keeps the 4H volume variant available.
 const STEALTH_RANGE_TF = "1h" as "1h" | "4h";
@@ -649,7 +651,8 @@ const STEALTH_QUIET_ZONE_4H_EXPERIMENT_VERSION =
 // candles) or on a closed 1H Pine breakout (closed-30m refinement).
 // Owner decision 2026-10-10: 4H Range Breakout removed; only 1H creates trades.
 const AUTO_RANGE_LIVE_ENABLED = false;
-const AUTO_RANGE_1H_LIVE_ENABLED = true;
+// Owner 2026-11-06: Range is not tracked anywhere any more (no history warm-up, no arms).
+const AUTO_RANGE_1H_LIVE_ENABLED = false;
 type AutoRangeTimeframe = "1h" | "4h";
 const autoRangeEnabled = (timeframe: AutoRangeTimeframe) =>
   timeframe === "1h" ? AUTO_RANGE_1H_LIVE_ENABLED : AUTO_RANGE_LIVE_ENABLED;

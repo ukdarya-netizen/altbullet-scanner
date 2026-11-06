@@ -1975,10 +1975,11 @@ async function persistTelegramDeliveryRows(
 // Owner 2026-11-01: Stealth runs in shadow mode. Its signals and every later
 // position message stay on the dashboard and never reach Telegram. Events are
 // recognised by the id embedded in their key.
+// Owner 2026-11-06: Impulse Buy goes to Telegram again — the signal and every
+// later position message (milestones, B.U., core close, runner close, cancels).
 const SHADOW_SENTIMENT_KEYS = [
   "stealth_breakout",
   "neon_support_bounce",
-  "impulse_buy",
   "liquidation_cascade",
 ] as const;
 const SHADOW_TRACKED_KEY =

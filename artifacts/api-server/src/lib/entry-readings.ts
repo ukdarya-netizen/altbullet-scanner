@@ -15,7 +15,7 @@ import * as cgTaker from "./coinglass_taker.js";
 import { computeVsa, type Ohlc } from "./vsa-metrics.js";
 import { computeWyckoff } from "./wyckoff-metrics.js";
 import { logger } from "./logger.js";
-import { entryExtrasCoverage, runEntryExtrasBackfillCycle, runNeonLevelBackfillCycle, runRangeInsideBackfillCycle } from "./entry-extras.js";
+import { entryExtrasCoverage, runEntryExtrasBackfillCycle } from "./entry-extras.js";
 import { runVolumeColorsBackfillCycle, volumeColorsCoverage } from "./entry-volume-colors.js";
 import { runIctBackfillCycle } from "./entry-ict.js";
 
@@ -222,8 +222,22 @@ export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): vo
   loopStarted = true;
   const gapMs = opts.fast ? 200 : 5_000;
   const idleMs = opts.fast ? 60_000 : 10 * 60_000;
-  // Two independent loops (owner 2026-11-04: breakout / IB parameters must not wait for VSA / Wyckoff).
-  const loop = (name: string, pass: () => Promise<{ tried: number }>) => {
+  // Separate loops (owner 2026-11-04: breakout / IB parameters must not wait for VSA / Wyckoff), but
+  // 2026-11-06: they run ONE AT A TIME and only while the database pool is free. Six loops working at
+  // once took most of the 8 pool connections; on 05.11 the scanner and the stop watcher timed out on
+  // «timeout exceeded when trying to connect» and the stop cycle hung. Background work never competes.
+  let bgChain: Promise<unknown> = Promise.resolve();
+  const poolBusy = () => pool.waitingCount > 0 || (pool.totalCount >= 6 && pool.idleCount === 0);
+  const exclusive = <T,>(fn: () => Promise<T>): Promise<T> => {
+    const run = bgChain.then(async () => {
+      for (let i = 0; i < 60 && poolBusy(); i++) await new Promise((r) => setTimeout(r, 1_000));
+      return fn();
+    });
+    bgChain = run.catch(() => undefined);
+    return run;
+  };
+  const loop = (name: string, rawPass: () => Promise<{ tried: number }>) => {
+    const pass = () => exclusive(rawPass);
     const st: LoopStatus = (loopStatus[name] = { mode: opts.fast ? "быстрый" : "фоновый", passes: 0, lastPassAt: null, lastTried: 0, lastWritten: 0, running: false, lastError: null });
     const tick = async () => {
       let next = idleMs;
@@ -247,10 +261,8 @@ export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): vo
   loop("entry extras", () => runEntryExtrasBackfillCycle(batch, gapMs, priority));
   // Owner's «VSA Wyckoff Volume» colours on the 48 hours before the entry (owner 2026-11-04).
   loop("volume colours", () => runVolumeColorsBackfillCycle(batch, gapMs, priority));
-  // Neon S/R level crossed by the Stealth breakout (owner 2026-11-05). BingX price only.
-  loop("neon levels", () => runNeonLevelBackfillCycle(25, 1_000));
-  // What price did inside the range before the breakout, deviations included (owner 2026-11-05).
-  loop("range inside", () => runRangeInsideBackfillCycle(25, 1_000));
+  // 2026-11-06 (owner): Range is no longer tracked anywhere and the old Stealth is retired — the
+  // «neon levels» and «range inside» readings of old Stealth breakouts are not computed any more.
   // ICT at the entry of every signal, 15m and 1H (owner 2026-11-05).
   loop("ict", () => runIctBackfillCycle(25, 1_000));
 }

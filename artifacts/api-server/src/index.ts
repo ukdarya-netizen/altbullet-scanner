@@ -71,6 +71,7 @@ import { moveReviewedNoObLcToWait } from "./lib/lc-no-ob-wait-migration.js";
 import { neutralizeReviewedBalancedGrindDashboardSignals } from "./lib/balanced-grind-dashboard-close.js";
 import { neutralizeReviewedImpulseBuySignals } from "./lib/impulse-buy-filter-neutral-close.js";
 import { neutralizeIbWyckoffSignals } from "./lib/ib-wyckoff-neutral-close.js";
+import { retireOldStealthSignals } from "./lib/stealth-retirement-neutral-close.js";
 import { neutralizePlmP24hSignals } from "./lib/plm-p24h-neutral-close.js";
 import { reclassifyPlmNegativeTrades } from "./lib/plm-negative-reclassification.js";
 import { neutralizeOpenPlmSignals } from "./lib/plm-retirement-neutral-close.js";
@@ -5759,6 +5760,13 @@ app.listen(port, async (err) => {
       logger.error({ err }, "IB Wyckoff neutral close failed");
     }
     try {
+      // Owner 2026-11-06: old Stealth retired — open positions closed neutrally, November out of stats.
+      const stealthRetired = await retireOldStealthSignals();
+      logger.info(stealthRetired, "Old Stealth retired: open positions closed neutrally, November removed from statistics");
+    } catch (err) {
+      logger.error({ err }, "Old Stealth retirement neutral close failed");
+    }
+    try {
       const ibNeutralized = await neutralizeReviewedImpulseBuySignals();
       logger.info(
         { ibNeutralized },
@@ -6024,14 +6032,11 @@ app.listen(port, async (err) => {
     .catch((err) =>
       logger.warn({ err }, "Open Stealth breakout volume backfill failed"),
     );
-  startRangeDeviationFollowup();
-  void backfillOpenRangeDeviation()
-    .then((count) =>
-      logger.info({ count }, "Open positions Range/deviation backfilled"),
-    )
-    .then(() => backfillLc15mRange())
-    .then((count) => logger.info({ count }, "LC 15m Range backfilled"))
-    .then(() => backfillLcDetectionVolume())
+  // Owner 2026-11-06: Range is not tracked anywhere any more (no Range/deviation follow-up or backfill).
+  void startRangeDeviationFollowup;
+  void backfillOpenRangeDeviation;
+  void backfillLc15mRange;
+  void backfillLcDetectionVolume()
     .then((count) => logger.info({ count }, "LC detection volume backfilled"))
     .catch((err) =>
       logger.warn({ err }, "Open positions Range/deviation backfill failed"),
