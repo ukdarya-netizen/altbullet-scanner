@@ -58,3 +58,6 @@ artifacts/api-server/.test-dist/
 artifacts/archetype-detector/archetype_detector.db-shm
 artifacts/archetype-detector/archetype_detector.db-wal
 /generated-artifacts/
+
+# v2 studies: candle cache (large, re-downloadable)
+reports/.cache/
