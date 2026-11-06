@@ -567,8 +567,9 @@ export function analyzeAltBulletIndicator(input: {
     currentAtr == null
       ? null
       : nearestSrLevel(candles4h, currentAtr, "support");
-  const range1h = observeAbneonRange(candles1h, 60 * 60_000);
-  const range4h = observeAbneonRange(candles4h, 4 * 60 * 60_000);
+  // Owner 2026-11-06: Range is not tracked anywhere any more — no range reading in the snapshot.
+  const range1h = observeAbneonRange([], 60 * 60_000);
+  const range4h = observeAbneonRange([], 4 * 60 * 60_000);
   const supportDistancePct =
     support != null && last.close > 0
       ? ((last.close - support) / last.close) * 100
