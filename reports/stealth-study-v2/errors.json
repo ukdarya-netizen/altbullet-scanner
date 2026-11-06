@@ -14,6 +14,6 @@
  "KNTQ-USDT": "short_history",
  "KOR-USDT": "short_history",
  "GATO-USDT": "short_history",
- "GMBSC-USDT": "short_history",
- "CHOO-USDT": "short_history"
+ "GMBSC-USDT": "Error: code 109415 GMBSC-USDT is pause currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please ve",
+ "CHOO-USDT": "Error: code 109415 CHOO-USDT is pause currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please ver"
 }
