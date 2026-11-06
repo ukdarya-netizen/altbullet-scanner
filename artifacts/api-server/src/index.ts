@@ -87,6 +87,7 @@ import { neutralizeNonAggregatedOpenPositions } from "./lib/non-aggregated-data-
 import { neutralizeReviewedStealthVolumeGateSignals } from "./lib/stealth-volume-gate-neutral-close.js";
 import { neutralizeNeonVolumeGateSignals } from "./lib/neon-volume-gate-neutral-close.js";
 import { runAbneonGateNeutralClose } from "./lib/abneon-gate-neutral-close.js";
+import { excludeAbneonNovemberStops } from "./lib/abneon-nov-stops-neutral.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
 import { neutralizeStealthOnPublish } from "./lib/stealth-publish-neutral-close.js";
 import { neutralizeNeonFlowGateSignals } from "./lib/neon-flow-gate-neutral-close.js";
@@ -5873,6 +5874,13 @@ app.listen(port, async (err) => {
     } catch (err) {
       // Non-fatal: the transaction rolled back, positions stay unchanged.
       logger.error({ err }, "Neon 4x volume-gate neutral close failed");
+    }
+    try {
+      const novStops = await excludeAbneonNovemberStops();
+      logger.info(novStops, "ABNeon November stop losses excluded from statistics");
+    } catch (err) {
+      // Non-fatal: the transaction rolled back, rows stay unchanged.
+      logger.error({ err }, "ABNeon November stop exclusion failed");
     }
     // Owner 2026-11-07: open ABNeon positions the pre-touch volume gate would reject → neutral close.
     // Needs BingX + CoinGlass, so it runs in the background and never delays the start.
