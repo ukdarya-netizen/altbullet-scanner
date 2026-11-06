@@ -544,8 +544,11 @@ export function grid(prefix: string, m15: C[], from: number | null, entry: numbe
   for (const [sk, sp] of Object.entries(stops)) {
     out[`${prefix}_stopdist_${sk}_pct`] = entry && sp ? pct(sp, entry) : null;
     for (const r of RULES) {
-      const res = from != null && entry && sp ? trade(m15, from, entry, sp, r) : { pct: null };
+      const res = from != null && entry && sp ? trade(m15, from, entry, sp, r) : { pct: null, hours: null };
       out[`${prefix}_${sk}_${r}`] = res.pct;
+      // Hours the trade lasted, from its own fill (exit from the signal = <prefix>_delay_h + this).
+      // Owner 2026-11-06: needed for the deposit simulation — which trades are open at the same time.
+      out[`${prefix}_${sk}_${r}_h`] = res.hours;
     }
   }
   return out;
