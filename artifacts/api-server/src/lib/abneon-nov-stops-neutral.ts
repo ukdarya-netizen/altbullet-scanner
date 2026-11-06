@@ -3,7 +3,7 @@ import { pool } from "@workspace/db";
 /**
  * Owner order 2026-11-07: remove the November 2026 ABNeon stop losses from the statistics.
  * Exact reviewed rows only (abneon_gate_review, status stop_loss). Each row is copied to
- * abneon_nov_stops_backup first (full original row, so it can be restored), then reclassified:
+ * abneon_nov_stops_backup first (full original row as jsonb, so it can be restored), then reclassified:
  * no exit price, no PnL, excluded from outcomes. The rows were already closed, so no trading
  * command is sent. Production only; idempotent (only rows still in stop_loss are touched).
  */
@@ -20,11 +20,13 @@ export async function excludeAbneonNovemberStops(): Promise<{ moved: number }> {
     await client.query("BEGIN");
     await client.query("SELECT pg_advisory_xact_lock(hashtext('abneon_nov_stops_neutral'))");
     await client.query(
-      "CREATE TABLE IF NOT EXISTS abneon_nov_stops_backup (LIKE tracked_signals INCLUDING DEFAULTS)",
+      `CREATE TABLE IF NOT EXISTS abneon_nov_stops_backup (
+         id integer PRIMARY KEY, original jsonb NOT NULL, backed_up_at timestamptz NOT NULL DEFAULT now()
+       )`,
     );
     await client.query(
-      `INSERT INTO abneon_nov_stops_backup
-       SELECT * FROM tracked_signals t
+      `INSERT INTO abneon_nov_stops_backup (id, original)
+       SELECT t.id, to_jsonb(t) FROM tracked_signals t
         WHERE t.id = ANY($1::integer[]) AND t.sentiment_key = 'neon_support_bounce' AND t.status = 'stop_loss'
           AND NOT EXISTS (SELECT 1 FROM abneon_nov_stops_backup b WHERE b.id = t.id)`,
       [ids],
