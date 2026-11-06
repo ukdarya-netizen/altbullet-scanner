@@ -2890,7 +2890,7 @@ async function markLcRejectSnapshotsWithoutEntry(): Promise<number> {
     try {
       await client.query("BEGIN");
       await client.query("SET LOCAL statement_timeout = '60s'");
-      const r = await client.query({
+      const r = (await client.query({
         text: `UPDATE pattern_decision_snapshots
                   SET trajectory_status = 'unavailable',
                       trajectory_next_attempt_at = NULL,
@@ -2906,7 +2906,7 @@ async function markLcRejectSnapshotsWithoutEntry(): Promise<number> {
                           OR completeness->>'entryPrice' IS DISTINCT FROM 'false')
                    LIMIT 500)`,
         query_timeout: 65_000,
-      } as never);
+      } as never)) as { rowCount: number | null };
       await client.query("COMMIT");
       total += r.rowCount ?? 0;
       if ((r.rowCount ?? 0) < 500) break;
