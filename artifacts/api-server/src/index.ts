@@ -86,6 +86,7 @@ import { applyNeonNoWaitRecalc } from "./lib/neon-no-wait-recalc.js";
 import { neutralizeNonAggregatedOpenPositions } from "./lib/non-aggregated-data-neutral-close.js";
 import { neutralizeReviewedStealthVolumeGateSignals } from "./lib/stealth-volume-gate-neutral-close.js";
 import { neutralizeNeonVolumeGateSignals } from "./lib/neon-volume-gate-neutral-close.js";
+import { runAbneonGateNeutralClose } from "./lib/abneon-gate-neutral-close.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
 import { neutralizeStealthOnPublish } from "./lib/stealth-publish-neutral-close.js";
 import { neutralizeNeonFlowGateSignals } from "./lib/neon-flow-gate-neutral-close.js";
@@ -5873,6 +5874,13 @@ app.listen(port, async (err) => {
       // Non-fatal: the transaction rolled back, positions stay unchanged.
       logger.error({ err }, "Neon 4x volume-gate neutral close failed");
     }
+    // Owner 2026-11-07: open ABNeon positions the pre-touch volume gate would reject → neutral close.
+    // Needs BingX + CoinGlass, so it runs in the background and never delays the start.
+    setTimeout(() => {
+      runAbneonGateNeutralClose()
+        .then((r) => logger.info(r, "ABNeon pre-touch volume gate neutral close reviewed"))
+        .catch((err) => logger.error({ err }, "ABNeon pre-touch volume gate neutral close failed"));
+    }, 60_000);
     try {
       const initClose = await reclassifyOwnerReviewedInitNoBreakout();
       logger.info(
