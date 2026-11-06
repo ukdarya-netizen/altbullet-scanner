@@ -225,7 +225,7 @@ const toAR = (cs: C[]): ARC[] => cs.map((c) => ({ time: c.time, open: c.open, hi
 const memo = new Map<string, AutoRangePineResult | null>();
 export function resetRangeMemo() { memo.clear(); }
 
-function rangeAt(tf: "15m" | "1h" | "4h" | "1d", cs: C[], t: number, bars: number): { res: AutoRangePineResult | null; lastClose: number | null } {
+export function rangeAt(tf: "15m" | "1h" | "4h" | "1d", cs: C[], t: number, bars: number): { res: AutoRangePineResult | null; lastClose: number | null } {
   const step = tf === "15m" ? 900_000 : tf === "1h" ? H1 : tf === "4h" ? H4 : D1;
   const i = lastClosed(cs, t, step);
   if (i < 210) return { res: null, lastClose: null };
