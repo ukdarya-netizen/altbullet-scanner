@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { isTelegramMuted } from "./telegram-mute.js";
+import { isTelegramMutedAsync } from "./telegram-mute.js";
 import { readFileSync, statSync } from "node:fs";
 import { and, asc, eq, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import { photoPathForTimeoutDelivery } from "./timeout-exit-policy.js";
@@ -2029,7 +2029,7 @@ export async function enqueueTelegramPhotoBroadcast(params: {
   assertMarketCycleLeaseOwnership("Telegram outbox enqueue");
   if (params.targets.length === 0) return 0;
   if (
-    isTelegramMuted(params.eventKey) ||
+    (await isTelegramMutedAsync(params.eventKey)) ||
     (await isShadowTelegramEvent(params.eventKey))
   ) {
     logger.info(
@@ -2079,7 +2079,7 @@ export async function enqueueTelegramTextBroadcast(params: {
   assertMarketCycleLeaseOwnership("Telegram text outbox enqueue");
   if (params.targets.length === 0) return 0;
   if (
-    isTelegramMuted(params.eventKey) ||
+    (await isTelegramMutedAsync(params.eventKey)) ||
     (await isShadowTelegramEvent(params.eventKey))
   ) {
     logger.info(
@@ -2128,7 +2128,7 @@ export async function enqueueTelegramPhotoBroadcastAfterClaim(params: {
 }): Promise<{ claimed: boolean; queued: number }> {
   assertMarketCycleLeaseOwnership("transactional Telegram outbox enqueue");
   if (
-    isTelegramMuted(params.eventKey) ||
+    (await isTelegramMutedAsync(params.eventKey)) ||
     (await isShadowTelegramEvent(params.eventKey))
   ) {
     logger.info(
@@ -2214,7 +2214,7 @@ export async function enqueueTelegramPhotoClaimPendingRecipientResolution(params
 }): Promise<{ claimed: boolean; queued: number }> {
   assertMarketCycleLeaseOwnership("pending Telegram recipient resolution");
   if (
-    isTelegramMuted(params.eventKey) ||
+    (await isTelegramMutedAsync(params.eventKey)) ||
     (await isShadowTelegramEvent(params.eventKey))
   ) {
     return db.transaction(async (tx) => ({

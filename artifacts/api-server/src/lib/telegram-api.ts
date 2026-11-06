@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { logger } from "./logger.js";
-import { isMutedTelegramMethod } from "./telegram-mute.js";
+import { isMutedTelegramMethodAsync } from "./telegram-mute.js";
 import { TELEGRAM_BOT_MENU } from "./telegram-inbound.js";
 import {
   beginTelegramEgressAudit,
@@ -72,7 +72,7 @@ export async function callTelegramApi<T = unknown>(
     audit?: Partial<TelegramEgressAuditContext>;
   } = {},
 ): Promise<TelegramApiCallResult<T>> {
-  if (isMutedTelegramMethod(method, options.audit?.eventKey)) {
+  if (await isMutedTelegramMethodAsync(method, options.audit?.eventKey)) {
     return {
       ok: false,
       status: null,
