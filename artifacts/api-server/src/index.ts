@@ -2878,6 +2878,49 @@ async function ensurePrescanTelemetryIdempotencySchema(): Promise<void> {
  * tracker writes may proceed if an optional snapshot write fails, but the
  * process must not begin a new operational lifetime without its schema.
  */
+/**
+ * LC fire-reject snapshots that never had an entry price are marked «unavailable» so the trajectory
+ * backfill stops retrying them. Data hygiene only: runs in the background after startup, 500 rows per
+ * statement, and never stops the server (2026-11-06).
+ */
+async function markLcRejectSnapshotsWithoutEntry(): Promise<number> {
+  let total = 0;
+  for (let i = 0; i < 400; i++) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("SET LOCAL statement_timeout = '60s'");
+      const r = await client.query({
+        text: `UPDATE pattern_decision_snapshots
+                  SET trajectory_status = 'unavailable',
+                      trajectory_next_attempt_at = NULL,
+                      trajectory_last_error = 'entry_price_not_recorded',
+                      provenance = jsonb_set(COALESCE(provenance, '{}'::jsonb), '{entry_price}', '"not_recorded"'::jsonb, true),
+                      completeness = jsonb_set(COALESCE(completeness, '{}'::jsonb), '{entryPrice}', 'false'::jsonb, true)
+                WHERE id IN (
+                  SELECT id FROM pattern_decision_snapshots
+                   WHERE source = 'liq_cascade_fire_reject'
+                     AND (entry_price IS NULL OR entry_price <= 0)
+                     AND (trajectory_status <> 'unavailable'
+                          OR trajectory_last_error IS DISTINCT FROM 'entry_price_not_recorded'
+                          OR completeness->>'entryPrice' IS DISTINCT FROM 'false')
+                   LIMIT 500)`,
+        query_timeout: 65_000,
+      } as never);
+      await client.query("COMMIT");
+      total += r.rowCount ?? 0;
+      if ((r.rowCount ?? 0) < 500) break;
+    } catch (err) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw err;
+    } finally {
+      client.release();
+    }
+    await new Promise((resolve) => setTimeout(resolve, 2_000));
+  }
+  return total;
+}
+
 async function ensurePatternDecisionHistorySchema(): Promise<void> {
   await db.transaction(async (tx) => {
     await tx.execute(
@@ -3017,31 +3060,10 @@ async function ensurePatternDecisionHistorySchema(): Promise<void> {
       CREATE INDEX IF NOT EXISTS pattern_decision_snapshots_trajectory_claim_idx
       ON pattern_decision_snapshots (trajectory_claim_expires_at)
     `);
-    await tx.execute(drizzleSql`
-      UPDATE pattern_decision_snapshots
-      SET trajectory_status = 'unavailable',
-          trajectory_next_attempt_at = NULL,
-          trajectory_last_error = 'entry_price_not_recorded',
-          provenance = jsonb_set(
-            COALESCE(provenance, '{}'::jsonb),
-            '{entry_price}',
-            '"not_recorded"'::jsonb,
-            true
-          ),
-          completeness = jsonb_set(
-            COALESCE(completeness, '{}'::jsonb),
-            '{entryPrice}',
-            'false'::jsonb,
-            true
-          )
-      WHERE source = 'liq_cascade_fire_reject'
-        AND (entry_price IS NULL OR entry_price <= 0)
-        AND (
-          trajectory_status <> 'unavailable'
-          OR trajectory_last_error IS DISTINCT FROM 'entry_price_not_recorded'
-          OR completeness->>'entryPrice' IS DISTINCT FROM 'false'
-        )
-    `);
+    // 2026-11-06: the «LC reject without entry price → unavailable» data fix moved out of this
+    // startup transaction (markLcRejectSnapshotsWithoutEntry, background, in batches). On the whole
+    // table it ran past the 20 s query timeout, the startup gate exited and the deployment crash-looped
+    // (17 restarts on 06.11, stop watcher never started).
     await tx.execute(drizzleSql`
       CREATE TABLE IF NOT EXISTS pattern_backfill_candles (
         id serial PRIMARY KEY,
@@ -5684,6 +5706,9 @@ app.listen(port, async (err) => {
   try {
     await ensurePatternDecisionHistorySchema();
     logger.info("Pattern decision history schema ready");
+    void markLcRejectSnapshotsWithoutEntry()
+      .then((rows) => logger.info({ rows }, "LC reject snapshots without entry price marked unavailable"))
+      .catch((err) => logger.warn({ err }, "LC reject snapshot data fix failed (non-critical)"));
   } catch (err) {
     logger.fatal(
       { err },
