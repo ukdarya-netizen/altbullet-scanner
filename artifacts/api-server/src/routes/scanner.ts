@@ -17,6 +17,7 @@ import {
   getPrescanEntry,
   getLiveMarketData,
   getCachedPrice,
+  getNeonLevelCandidates,
 } from "../lib/scanner.js";
 import {
   isBingxExclusive,
@@ -1339,66 +1340,20 @@ router.get("/scanner/layer-stats", requireDashboardOwner, async (_req, res) => {
   res.json(result);
 });
 
-// GET /api/scanner/range-breakout-candidates — live Auto Range 1H breakout
-// candidates (armed / qualified, not expired). Visible to all active users;
-// reject diagnostics stay owner-only.
+// GET /api/scanner/range-breakout-candidates — owner 2026-11-06: the «Range» tab (name unchanged)
+// lists candidates for the Stealth ABNeon resistance breakout (closed 4H / 1D): the nearest Neon
+// resistance zone at most 5% above the last 4H close, plus breakouts of the last 24 h with their
+// timeframe. Read from the scanner's in-memory candle cache; current price from the BingX tickers.
 router.get(
   "/scanner/range-breakout-candidates",
   requireAuthenticatedDashboardAccess,
   async (_req, res) => {
     try {
-      const result = await db.execute(sql`
-        SELECT s.id, s.symbol, s.level_source, s.status, s.breakout_level,
-               s.armed_at, s.expires_at, s.first_cross_at, s.decision_at,
-               s.decision_json->>'reason' AS decision_reason,
-               s.decision_json#>>'{confirmation,triggerCandle,close}' AS detection_price,
-               (SELECT r.reason FROM scan_reject_log r
-                 WHERE r.symbol = s.symbol AND r.pattern = 'stealth_breakout'
-                   AND r.cycle_at >= s.armed_at
-                 ORDER BY r.cycle_at DESC LIMIT 1) AS last_reject,
-               (SELECT r.cycle_at FROM scan_reject_log r
-                 WHERE r.symbol = s.symbol AND r.pattern = 'stealth_breakout'
-                   AND r.cycle_at >= s.armed_at
-                 ORDER BY r.cycle_at DESC LIMIT 1) AS last_reject_at
-          FROM stealth_breakout_armed_setups s
-         WHERE s.level_source = 'auto_range_1h'
-           AND s.status IN ('armed', 'qualified')
-           AND s.expires_at > now()
-           AND s.symbol !~ '^NC(SK|CO|SI)'
-           AND s.symbol NOT LIKE '%-USDC'
-           AND COALESCE(s.arm_venue, 'bingx') IN ('bingx', 'default', 'secondary')
-           AND split_part(s.symbol, '-', 1) NOT LIKE '%USD%'
-           AND s.symbol NOT IN (${sql.join(
-             [...ANALYSIS_BLOCKED_SYMBOLS, ""].map((s) => sql`${s}`),
-             sql`, `,
-           )})
-         ORDER BY s.status DESC, s.updated_at DESC
-      `);
-      // One row per symbol: qualified first, then the most recently evaluated
-      // arm (rows arrive in that order). Stale duplicate arms are hidden.
-      const seenSymbols = new Set<string>();
-      // A confirmed breakout stays listed after its retry window closes, until
-      // price is back inside the range (cached price at or below the level).
-      const uniqueRows = (result.rows as Array<Record<string, unknown>>).filter(
-        (r) => {
-          if (r.status === "invalidated") {
-            const px = getCachedPrice(String(r.symbol));
-            if (px === null || !(px > Number(r.breakout_level))) return false;
-          }
-          const key = String(r.symbol);
-          if (seenSymbols.has(key)) return false;
-          seenSymbols.add(key);
-          return true;
-        },
+      const rows = getNeonLevelCandidates().filter(
+        (c) => !(ANALYSIS_BLOCKED_SYMBOLS as readonly string[]).includes(c.symbol),
       );
-      // The scanner price cache only holds symbols in the current scan batch,
-      // so most Range rows had no current price. Fall back to one shared
-      // BingX ticker snapshot (30s cache), fail-soft to "—".
       let tickerPrices = getCached<Map<string, number>>("range:ticker-prices");
-      if (
-        !tickerPrices &&
-        uniqueRows.some((r) => getCachedPrice(String(r.symbol)) === null)
-      ) {
+      if (!tickerPrices && rows.length > 0) {
         try {
           const tickers = await getFutureTickers();
           tickerPrices = new Map<string, number>();
@@ -1412,36 +1367,25 @@ router.get(
         }
       }
       res.json({
-        candidates: uniqueRows.map((r) => {
-          const detRaw =
-            r.detection_price == null ? NaN : Number(r.detection_price);
-          const detectionPrice =
-            Number.isFinite(detRaw) && detRaw > 0 ? detRaw : null;
-          const cur =
-            getCachedPrice(String(r.symbol)) ??
-            tickerPrices?.get(String(r.symbol)) ??
-            null;
+        candidates: rows.map((c) => {
+          const cur = getCachedPrice(c.symbol) ?? tickerPrices?.get(c.symbol) ?? null;
           const currentPrice = cur !== null && cur > 0 ? cur : null;
           return {
-            detectionPrice,
+            id: c.symbol,
+            symbol: c.symbol,
+            timeframe: c.breakout?.tf ?? null,
+            status: c.breakout ? "broken_out" : "armed",
+            level: c.levelTop,
+            levelBottom: c.levelBottom,
+            levelPivots: c.levelPivots,
+            detectionPrice: c.candleClose,
             currentPrice,
             changePct:
-              detectionPrice !== null && currentPrice !== null
-                ? ((currentPrice - detectionPrice) / detectionPrice) * 100
-                : null,
-            id: r.id,
-            symbol: r.symbol,
-            timeframe: r.level_source === "auto_range_4h" ? "4h" : "1h",
-            status: r.status === "invalidated" ? "broken_out" : r.status,
-            level: r.breakout_level,
-            armedAt: r.armed_at,
-            expiresAt: r.expires_at,
-            firstCrossAt: r.first_cross_at,
-            decisionReason: r.decision_reason,
-            lastReject:
-              res.locals.dashboardIsOwner === true ? r.last_reject : null,
-            lastRejectAt:
-              res.locals.dashboardIsOwner === true ? r.last_reject_at : null,
+              currentPrice !== null ? ((currentPrice - c.candleClose) / c.candleClose) * 100 : null,
+            distancePct:
+              currentPrice !== null ? ((c.levelTop - currentPrice) / currentPrice) * 100 : c.distancePct,
+            armedAt: new Date(c.updatedAt).toISOString(),
+            firstCrossAt: c.breakout ? new Date(c.breakout.at).toISOString() : null,
           };
         }),
       });

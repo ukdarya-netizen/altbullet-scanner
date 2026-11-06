@@ -591,6 +591,46 @@ let stealthNeonLevelLastCandle = 0;
 let stealthNeonLevelRunning = false;
 let stealthNeonLevelTimer: NodeJS.Timeout | null = null;
 
+/**
+ * Owner 2026-11-06: the scanner's «Range» tab lists candidates for the ABNeon resistance breakout:
+ * the nearest Neon resistance zone above the last closed 4H close, when that close is at most
+ * NEON_LEVEL_CANDIDATE_PCT below the zone top (inside the zone included). Refreshed at every 4H close;
+ * breakouts of the last 24 h stay listed with their timeframe.
+ */
+export const NEON_LEVEL_CANDIDATE_PCT = 5;
+export type NeonLevelCandidate = {
+  symbol: string;
+  levelTop: number;
+  levelBottom: number;
+  levelPivots: number;
+  candleClose: number;
+  candleOpenAt: number;
+  distancePct: number;
+  updatedAt: number;
+  breakout: { tf: "4h" | "1d"; at: number; close: number } | null;
+};
+const neonLevelCandidates = new Map<string, NeonLevelCandidate>();
+const neonLevelRecentBreakouts = new Map<string, { tf: "4h" | "1d"; at: number; close: number; levelTop: number; levelBottom: number; levelPivots: number }>();
+export function getNeonLevelCandidates(now = Date.now()): NeonLevelCandidate[] {
+  for (const [k, b] of neonLevelRecentBreakouts) if (now - b.at > 24 * 60 * 60_000) neonLevelRecentBreakouts.delete(k);
+  const out = new Map<string, NeonLevelCandidate>();
+  for (const c of neonLevelCandidates.values()) out.set(c.symbol, { ...c, breakout: null });
+  for (const [symbol, b] of neonLevelRecentBreakouts) {
+    out.set(symbol, {
+      symbol,
+      levelTop: b.levelTop,
+      levelBottom: b.levelBottom,
+      levelPivots: b.levelPivots,
+      candleClose: b.close,
+      candleOpenAt: b.at,
+      distancePct: ((b.levelTop - b.close) / b.close) * 100,
+      updatedAt: b.at,
+      breakout: { tf: b.tf, at: b.at, close: b.close },
+    });
+  }
+  return [...out.values()];
+}
+
 const toNl = (k: BingXKline): NlCandle => ({
   time: Number(k.time),
   open: Number(k.open),
@@ -656,9 +696,38 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
         try {
           if (neonLevelCandles.has(symbol)) stats.cached!++;
           const candles = await neonLevel4hCandles(symbol, h4Start);
+          const lastBar = candles.at(-1);
+          if (lastBar && lastBar.time === h4Start) {
+            const zones = computeSupportZones(candles);
+            const nearest = zones
+              .filter((z) => z.top > lastBar.close)
+              .sort((a, b) => a.top - b.top)[0];
+            const dist = nearest ? ((nearest.top - lastBar.close) / lastBar.close) * 100 : Infinity;
+            if (nearest && dist <= NEON_LEVEL_CANDIDATE_PCT) {
+              neonLevelCandidates.set(symbol, {
+                symbol,
+                levelTop: nearest.top,
+                levelBottom: nearest.bottom,
+                levelPivots: nearest.count,
+                candleClose: lastBar.close,
+                candleOpenAt: h4Start,
+                distancePct: dist,
+                updatedAt: Date.now(),
+                breakout: null,
+              });
+            } else neonLevelCandidates.delete(symbol);
+          }
           if (!fire) continue;
           const ev = evaluateNeonLevelBreakout(candles, h4Start);
           if (!ev) continue;
+          neonLevelRecentBreakouts.set(symbol, {
+            tf: ev.tf,
+            at: Date.now(),
+            close: ev.close,
+            levelTop: ev.level.top,
+            levelBottom: ev.level.bottom,
+            levelPivots: ev.level.count,
+          });
           passes.push(`${symbol}:${ev.tf}`);
           stealthNeonLevelQueue.set(`${symbol}:${ev.candleTime}:${ev.tf}`, {
             ...ev,
