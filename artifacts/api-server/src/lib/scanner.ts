@@ -1,3 +1,4 @@
+import { ABNEON_PRE_TOUCH_BLUE_MIN, preTouchBlueCount } from "./abneon-volume-gate.js";
 import {
   getStealthOi4hAtBreakout,
   stealthOi4hPasses,
@@ -6618,6 +6619,45 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             volumeUsd: aggVol15m.get(c.time),
           }));
           support = runSupport(volumed1h);
+        }
+      }
+      // Owner 2026-11-06: ABNeon pre-touch volume gate — of the 12 closed 1H candles before the first
+      // touch of the zone, at least 11 above their 20-bar average on CoinGlass aggregated futures
+      // volume. Fails closed without aggregated data. A failed bounce ends the arm (terminal).
+      if (
+        support.status === "qualified" &&
+        support.triggerCandleTime != null &&
+        support.armCandleTime != null &&
+        support.frozenLevel != null
+      ) {
+        const aggVol100 = await getAggFuturesVolumeByInterval(
+          symbol,
+          "1h",
+          100,
+        ).catch(() => null);
+        const gate = aggVol100
+          ? preTouchBlueCount({
+              candles1h: closed1h,
+              aggUsdByTime: aggVol100,
+              armCandleTime: support.armCandleTime,
+              triggerCandleTime: support.triggerCandleTime,
+              zoneTop: support.frozenLevel,
+            })
+          : ({ ok: false, reason: "no_aggregated_volume", blue: null } as const);
+        if (!gate.ok || gate.blue < ABNEON_PRE_TOUCH_BLUE_MIN) {
+          support = {
+            ...support,
+            status: "terminal",
+            reason: gate.ok
+              ? `pre_touch_volume_quiet_${gate.blue}_of_12`
+              : `pre_touch_volume_${gate.reason}`,
+            evidence: { ...(support.evidence ?? {}), preTouchBlue12: gate.blue },
+          };
+        } else {
+          support = {
+            ...support,
+            evidence: { ...(support.evidence ?? {}), preTouchBlue12: gate.blue },
+          };
         }
       }
       const persistedSupport = await persistStealthAbneonShadow({
