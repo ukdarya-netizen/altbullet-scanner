@@ -66,7 +66,7 @@ function writeCache<T>(file: string, c: Cached<T>) {
   writeFileSync(file, JSON.stringify(c));
 }
 
-const STEP = { "15m": M15, "1h": H1, "4h": H4 } as const;
+const STEP = { "15m": M15, "1h": H1, "4h": H4, "1d": D1 } as const;
 export type Interval = keyof typeof STEP;
 
 async function fetchKlines(symbol: string, interval: Interval, start: number, end: number): Promise<C[]> {
@@ -283,6 +283,8 @@ export function vsaSeries(cs: C[]): { ratio: (number | null)[]; color: (string |
   let ma = 0;
   for (let i = 0; i < cs.length; i++) {
     const v = cs[i]!.volume;
+    // v3: a missing volume (NaN, CoinGlass gap) gives no reading and does not move the MA.
+    if (!Number.isFinite(v)) { ratio.push(null); color.push(null); continue; }
     ma = ma + (v - ma) / 20;
     if (!(ma > 0) || i < 60) { ratio.push(null); color.push(null); continue; }
     const r = v / ma;
@@ -295,7 +297,7 @@ export function vsaSeries(cs: C[]): { ratio: (number | null)[]; color: (string |
 export function welkin(cs: C[], i: number): string | null {
   if (i < 19) return null;
   let s = 0;
-  for (let k = i - 19; k <= i; k++) s += cs[k]!.volume;
+  for (let k = i - 19; k <= i; k++) { if (!Number.isFinite(cs[k]!.volume)) return null; s += cs[k]!.volume; }
   const avg = s / 20;
   let q = 0;
   for (let k = i - 19; k <= i; k++) q += (cs[k]!.volume - avg) ** 2;
@@ -315,13 +317,15 @@ export function welkin(cs: C[], i: number): string | null {
 export type Series = { cs: C[]; vsa: ReturnType<typeof vsaSeries>; atr: (number | null)[]; volAvg20: (number | null)[]; sprAvg20: (number | null)[] };
 export function series(cs: C[]): Series {
   const volAvg20: (number | null)[] = [], sprAvg20: (number | null)[] = [];
-  let vs = 0, ss = 0;
+  let ss = 0;
   for (let i = 0; i < cs.length; i++) {
-    // average of the 20 bars BEFORE i
-    volAvg20.push(i >= 20 ? vs / 20 : null);
+    // average of the 20 bars BEFORE i (volume: finite bars only, at least 15 of 20)
+    let vs = 0, vn = 0;
+    for (let k = Math.max(0, i - 20); k < i; k++) { const v = cs[k]!.volume; if (Number.isFinite(v)) { vs += v; vn++; } }
+    volAvg20.push(i >= 20 && vn >= 15 ? vs / vn : null);
     sprAvg20.push(i >= 20 ? ss / 20 : null);
-    vs += cs[i]!.volume; ss += cs[i]!.high - cs[i]!.low;
-    if (i >= 20) { vs -= cs[i - 20]!.volume; ss -= cs[i - 20]!.high - cs[i - 20]!.low; }
+    ss += cs[i]!.high - cs[i]!.low;
+    if (i >= 20) ss -= cs[i - 20]!.high - cs[i - 20]!.low;
   }
   return { cs, vsa: vsaSeries(cs), atr: atrPctSeries(cs), volAvg20, sprAvg20 };
 }
