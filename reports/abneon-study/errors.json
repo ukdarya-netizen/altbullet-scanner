@@ -1,0 +1,12 @@
+{
+ "HOT-USDT": "short_history",
+ "NCFXUSD2ARS-USDT": "Error: code 109415 NCFXUSD2ARS-USDT is pause currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, ple",
+ "NCFXUSD2RUB-USDT": "Error: code 109415 NCFXUSD2RUB-USDT is pause currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, ple",
+ "PRIORS-USDT": "short_history",
+ "GTA6-USDT": "short_history",
+ "JAGENT-USDT": "short_history",
+ "FLOAT-USDT": "short_history",
+ "KNTQ-USDT": "short_history",
+ "KOR-USDT": "short_history",
+ "GATO-USDT": "short_history"
+}
