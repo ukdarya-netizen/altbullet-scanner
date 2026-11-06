@@ -61,3 +61,4 @@ artifacts/archetype-detector/archetype_detector.db-wal
 
 # v2 studies: candle cache (large, re-downloadable)
 reports/.cache/
+reports/.cache-gatecheck/
