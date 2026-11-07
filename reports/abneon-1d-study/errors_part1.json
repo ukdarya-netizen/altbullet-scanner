@@ -1,0 +1,9 @@
+{
+ "XTZ-USDT": "simulate: TypeError: Cannot read properties of undefined (reading 'low')",
+ "ETHW-USDT": "short_history",
+ "GTC-USDT": "simulate: TypeError: Cannot read properties of undefined (reading 'low')",
+ "KIMCHI-USDT": "short_history",
+ "PRIORS-USDT": "short_history",
+ "FLOAT-USDT": "short_history",
+ "GATO-USDT": "short_history"
+}
