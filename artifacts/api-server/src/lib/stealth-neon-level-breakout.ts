@@ -17,6 +17,7 @@
  * newest bars, so the scan does not get longer.
  */
 import { computeSupportZones, type SupportZone } from "./stealth-abneon-detectors.js";
+import { detectAutoRangePine, detectAutoRangePine1d, type AutoRangeCandle } from "./auto-range-pine.js";
 
 export const NEON_LEVEL_4H_METHOD = "neon_level_4h_breakout" as const;
 export const NEON_LEVEL_1D_METHOD = "neon_level_1d_breakout" as const;
@@ -124,3 +125,74 @@ export function evaluateNeonLevelBreakout(h4: readonly NlCandle[], h4Start: numb
 }
 
 export const neonLevelTfLabel = (tf: NeonLevelTf) => (tf === "4h" ? "4ч" : "1д");
+
+// ── Owner 2026-11-07: Stealth = Auto Range breakout whose range top sits on an ABNeon zone ──────────────
+// The level crossing alone (above) had no edge. The event is now the Auto Range [QuantAlgo] upside breakout
+// (CAB's port, the indicator's default settings) on a closed BingX-futures 4H candle — or on the closed UTC day
+// (daily range, ≥ 200 daily candles) — when the TOP of the broken range lies on a Neon zone (zone bottom −1% …
+// zone top +1%). No deviation condition (owner: later). No other filter; stop −8% from the close.
+
+export const NEON_RANGE_VERSION = "stealth-neon-range-v2" as const;
+const ZONE_TOL = 0.01;
+const toAr = (cs: readonly NlCandle[]): AutoRangeCandle[] =>
+  cs.map((c) => ({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close, closed: true }));
+
+export type NeonRangeBreakout = NeonLevelBreakout & {
+  range: { upper: number; lower: number; anchorAt: number; heightPct: number };
+};
+
+/** The Neon zone the range top sits on (bottom −1% … top +1%); the strongest when several. */
+export function zoneUnderRangeTop(zones: readonly SupportZone[], upper: number): SupportZone | null {
+  return (
+    zones
+      .filter((x) => upper >= x.bottom * (1 - ZONE_TOL) && upper <= x.top * (1 + ZONE_TOL))
+      .sort((a, b) => b.count - a.count)[0] ?? null
+  );
+}
+
+/**
+ * Evaluates the 4H candle that opened at `h4Start` (the last bar of `h4`, closed) and, when it closes the UTC
+ * day and `d1` (closed daily candles up to that day) is given, the day. At most one event; 1D wins.
+ */
+export function evaluateNeonRangeBreakout(
+  h4: readonly NlCandle[],
+  h4Start: number,
+  d1?: readonly NlCandle[],
+): NeonRangeBreakout | null {
+  const last = h4.at(-1);
+  if (!last || last.time !== h4Start || h4.length < 220) return null;
+  const prev = h4.at(-2);
+  if (!prev || prev.time !== h4Start - H4_MS) return null;
+  const zones = computeSupportZones(h4);
+  if (!zones.length) return null;
+  const all = [...zones].sort((a, b) => a.bottom - b.bottom).map(z);
+  const make = (tf: NeonLevelTf, candleTime: number, open: number, close: number, prevClose: number,
+    zone: SupportZone, b: { upper: number; lower: number; anchorAt: number }): NeonRangeBreakout => {
+    const next = zones.filter((x) => x.bottom > close).sort((a, c) => a.bottom - c.bottom)[0] ?? null;
+    return {
+      tf,
+      method: tf === "4h" ? NEON_LEVEL_4H_METHOD : NEON_LEVEL_1D_METHOD,
+      candleTime, open, close, prevClose,
+      level: z(zone),
+      crossed: [z(zone)],
+      nextResistance: next ? z(next) : null,
+      zones: all,
+      stopPrice: close * (1 - NEON_LEVEL_STOP_PCT / 100),
+      range: { upper: b.upper, lower: b.lower, anchorAt: b.anchorAt, heightPct: ((b.upper - b.lower) / b.lower) * 100 },
+    };
+  };
+  const closeAt = h4Start + H4_MS;
+  if (closeAt % D1_MS === 0 && d1 && d1.length >= 200) {
+    const day = d1.at(-1), pd = d1.at(-2);
+    if (day && pd && day.time === closeAt - D1_MS && pd.time === day.time - D1_MS) {
+      const res = detectAutoRangePine1d(toAr(d1));
+      const b = (res.upsideBreakouts ?? []).find((x) => x.breakoutCloseTime === closeAt);
+      const zone = b ? zoneUnderRangeTop(zones, b.upper) : null;
+      if (b && zone) return make("1d", day.time, day.open, day.close, pd.close, zone, b);
+    }
+  }
+  const res = detectAutoRangePine(toAr(h4));
+  const b = (res.upsideBreakouts ?? []).find((x) => x.breakoutCloseTime === closeAt);
+  const zone = b ? zoneUnderRangeTop(zones, b.upper) : null;
+  return b && zone ? make("4h", last.time, last.open, last.close, prev.close, zone, b) : null;
+}

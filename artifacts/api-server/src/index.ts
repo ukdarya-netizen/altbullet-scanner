@@ -72,6 +72,7 @@ import { neutralizeReviewedBalancedGrindDashboardSignals } from "./lib/balanced-
 import { neutralizeReviewedImpulseBuySignals } from "./lib/impulse-buy-filter-neutral-close.js";
 import { neutralizeIbWyckoffSignals } from "./lib/ib-wyckoff-neutral-close.js";
 import { retireOldStealthSignals } from "./lib/stealth-retirement-neutral-close.js";
+import { closeOpenStealthLevelV1 } from "./lib/stealth-level-v1-neutral-close.js";
 import { neutralizePlmP24hSignals } from "./lib/plm-p24h-neutral-close.js";
 import { reclassifyPlmNegativeTrades } from "./lib/plm-negative-reclassification.js";
 import { neutralizeOpenPlmSignals } from "./lib/plm-retirement-neutral-close.js";
@@ -5874,6 +5875,13 @@ app.listen(port, async (err) => {
     } catch (err) {
       // Non-fatal: the transaction rolled back, positions stay unchanged.
       logger.error({ err }, "Neon 4x volume-gate neutral close failed");
+    }
+    try {
+      // Owner 2026-11-07: Stealth detection replaced (Auto Range breakout on an ABNeon zone) — open ones close neutrally.
+      const stealthV1 = await closeOpenStealthLevelV1();
+      logger.info(stealthV1, "Stealth level-v1 open positions closed neutrally");
+    } catch (err) {
+      logger.error({ err }, "Stealth level-v1 neutral close failed");
     }
     try {
       const novStops = await excludeAbneonNovemberStops();

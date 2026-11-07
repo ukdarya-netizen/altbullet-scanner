@@ -340,16 +340,16 @@ import {
   type Range4hDecision,
 } from "./stealth-range-4h.js";
 import {
-  evaluateNeonLevelBreakout,
+  evaluateNeonRangeBreakout,
   mergeCandles,
+  NEON_RANGE_VERSION,
   neonLevelTfLabel,
   NEON_LEVEL_1D_METHOD,
   NEON_LEVEL_4H_METHOD,
   NEON_LEVEL_HISTORY_BARS,
   NEON_LEVEL_STOP_PCT,
-  NEON_LEVEL_VERSION,
   H4_MS as NL_H4_MS,
-  type NeonLevelBreakout,
+  type NeonRangeBreakout,
   type NlCandle,
 } from "./stealth-neon-level-breakout.js";
 
@@ -585,7 +585,9 @@ const STEALTH_FH_EVENT_TTL_MS = 30 * 60_000;
 // ── Stealth = ABNeon resistance breakout on closed 4H / 1D (owner 2026-11-06) ──────────────────────
 // Own timer, own candle cache: the main scan cycle is not touched and does not get longer.
 const STEALTH_NEON_LEVEL_LIVE = true as boolean;
-type NeonLevelEvent = NeonLevelBreakout & { symbol: string; detectedAt: number; quoteVolume24h: number | null };
+type NeonLevelEvent = NeonRangeBreakout & { symbol: string; detectedAt: number; quoteVolume24h: number | null };
+/** Closed UTC days per symbol for the daily Auto Range (owner 2026-11-07), refreshed once a day at the day close. */
+const neonLevelDaily = new Map<string, NlCandle[]>();
 const stealthNeonLevelQueue = new Map<string, NeonLevelEvent>();
 const neonLevelCandles = new Map<string, NlCandle[]>();
 let stealthNeonLevelLastCandle = 0;
@@ -665,6 +667,24 @@ async function neonLevel4hCandles(symbol: string, h4Start: number): Promise<NlCa
   return merged.filter((c) => c.time <= h4Start);
 }
 
+/** Closed UTC days up to `dayCloseAt` (exclusive end), ≥ 200 for the daily Auto Range; fetched at day close only. */
+async function neonLevelDailyCandles(symbol: string, dayCloseAt: number): Promise<NlCandle[]> {
+  const D = 24 * 60 * 60_000;
+  const cached = neonLevelDaily.get(symbol) ?? [];
+  const missing = cached.length ? Math.round((dayCloseAt - D - cached.at(-1)!.time) / D) : Infinity;
+  let merged: NlCandle[];
+  if (missing <= 0) merged = cached;
+  else if (missing <= 5 && cached.length >= 250) {
+    const rows = await getKlines(symbol, "1d", missing + 2, cached.at(-1)!.time - D, dayCloseAt - 1);
+    merged = mergeCandles(cached, rows.map(toNl), 320);
+  } else {
+    const rows = await getKlines(symbol, "1d", 320, dayCloseAt - 320 * D, dayCloseAt - 1);
+    merged = mergeCandles([], rows.map(toNl), 320);
+  }
+  neonLevelDaily.set(symbol, merged);
+  return merged.filter((c) => c.time + D <= dayCloseAt);
+}
+
 /** Every closed 4H candle (and the UTC day it closes) of every BingX USDT perpetual, once. */
 async function runStealthNeonLevel(now = Date.now()): Promise<void> {
   if (!STEALTH_NEON_LEVEL_LIVE || stealthNeonLevelRunning) return;
@@ -719,7 +739,10 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
             } else neonLevelCandidates.delete(symbol);
           }
           if (!fire) continue;
-          const ev = evaluateNeonLevelBreakout(candles, h4Start);
+          // Owner 2026-11-07: Stealth = Auto Range breakout with the range top on an ABNeon zone (4H / 1D).
+          const dayClose = (h4Start + NL_H4_MS) % (24 * 60 * 60_000) === 0;
+          const daily = dayClose ? await neonLevelDailyCandles(symbol, h4Start + NL_H4_MS).catch(() => undefined) : undefined;
+          const ev = evaluateNeonRangeBreakout(candles, h4Start, daily);
           if (!ev) continue;
           neonLevelRecentBreakouts.set(symbol, {
             tf: ev.tf,
@@ -14210,7 +14233,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         sentiment: {
           key: "stealth_breakout",
           label: "Stealth Breakout",
-          traderAction: `LONG (пробой уровня сопротивления ABNeon на закрытой свече ${tfLabel}; уровень ${p(ev.level.bottom)}–${p(ev.level.top)}; закрытие ${p(ev.close)}; следующее сопротивление ${ev.nextResistance ? `${p(ev.nextResistance.bottom)}–${p(ev.nextResistance.top)}` : "нет"}; стоп ${p(ev.stopPrice)} (−${NEON_LEVEL_STOP_PCT}%))`,
+          traderAction: `LONG (пробой Auto Range на закрытой свече ${tfLabel}, верх ренджа ${p(ev.range.upper)} на уровне ABNeon ${p(ev.level.bottom)}–${p(ev.level.top)}; закрытие ${p(ev.close)}; следующее сопротивление ${ev.nextResistance ? `${p(ev.nextResistance.bottom)}–${p(ev.nextResistance.top)}` : "нет"}; стоп ${p(ev.stopPrice)} (−${NEON_LEVEL_STOP_PCT}%))`,
           oiFalling: false,
         },
         coinglassOI: _nlOi ?? {
@@ -14239,7 +14262,11 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         futVol24hUsd: ev.quoteVolume24h ?? 0,
         decisionMetrics: {
           stealthNeonLevel: {
-            version: NEON_LEVEL_VERSION,
+            version: NEON_RANGE_VERSION,
+            rangeUpper: ev.range.upper,
+            rangeLower: ev.range.lower,
+            rangeAnchorAt: new Date(ev.range.anchorAt).toISOString(),
+            rangeHeightPct: ev.range.heightPct,
             tf: ev.tf,
             candleOpenAt: new Date(ev.candleTime).toISOString(),
             candleOpen: ev.open,
