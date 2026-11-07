@@ -68,7 +68,12 @@ async function cgGet(path: string, params: Record<string, string>): Promise<any[
 
 /** 1H bars of one source for [start, now); cached on disk (a coin/source with no data is cached as empty). */
 export async function cgHistory(cacheDir: string, symbol: string, src: Source, start: number, now: number): Promise<Map<number, VBar> | null> {
-  const file = join(cacheDir, `${symbol}_cg_${src}.json`);
+  return cgHistoryTf(cacheDir, symbol, src, start, now, "1h");
+}
+/** Same as cgHistory on another CoinGlass interval (15m: own cache file; history depth 4500 bars ≈ 46 days). */
+export async function cgHistoryTf(cacheDir: string, symbol: string, src: Source, start: number, now: number, interval: "15m" | "1h"): Promise<Map<number, VBar> | null> {
+  const step = interval === "15m" ? 900_000 : H1;
+  const file = join(cacheDir, interval === "1h" ? `${symbol}_cg_${src}.json` : `${symbol}_cg${interval}_${src}.json`);
   if (existsSync(file)) {
     try {
       const c = JSON.parse(readFileSync(file, "utf8")) as { from: number; to: number; items: VBar[] | null };
@@ -77,8 +82,8 @@ export async function cgHistory(cacheDir: string, symbol: string, src: Source, s
   }
   if (OFFLINE) return null;
   const base = applyCgAlias(symbol.replace(/-?USDT$/i, "").toUpperCase());
-  const limit = String(Math.min(4500, Math.ceil((now - start) / H1) + 4));
-  const common = { interval: "1h", start_time: String(start), end_time: String(now), limit };
+  const limit = String(Math.min(4500, Math.ceil((now - start) / step) + 4));
+  const common = { interval, start_time: String(start), end_time: String(now), limit };
   let rows: any[] | null;
   if (src === "aggfut") rows = await cgGet("/api/futures/aggregated-taker-buy-sell-volume/history", { ...common, symbol: base, exchange_list: FUT_LIST });
   else if (src === "aggspot") rows = await cgGet("/api/spot/aggregated-cvd/history", { ...common, symbol: base, exchange_list: SPOT_LIST });
