@@ -4,9 +4,10 @@
  * the Auto Range upside breakout itself (the indicator's "Breakout" label), on every timeframe the owner reads,
  * and the question is whether the coincidence of the range top with a Neon zone makes it work.
  *
- * Event sets ("set"): Auto Range [QuantAlgo] port, deviation merging off (as the owner's chart), every confirmed
- * upside breakout (closed candle) in the window:
+ * Event sets ("set"): Auto Range [QuantAlgo] port with the indicator's default deviation window (as live; the
+ * owner's charts show Deviation labels), every confirmed upside breakout (closed candle) in the window:
  *   F4  BingX futures 4H     F1  BingX futures 1H     S4  BingX SPOT 4H     D1  BingX futures 1D
+ *   F4x / F1x / S4x  the same with deviation merging off (every break final; no deviations recorded)
  * Neon zones (both edges, as the indicator draws them) from BingX futures 4H (live) and from BingX spot 4H, as of
  * the breakout close. For the range TOP and the range BOTTOM: the nearest zone and the distance to it (0 = inside
  * the zone), its pivots, where the breakout candle closed vs that zone (inside it / above its top), whether the
@@ -68,8 +69,10 @@ function nearest(zones: Z[], p: number): { d: number; z: Z } | null {
 const zonesAt = (h: C[], t: number): Z[] =>
   computeSupportZones(h.filter((c) => c.time + H4 <= t).slice(-ZONE_BARS)).map((z) => ({ top: z.top, bottom: z.bottom, count: z.count }));
 
-type SetName = "F4" | "F1" | "S4" | "D1";
-const TF: Record<SetName, number> = { F4: H4, F1: H1, S4: H4, D1: D1 };
+type SetName = "F4" | "F1" | "S4" | "D1" | "F4x" | "F1x" | "S4x";
+const TF: Record<SetName, number> = { F4: H4, F1: H1, S4: H4, D1: D1, F4x: H4, F1x: H1, S4x: H4 };
+/** x = deviation merging off (every break final); the plain sets = the indicator's default, as live (deviations recorded). */
+const MERGE_OFF = (s: SetName) => s.endsWith("x");
 
 function rows(symbol: string, coin: Coin, from: number, now: number, ctx: { btc: { h1: C[]; h4: C[] }; eth: { h1: C[]; h4: C[] } }): Row[] {
   const out: Row[] = [];
@@ -77,15 +80,16 @@ function rows(symbol: string, coin: Coin, from: number, now: number, ctx: { btc:
   const vol: Record<string, { h1: C[]; h4: C[]; vb: Map<number, VBar> | null }> = { bx: { h1: coin.h1, h4: coin.h4, vb: null } };
   for (const s of VOL_SOURCES) vol[s] = { h1: withVolume(coin.h1, coin.cg[s] ?? null, H1), h4: withVolume(coin.h4, coin.cg[s] ?? null, H4), vb: coin.cg[s] ?? null };
   const aggS4 = series(vol.aggfut!.h4), aggS1 = series(vol.aggfut!.h1);
-  const sets: Record<SetName, C[]> = { F4: coin.h4, F1: coin.h1, S4: coin.spot4, D1: coin.d1 };
+  const sets: Record<SetName, C[]> = { F4: coin.h4, F1: coin.h1, S4: coin.spot4, D1: coin.d1, F4x: coin.h4, F1x: coin.h1, S4x: coin.spot4 };
   for (const set of Object.keys(sets) as SetName[]) {
     const cs = sets[set];
     if (cs.length < (set === "D1" ? 210 : 220)) continue;
     let res: AutoRangePineResult;
     try {
-      res = set === "F1" ? detectAutoRangePine1h(ar(cs), { mergeDeviations: false })
+      const opts = MERGE_OFF(set) ? { mergeDeviations: false } : {};
+      res = set.startsWith("F1") ? detectAutoRangePine1h(ar(cs), opts)
         : set === "D1" ? detectAutoRangePine1d(ar(cs))
-        : detectAutoRangePine(ar(cs), { mergeDeviations: false });
+        : detectAutoRangePine(ar(cs), opts);
     } catch { continue; }
     if (res.status !== "ready") continue;
     const tf = TF[set];
@@ -211,7 +215,7 @@ async function main() {
     return `${rs.length}: сделка ${trk.length ? (trk.reduce((a, b) => a + b, 0) / trk.length).toFixed(2) : "—"}% (1-я половина ${m(rs.filter((r) => Number(r.entry_time_ms) < mid))}%, 2-я ${m(rs.filter((r) => Number(r.entry_time_ms) >= mid))}%)`;
   };
   const lines: string[] = [];
-  for (const set of ["F4", "F1", "S4", "D1"]) {
+  for (const set of ["F4", "F1", "S4", "D1", "F4x", "F1x", "S4x"]) {
     const rs = all_rows.filter((r) => r.set === set && r.fired === 1);
     if (!rs.length) continue;
     lines.push(`== ${set} все пробои Auto Range: ${c(rs)}`);
