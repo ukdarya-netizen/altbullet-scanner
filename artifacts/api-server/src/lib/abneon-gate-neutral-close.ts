@@ -6,7 +6,7 @@ import { normalizeClosedBreakoutCandles } from "./breakout-analysis.js";
 
 /**
  * Owner order 2026-11-06/07: open ABNeon positions that the new pre-touch volume gate
- * (abneon-volume-gate.ts, ≥ 11 of 12) would not have let through are closed neutrally —
+ * (abneon-volume-gate.ts, ABNEON_PRE_TOUCH_BLUE_MIN of 12) would not have let through are closed neutrally —
  * status 'reclassified', no exit price, no PnL, excluded from statistics. The tracker trigger
  * sends cancel_entry to the trading bot, which closes the exchange position.
  *

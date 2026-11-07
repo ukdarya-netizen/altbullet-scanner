@@ -11,7 +11,8 @@
  * The first touch = the first closed 1H candle after the arm whose low reached the zone top (+0.2%).
  */
 const H1 = 3_600_000;
-export const ABNEON_PRE_TOUCH_BLUE_MIN = 11;
+// Owner 2026-11-07: loosened from 11 to 10 of 12.
+export const ABNEON_PRE_TOUCH_BLUE_MIN = 10;
 export const ABNEON_PRE_TOUCH_BARS = 12;
 const AVG_BARS = 20;
 
