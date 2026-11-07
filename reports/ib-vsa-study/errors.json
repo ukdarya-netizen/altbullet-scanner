@@ -1,0 +1,7 @@
+{
+ "EPIC-USDT": "Error: code 109418 EPIC-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+ "VELODROME-USDT": "Error: code 109418 VELODROME-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+ "SUP-USDT": "Error: code 109418 SUP-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+ "FAI-USDT": "Error: code 109418 FAI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+ "PTB-USDT": "Error: code 109418 PTB-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+}
