@@ -218,6 +218,21 @@ function hasBreakdownRun(
   return false;
 }
 
+/**
+ * The live ABNeon support zones (owner 2026-10-22 rule with the live sweep of NEON_SWEEP_RECLAIM_BARS):
+ * the Neon zones minus those price has already broken through after their latest pivot.
+ * Same zones the 4H bounce detector arms on; used by the 1D bounce (owner 2026-11-07).
+ */
+export function liveSupportZones(
+  candles4h: readonly ClosedDetectorCandle[],
+  /** Research only (backtest): more zones / keep the zones the 22.10 rule drops. Production omits it. */
+  research?: { maxZones?: number; keepBroken?: boolean },
+): SupportZone[] {
+  return computeSupportZones(candles4h, research?.maxZones).filter(
+    (z) => research?.keepBroken === true || !zoneBrokenAfterPivot(candles4h, z, NEON_SWEEP_RECLAIM_BARS),
+  );
+}
+
 /** Sweep touch: dipped to/through the zone and closed back at/above its bottom. */
 function sweepTouchesZone(
   candle: ClosedDetectorCandle,
