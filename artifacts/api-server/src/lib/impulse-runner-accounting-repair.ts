@@ -33,6 +33,9 @@ export async function repairImpulseRunnerCanonicalRows(
         FROM tracked_signals
        WHERE policy_version = 'impulse_runner_v1'
          AND runner_state = 'closed'
+         -- Owner 2026-11-09: a neutrally closed (reclassified) IB is out of the statistics for good — the
+         -- repair must never turn it back into profit / stop_loss (it did on every restart).
+         AND status::text NOT IN ('reclassified', 'cancelled')
          AND core_closed_at IS NOT NULL
          AND original_entry_price > 0
          AND runner_exit_price > 0
