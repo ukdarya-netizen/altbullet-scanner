@@ -18,6 +18,7 @@ import { logger } from "./logger.js";
 import { entryExtrasCoverage, runEntryExtrasBackfillCycle } from "./entry-extras.js";
 import { runVolumeColorsBackfillCycle, volumeColorsCoverage } from "./entry-volume-colors.js";
 import { runIctBackfillCycle } from "./entry-ict.js";
+import { runMoneyFlowBackfillCycle } from "./entry-money-flow.js";
 
 export const ENTRY_READING_KEYS = ["impulse_buy", "stealth_breakout", "neon_support_bounce", "liquidation_cascade"] as const;
 const H1 = 3_600_000;
@@ -275,6 +276,8 @@ export function startEntryReadingsRestoreLoop(opts: { fast?: boolean } = {}): vo
   // «neon levels» and «range inside» readings of old Stealth breakouts are not computed any more.
   // ICT at the entry of every signal, 15m and 1H (owner 2026-11-05).
   loop("ict", () => runIctBackfillCycle(25, 1_000));
+  // MFI and Chaikin at the entry of ABNeon / Stealth / LC (owner 2026-11-09): observation only.
+  loop("moneyFlow", () => runMoneyFlowBackfillCycle(20, 1_500));
 }
 
 /** For «Аналитика»: per pattern, signals of the last 60 days and how many have each reading; recent failures. */
