@@ -138,11 +138,14 @@ async function study(name: string, files: string[]) {
   for (const [symbol, list] of bySym) {
     try {
       const first = Math.min(...list.map((x) => x.t));
-      const start = Math.floor((first - 45 * D1) / H4) * H4;
-      const h1 = await klines(CACHE, symbol, "1h", start, NOW);
-      const h4 = await klines(CACHE, symbol, "4h", start, NOW);
-      const fut = await cgHistory(CACHE, symbol, "aggfut", start, NOW);
-      const spot = await cgHistory(CACHE, symbol, "aggspot", start, NOW);
+      // Lookbacks inside the study caches (1H and CoinGlass: 400 h before the window; 4H: 720 bars):
+      // 1H readings need ≤ 150 bars, 4H ones ≤ 150 bars (the 4H Chaikin oscillator may be empty early on).
+      const start1 = Math.floor((first - 14 * D1) / H1) * H1;
+      const start4 = Math.floor((first - 40 * D1) / H4) * H4;
+      const h1 = await klines(CACHE, symbol, "1h", start1, NOW);
+      const h4 = await klines(CACHE, symbol, "4h", start4, NOW);
+      const fut = await cgHistory(CACHE, symbol, "aggfut", start1, NOW);
+      const spot = await cgHistory(CACHE, symbol, "aggspot", start1, NOW);
       const S = {
         aggfut_1h: withVolume(h1, fut, H1), aggfut_4h: withVolume(h4, fut, H4),
         aggspot_1h: withVolume(h1, spot, H1), aggspot_4h: withVolume(h4, spot, H4),
