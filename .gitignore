@@ -63,3 +63,4 @@ artifacts/archetype-detector/archetype_detector.db-wal
 reports/.cache/
 reports/.cache-gatecheck/
 reports/.cache-ib/
+reports/.cache-lc/

@@ -59,12 +59,17 @@ export async function cgSeries(cacheDir: string, symbol: string, kind: Kind, sta
   }
   if (OFFLINE) return null;
   const base = applyCgAlias(symbol.replace(/-?USDT$/i, "").toUpperCase());
-  const limit = String(Math.min(4500, Math.ceil((now - start) / H1) + 4));
-  const common = { interval: "1h", start_time: String(start), end_time: String(now), limit };
-  const rows =
-    kind === "oi" ? await get("/api/futures/open-interest/aggregated-history", { ...common, symbol: base })
-    : kind === "liq" ? await get("/api/futures/liquidation/aggregated-history", { ...common, symbol: base, exchange_list: FUT_LIST })
-    : await get("/api/futures/global-long-short-account-ratio/history", { ...common, exchange: "Binance", symbol: `${base}USDT` });
+  // Long ranges in windows of ≤ 4400 bars (CoinGlass returns at most 4500 per request).
+  let rows: any[] | null = [];
+  for (let a = start; a < now && rows !== null; a += 4400 * H1) {
+    const b = Math.min(now, a + 4400 * H1);
+    const common = { interval: "1h", start_time: String(a), end_time: String(b), limit: String(Math.min(4500, Math.ceil((b - a) / H1) + 4)) };
+    const part =
+      kind === "oi" ? await get("/api/futures/open-interest/aggregated-history", { ...common, symbol: base })
+      : kind === "liq" ? await get("/api/futures/liquidation/aggregated-history", { ...common, symbol: base, exchange_list: FUT_LIST })
+      : await get("/api/futures/global-long-short-account-ratio/history", { ...common, exchange: "Binance", symbol: `${base}USDT` });
+    rows = part === null ? null : rows.concat(part);
+  }
   if (rows === null) return null; // network: not cached, a later run retries
   const items = rows.map((r) => {
     const o: Record<string, number> = {};

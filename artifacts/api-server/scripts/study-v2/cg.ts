@@ -82,12 +82,17 @@ export async function cgHistoryTf(cacheDir: string, symbol: string, src: Source,
   }
   if (OFFLINE) return null;
   const base = applyCgAlias(symbol.replace(/-?USDT$/i, "").toUpperCase());
-  const limit = String(Math.min(4500, Math.ceil((now - start) / step) + 4));
-  const common = { interval, start_time: String(start), end_time: String(now), limit };
-  let rows: any[] | null;
-  if (src === "aggfut") rows = await cgGet("/api/futures/aggregated-taker-buy-sell-volume/history", { ...common, symbol: base, exchange_list: FUT_LIST });
-  else if (src === "aggspot") rows = await cgGet("/api/spot/aggregated-cvd/history", { ...common, symbol: base, exchange_list: SPOT_LIST });
-  else rows = await cgGet("/api/futures/taker-buy-sell-volume/history", { ...common, exchange: EXCH[src]!.name, symbol: EXCH[src]!.sym(base) });
+  // Long ranges in windows of ≤ 4400 bars (CoinGlass returns at most 4500 per request).
+  let rows: any[] | null = [];
+  for (let a = start; a < now && rows !== null; a += 4400 * step) {
+    const b = Math.min(now, a + 4400 * step);
+    const common = { interval, start_time: String(a), end_time: String(b), limit: String(Math.min(4500, Math.ceil((b - a) / step) + 4)) };
+    let part: any[] | null;
+    if (src === "aggfut") part = await cgGet("/api/futures/aggregated-taker-buy-sell-volume/history", { ...common, symbol: base, exchange_list: FUT_LIST });
+    else if (src === "aggspot") part = await cgGet("/api/spot/aggregated-cvd/history", { ...common, symbol: base, exchange_list: SPOT_LIST });
+    else part = await cgGet("/api/futures/taker-buy-sell-volume/history", { ...common, exchange: EXCH[src]!.name, symbol: EXCH[src]!.sym(base) });
+    rows = part === null ? null : rows.concat(part);
+  }
   const toMs = (t: number) => (t < 1e12 ? t * 1000 : t);
   const items: VBar[] | null = rows === null ? null : rows.map((r) => (
     src === "aggfut" ? { time: toMs(Number(r.time)), buy: Number(r.aggregated_buy_volume_usd), sell: Number(r.aggregated_sell_volume_usd) }
