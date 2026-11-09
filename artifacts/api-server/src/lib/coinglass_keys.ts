@@ -15,6 +15,8 @@ let _cgKeyIndex = 0;
 
 /** Возвращает следующий CG ключ по round-robin. null если ключей нет. */
 export function getNextCgKey(): string | null {
+  // Owner 2026-11-09: dev is not a real environment — it sends no CoinGlass requests at all.
+  if (process.env.NODE_ENV === "development") return null;
   if (CG_API_KEYS.length === 0) return null;
   const key = CG_API_KEYS[_cgKeyIndex % CG_API_KEYS.length];
   _cgKeyIndex++;

@@ -1,5 +1,6 @@
 import { logger } from "../lib/logger.js";
 import { cgTimedFetch } from "../lib/cg_latency.js";
+import { getNextCgKey } from "../lib/coinglass_keys.js";
 import { withAggregatedKlineVolume } from "../lib/aggregated-kline-volume.js";
 import { getFutureTickers } from "../lib/bingx.js";
 import { Router } from "express";
@@ -1088,7 +1089,7 @@ router.get("/scanner/debug/retro", requireAdminToken, async (req, res) => {
   const interval = String(req.query.interval ?? "30min");
 
   const CA_KEY = process.env.COINALYZE_API_KEY ?? "";
-  const CG_KEY = process.env.CoinGlassAPI ?? "";
+  const CG_KEY = getNextCgKey() ?? "";
   const base = symbol.replace("-USDT", "");
 
   // 1. Coinalyze OI history (30min candles, from/to in unix seconds)
@@ -1147,7 +1148,7 @@ router.get("/scanner/debug/retro", requireAdminToken, async (req, res) => {
   // limit=64 → до 16 часов @ 15m
   const takerLimit = Math.min(64, Math.ceil((toSec - fromSec) / 900) + 4);
   await Promise.all(
-    takerExchanges.map(async (exch) => {
+    (CG_KEY ? takerExchanges : []).map(async (exch) => {
       try {
         const url = new URL(
           "https://open-api-v4.coinglass.com/api/futures/taker-buy-sell-volume/history",
@@ -1258,7 +1259,11 @@ router.get(
   requireAdminToken,
   async (req, res) => {
     const symbol = (req.query.symbol as string) || "SAHARA";
-    const key = process.env.CoinGlassAPI!;
+    const key = getNextCgKey();
+    if (!key) {
+      res.status(503).json({ error: "CoinGlass disabled in this environment" });
+      return;
+    }
     const results: Record<string, any> = {};
 
     const endpoints = [

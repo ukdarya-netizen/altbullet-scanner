@@ -451,6 +451,10 @@ export async function coinglassFetch(
   init: RequestInit,
   options: { priority?: CoinglassPriority; endpoint?: string } = {},
 ): Promise<Response> {
+  // Owner 2026-11-09: dev is not a real environment — no CoinGlass requests from it.
+  if (process.env.NODE_ENV === "development") {
+    throw new Error("CoinGlass disabled in development");
+  }
   const startedAt = Date.now();
   try {
     return await coinglassFetchUntimed(url, init, options);
