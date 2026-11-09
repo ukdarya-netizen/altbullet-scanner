@@ -81,14 +81,24 @@ async function loadInputs(symbol: string, entryCandle: number, priority: "high" 
  * the rest 77 → 19 / 7, +14.8%. Returns null when the phase cannot be measured (caller lets it pass).
  */
 export async function impulseWyckoffPhaseNow(symbol: string, nowMs = Date.now()): Promise<string | null> {
+  return (await impulseWyckoffCheck(symbol, nowMs)).phase;
+}
+
+/**
+ * The same reading with the reason when the phase is not measured (owner 2026-11-09: the live gate is
+ * fail-closed — no phase, no signal — and the phase / reason the gate saw is written into the snapshot).
+ */
+export async function impulseWyckoffCheck(symbol: string, nowMs = Date.now()): Promise<{ phase: string | null; reason: string | null; entryCandle: number }> {
+  const entryCandle = entryCandleOf(new Date(nowMs));
   try {
-    const entryCandle = entryCandleOf(new Date(nowMs));
     const { candles, volumes } = await loadInputs(symbol, entryCandle, "high");
-    if (!volumes || !candles.some((c) => c.time === entryCandle)) return null;
+    if (!volumes) return { phase: null, reason: "no_aggregated_volume", entryCandle };
+    if (!candles.some((c) => c.time === entryCandle)) return { phase: null, reason: "no_entry_candle_1h", entryCandle };
     const w = computeWyckoff(candles, volumes, entryCandle);
-    return w.phase === "insufficient_history" ? null : w.phase;
-  } catch {
-    return null;
+    if (w.phase === "insufficient_history") return { phase: null, reason: "insufficient_history", entryCandle };
+    return { phase: w.phase, reason: null, entryCandle };
+  } catch (e) {
+    return { phase: null, reason: `error:${String(e).slice(0, 80)}`, entryCandle };
   }
 }
 

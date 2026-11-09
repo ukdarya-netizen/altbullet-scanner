@@ -71,6 +71,7 @@ import { moveReviewedNoObLcToWait } from "./lib/lc-no-ob-wait-migration.js";
 import { neutralizeReviewedBalancedGrindDashboardSignals } from "./lib/balanced-grind-dashboard-close.js";
 import { neutralizeReviewedImpulseBuySignals } from "./lib/impulse-buy-filter-neutral-close.js";
 import { neutralizeIbWyckoffSignals } from "./lib/ib-wyckoff-neutral-close.js";
+import { neutralizeIbPrice24hRejects } from "./lib/ib-p24h-neutral-close.js";
 import { retireOldStealthSignals } from "./lib/stealth-retirement-neutral-close.js";
 import { closeOpenStealthLevelV1 } from "./lib/stealth-level-v1-neutral-close.js";
 import { neutralizePlmP24hSignals } from "./lib/plm-p24h-neutral-close.js";
@@ -5786,6 +5787,13 @@ app.listen(port, async (err) => {
       logger.info(ibWy, "New IB (Wyckoff) and Stealth (Welkin) filter rejects closed / removed from statistics neutrally");
     } catch (err) {
       logger.error({ err }, "IB Wyckoff neutral close failed");
+    }
+    try {
+      // Owner 2026-11-09: November IB below +15% over 24 h leave the statistics (all outcomes).
+      const ibP24 = await neutralizeIbPrice24hRejects();
+      logger.info(ibP24, "IB price-24h filter rejects closed / removed from statistics neutrally");
+    } catch (err) {
+      logger.error({ err }, "IB price-24h neutral close failed");
     }
     try {
       // Owner 2026-11-06: old Stealth retired — open positions closed neutrally, November out of stats.

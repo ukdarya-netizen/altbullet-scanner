@@ -4,7 +4,7 @@ import {
   stealthOi4hPasses,
   stealth1hVolumeRatioPasses,
 } from "./stealth-oi-breakout-filter.js";
-import { impulseWyckoffPhaseNow } from "./entry-readings.js";
+import { impulseWyckoffCheck } from "./entry-readings.js";
 import { welkinEmptyBeforeBreakout } from "./entry-volume-colors.js";
 import { calcStealthScore } from "./stealth-score.js";
 import { registerProcessHealthSource } from "./process-health.js";
@@ -304,6 +304,7 @@ import {
 import { isPreservedDecommissionedPattern } from "./dead-patterns.js";
 import {
   shouldBlockConfirmedFireForMissingSpotVolume,
+  IMPULSE_BUY_MIN_PRICE_24H_PCT,
   IMPULSE_EXHAUSTED_PUMP_MAX_VOLMULT_30M,
   IMPULSE_EXHAUSTED_PUMP_MAX_VOLMULT_4H,
   DARK_FLOW_MIN_VOLMULT,
@@ -8301,6 +8302,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                         candleBodyPct: res.impulseDecision.candleBodyPct,
                         candleVolumeMult: res.impulseDecision.volumeMultiplier,
                         candleCloseStrength: res.impulseDecision.closeStrength,
+                        wyckoffPhase: res.impulseDecision.wyckoffPhase ?? null,
+                        wyckoffReason: res.impulseDecision.wyckoffReason ?? null,
                         candleClosedAt:
                           res.impulseCandleClosedAt?.toISOString() ?? null,
                         score: res.impulseDecision.score,
@@ -9621,18 +9624,34 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               }
               _impulseDecision = evaluateImpulseBuy(_buildImpulseInput(true));
             }
+            // Owner 2026-11-09: only coins up ≥ 15% over 24 h (IMPULSE_BUY_MIN_PRICE_24H_PCT).
+            if (
+              _impulseDecision.passes &&
+              !(Number.isFinite(price24hChange) && price24hChange >= IMPULSE_BUY_MIN_PRICE_24H_PCT)
+            ) {
+              _impulseDecision = {
+                ..._impulseDecision,
+                passes: false,
+                rejectReasons: [..._impulseDecision.rejectReasons, "price24h_below_15"],
+              };
+            }
             // Owner 2026-11-05: Impulse Buy is not sent when the Wyckoff phase at the entry is
             // «breakout without base» (the price already jumped on volume with no accumulation
-            // before it). Phase not measurable (no data / CoinGlass down) → the signal passes.
+            // before it). Owner 2026-11-09: phase not measurable (no aggregated volume, no entry
+            // candle, short history, error) → no signal (aggregated data only, no fallbacks); the
+            // phase / reason the gate saw goes into the decision snapshot.
             if (_impulseDecision.passes) {
-              const _impulseWyPhase = await impulseWyckoffPhaseNow(symbol);
-              if (_impulseWyPhase === "breakout_without_base") {
+              const _impulseWy = await impulseWyckoffCheck(symbol);
+              _impulseDecision = { ..._impulseDecision, wyckoffPhase: _impulseWy.phase, wyckoffReason: _impulseWy.reason };
+              if (_impulseWy.phase === null || _impulseWy.phase === "breakout_without_base") {
                 _impulseDecision = {
                   ..._impulseDecision,
                   passes: false,
                   rejectReasons: [
                     ..._impulseDecision.rejectReasons,
-                    "wyckoff_breakout_without_base",
+                    _impulseWy.phase === null
+                      ? `wyckoff_phase_unknown_${_impulseWy.reason ?? "unknown"}`
+                      : "wyckoff_breakout_without_base",
                   ],
                 };
               }

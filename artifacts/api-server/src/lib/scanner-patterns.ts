@@ -476,7 +476,18 @@ export interface ImpulseBuyDecision {
   >;
   missingReasons: string[];
   rejectReasons: string[];
+  /** Live Wyckoff gate reading (owner 2026-11-09): the phase the gate saw, or why it had none. */
+  wyckoffPhase?: string | null;
+  wyckoffReason?: string | null;
 }
+
+/**
+ * Owner 2026-11-09 (final IB tuning): Impulse Buy only when the coin is up at least 15% over 24 h.
+ * Production IB since June (decision snapshots, 332 signals with the metric): before Nov 5 the passing
+ * 36 averaged +1.83% closed (all +0.02%), 39% peaked ≥ +10% (all 24%), 4 cancels; Nov 5–9: 8 of 144 pass,
+ * 3 profit / 3 B.U. / 0 cancels / 0 stops (the other 136: 63+ cancels, 13 stops).
+ */
+export const IMPULSE_BUY_MIN_PRICE_24H_PCT = 15;
 
 export const IMPULSE_BUY_LIQ_RATIO_SHADOW_THRESHOLD = 0.15;
 
