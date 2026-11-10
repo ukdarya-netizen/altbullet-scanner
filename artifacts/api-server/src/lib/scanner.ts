@@ -9833,10 +9833,17 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             // before it). Owner 2026-11-09: phase not measurable (no aggregated volume, no entry
             // candle, short history, error) → no signal (aggregated data only, no fallbacks); the
             // phase / reason the gate saw goes into the decision snapshot.
-            if (_impulseDecision.passes) {
+            // Owner 2026-11-10: an IB stopped only by the 24h-growth filter gets the Wyckoff reading and the 30m
+            // volume as well (record only) — to check on outcomes that both filters are right.
+            const _ibOnlyP24 =
+              !_impulseDecision.passes &&
+              _impulseDecision.missingReasons.length === 0 &&
+              _impulseDecision.rejectReasons.length > 0 &&
+              _impulseDecision.rejectReasons.every((r) => r === "price24h_below_15");
+            if (_impulseDecision.passes || _ibOnlyP24) {
               const _impulseWy = await impulseWyckoffCheck(symbol);
               _impulseDecision = { ..._impulseDecision, wyckoffPhase: _impulseWy.phase, wyckoffReason: _impulseWy.reason };
-              if (_impulseWy.phase === null || _impulseWy.phase === "breakout_without_base") {
+              if (_impulseDecision.passes && (_impulseWy.phase === null || _impulseWy.phase === "breakout_without_base")) {
                 _impulseDecision = {
                   ..._impulseDecision,
                   passes: false,
@@ -9850,8 +9857,14 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               }
             }
             // Owner 2026-11-10: the 30m candle volume (aggregated, vs 20 bars) was never measured for small
-            // candles. Measure it for every IB that passes all gates — record only, it never blocks.
-            if (_impulseDecision.passes && _impulseDecision.volumeMultiplier === null && _closed30m) {
+            // candles. Measured for every IB that passes all the other conditions — fired, or stopped only by
+            // the 24h growth or the Wyckoff gate — record only, it never blocks.
+            const _ibOnlyFilters =
+              !_impulseDecision.passes &&
+              _impulseDecision.missingReasons.length === 0 &&
+              _impulseDecision.rejectReasons.length > 0 &&
+              _impulseDecision.rejectReasons.every((r) => r === "price24h_below_15" || r.startsWith("wyckoff_"));
+            if ((_impulseDecision.passes || _ibOnlyFilters) && _impulseDecision.volumeMultiplier === null && _closed30m) {
               const _ibVol = await getAggregatedFuturesVolume30m(symbol, _closed30m.time).catch(() => null);
               if (_ibVol && _ibVol.baselineVolumeUsd > 0) {
                 _impulseDecision = { ..._impulseDecision, volumeMultiplier: _ibVol.candleVolumeUsd / _ibVol.baselineVolumeUsd };
