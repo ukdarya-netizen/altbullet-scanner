@@ -9828,6 +9828,14 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 };
               }
             }
+            // Owner 2026-11-10: the 30m candle volume (aggregated, vs 20 bars) was never measured for small
+            // candles. Measure it for every IB that passes all gates — record only, it never blocks.
+            if (_impulseDecision.passes && _impulseDecision.volumeMultiplier === null && _closed30m) {
+              const _ibVol = await getAggregatedFuturesVolume30m(symbol, _closed30m.time).catch(() => null);
+              if (_ibVol && _ibVol.baselineVolumeUsd > 0) {
+                _impulseDecision = { ..._impulseDecision, volumeMultiplier: _ibVol.candleVolumeUsd / _ibVol.baselineVolumeUsd };
+              }
+            }
             const _impulseLiveDecision: ImpulseBuyDecision =
               shouldEmitImpulseBuyLive(
                 _impulseDecision,
