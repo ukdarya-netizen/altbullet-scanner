@@ -317,7 +317,7 @@ import {
   SPOT_TAKER_SELL_DOMINANCE,
   SPOT_TAKER_HEAVY_SELL,
 } from "./scanner-patterns.js";
-import { describeLcStateForScan } from "./liq-cascade-watcher.js";
+import { getLcScanDecisionForSymbol } from "./liq-cascade-watcher.js";
 import {
   prescanTelemetryOutboxStore,
   type PrescanTelemetryItem,
@@ -1493,6 +1493,7 @@ type PatternDebugCandidateContext = Readonly<{
   prescanCycles: number | null;
   impulseBuyMetrics?: Record<string, unknown>;
   priceLedMomentumMetrics?: Record<string, unknown>;
+  patternDecisionMetrics?: Record<string, Record<string, unknown>>;
 }>;
 // Set from immutable values once the symbol reaches pattern evaluation. Calls
 // before a canonical pattern exists never set/use this context.
@@ -1507,11 +1508,33 @@ const _pdbCtx = {
     if (store) store.context = next;
   },
 };
-export function _pdbReject(key: string, gate: string) {
+export function _pdbReject(
+  key: string,
+  gate: string,
+  options?: {
+    decisionKind?: "rejected" | "blocked" | "deferred";
+    decisionMetrics?: Record<string, unknown>;
+  },
+) {
   const e = (lastPatternDebug[key] ??= _pdbNew());
   e.rejectedAt[gate] = (e.rejectedAt[gate] ?? 0) + 1;
   const context = _pdbCtx.value;
   if (context) {
+    const patternMetrics = context.patternDecisionMetrics?.[key];
+    const legacyPatternMetrics =
+      key === "impulse_buy"
+        ? context.impulseBuyMetrics
+        : key === "price_led_momentum"
+          ? context.priceLedMomentumMetrics
+          : undefined;
+    const decisionMetrics =
+      patternMetrics || legacyPatternMetrics || options?.decisionMetrics
+        ? {
+            ...(legacyPatternMetrics ?? {}),
+            ...(patternMetrics ?? {}),
+            ...(options?.decisionMetrics ?? {}),
+          }
+        : undefined;
     _symRej(
       context.symbol,
       key,
@@ -1520,12 +1543,8 @@ export function _pdbReject(key: string, gate: string) {
       context.volMult,
       context.price24h,
       context.prescanCycles,
-      undefined,
-      key === "impulse_buy"
-        ? context.impulseBuyMetrics
-        : key === "price_led_momentum"
-          ? context.priceLedMomentumMetrics
-          : undefined,
+      options?.decisionKind,
+      decisionMetrics,
       context.entryPrice,
     );
   }
@@ -1704,6 +1723,16 @@ function _symRej(
   // at the moment of the decision (owner order 2026-10-10). Caller-supplied
   // metrics keep priority; missing values stay null, never reconstructed.
   const _pe = prescanTracker.get(symbol);
+  const context = _pdbCtx.value;
+  const patternMetrics =
+    context?.symbol === symbol
+      ? (context.patternDecisionMetrics?.[pattern] ??
+        (pattern === "impulse_buy"
+          ? context.impulseBuyMetrics
+          : pattern === "price_led_momentum"
+            ? context.priceLedMomentumMetrics
+            : undefined))
+      : undefined;
   const flowSnapshot = {
     capturedAt: Date.now(),
     oiObservedAt: _pe?.lastOiAt ?? null,
@@ -1740,7 +1769,11 @@ function _symRej(
     price24h,
     prescanCycles: cycles,
     decisionKind,
-    decisionMetrics: { flowSnapshot, ...(decisionMetrics ?? {}) },
+    decisionMetrics: {
+      flowSnapshot,
+      ...(patternMetrics ?? {}),
+      ...(decisionMetrics ?? {}),
+    },
     decisionEntryPrice,
     zoneBottom:
       typeof decisionMetrics?.zoneBottom === "number"
@@ -1961,32 +1994,80 @@ async function persistSymRejectLogOnce(): Promise<void> {
     {
       const bySymbol = new Map<
         string,
-        { patterns: Set<string>; first: (typeof rows)[number] }
+        {
+          patterns: Set<string>;
+          first: (typeof rows)[number];
+          rows: Array<(typeof rows)[number]>;
+        }
       >();
       for (const row of rows) {
         const key = `${row.cycleAt.getTime()}\u0000${row.symbol}`;
         const entry = bySymbol.get(key);
-        if (entry) entry.patterns.add(row.pattern);
-        else
-          bySymbol.set(key, { patterns: new Set([row.pattern]), first: row });
+        if (entry) {
+          entry.patterns.add(row.pattern);
+          entry.rows.push(row);
+        } else {
+          bySymbol.set(key, {
+            patterns: new Set([row.pattern]),
+            first: row,
+            rows: [row],
+          });
+        }
       }
-      for (const { patterns, first } of bySymbol.values()) {
-        if (patterns.has("gate")) continue;
+      for (const { patterns, first, rows: symbolRows } of bySymbol.values()) {
+        const globalGate = symbolRows.find((row) => row.pattern === "gate");
         for (const pattern of LIVE_PATTERNS_FOR_REJECT_GAPS) {
           if (patterns.has(pattern)) continue;
+          const lcState =
+            pattern === "liquidation_cascade"
+              ? getLcScanDecisionForSymbol(first.symbol)
+              : null;
+          if (lcState?.fired) continue;
+          const activeStealthRangeArm =
+            globalGate?.reason === "exhaustedPump" &&
+            globalGate.decisionMetrics?.activeRangeArm === true;
+          const globalGateBlocksPattern =
+            globalGate !== undefined &&
+            (globalGate.reason !== "exhaustedPump" ||
+              !activeStealthRangeArm ||
+              pattern !== "stealth_breakout");
+          const reason = lcState
+            ? lcState.reason
+            : globalGateBlocksPattern
+              ? `blocked_by_global_gate:${globalGate.reason}`
+              : "pattern_decision_not_recorded";
           gapRows.push({
             cycleAt: first.cycleAt,
             symbol: first.symbol,
             pattern,
-            reason:
-              pattern === "liquidation_cascade"
-                ? describeLcStateForScan(first.symbol)
-                : "decision_reason_not_recorded",
+            reason,
             oi30m: first.oi30m,
             volMult: first.volMult,
             price24h: first.price24h,
             prescanCycles: first.prescanCycles,
-            decisionKind: "rejected",
+            decisionKind: lcState?.decisionKind ?? "blocked",
+            decisionMetrics: lcState
+              ? {
+                  liquidationCascade: lcState.decisionMetrics,
+                }
+              : globalGateBlocksPattern
+                ? {
+                    blockedBeforePatternEvaluation: true,
+                    globalGate: {
+                      reason: globalGate.reason,
+                      metrics: globalGate.decisionMetrics ?? null,
+                    },
+                  }
+                : {
+                    diagnosticStatus: "pattern_decision_record_missing",
+                    globalGate: globalGate
+                      ? {
+                          reason: globalGate.reason,
+                          decisionMetrics: globalGate.decisionMetrics ?? null,
+                          terminal: false,
+                        }
+                      : null,
+                  },
             decisionEntryPrice: null,
             zoneBottom: null,
             zoneTop: null,
@@ -6556,6 +6637,10 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     string,
     { frozenLevel: number; armCandleTime: number; triggerCandleTime: number }
   >();
+  const neonSupportDecisionDiagnostics = new Map<
+    string,
+    Record<string, unknown>
+  >();
   markCycleStep("neon-universe-orchestration");
   await runNeonUniverseOrchestration({
     genericSymbols: [],
@@ -6667,7 +6752,24 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               triggerCandleTime: support.triggerCandleTime,
               zoneTop: support.frozenLevel,
             })
-          : ({ ok: false, reason: "no_aggregated_volume", blue: null } as const);
+          : ({
+              ok: false,
+              reason: "no_aggregated_volume",
+              blue: null,
+            } as const);
+        const preTouchGate = {
+          ok: gate.ok && gate.blue >= ABNEON_PRE_TOUCH_BLUE_MIN,
+          reason: !gate.ok
+            ? gate.reason
+            : gate.blue < ABNEON_PRE_TOUCH_BLUE_MIN
+              ? "below_minimum_blue_count"
+              : "passed",
+          blue: gate.blue,
+          requiredBlue: ABNEON_PRE_TOUCH_BLUE_MIN,
+          bars: 12,
+          aggregatedVolumeAvailable: aggVol100 != null,
+          firstTouchTime: gate.ok ? gate.firstTouchTime : null,
+        };
         if (!gate.ok || gate.blue < ABNEON_PRE_TOUCH_BLUE_MIN) {
           support = {
             ...support,
@@ -6675,12 +6777,20 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             reason: gate.ok
               ? `pre_touch_volume_quiet_${gate.blue}_of_12`
               : `pre_touch_volume_${gate.reason}`,
-            evidence: { ...(support.evidence ?? {}), preTouchBlue12: gate.blue },
+            evidence: {
+              ...(support.evidence ?? {}),
+              preTouchBlue12: gate.blue,
+              preTouchGate,
+            },
           };
         } else {
           support = {
             ...support,
-            evidence: { ...(support.evidence ?? {}), preTouchBlue12: gate.blue },
+            evidence: {
+              ...(support.evidence ?? {}),
+              preTouchBlue12: gate.blue,
+              preTouchGate,
+            },
           };
         }
       }
@@ -6688,6 +6798,25 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         symbol,
         result: support,
         observedAt: Date.now(),
+      });
+      const effectiveReason =
+        support.status === "qualified" &&
+        (!persistedSupport ||
+          persistedSupport.status !== "qualified" ||
+          !persistedSupport.liveEligible)
+          ? "qualified_event_not_live_eligible"
+          : support.reason;
+      neonSupportDecisionDiagnostics.set(symbol, {
+        status: support.status,
+        reason: effectiveReason,
+        detectorReason: support.reason,
+        frozenLevel: support.frozenLevel,
+        armCandleTime: support.armCandleTime,
+        triggerCandleTime: support.triggerCandleTime,
+        volumeEvidence: support.volumeEvidence,
+        detectorEvidence: support.evidence ?? null,
+        persistedStatus: persistedSupport?.status ?? null,
+        persistedLiveEligible: persistedSupport?.liveEligible ?? null,
       });
       const neonLastPrice = parseFloat(ticker.lastPrice);
       const neonNearZone =
@@ -6788,6 +6917,13 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         observedAt: Date.now(),
       });
       return newlyQualifiedNeonEvents.has(symbol) ? ticker : null;
+    },
+    onNeonError: (ticker, error) => {
+      neonSupportDecisionDiagnostics.set(ticker.symbol, {
+        status: "error",
+        reason: "neon_evaluation_error",
+        errorName: error instanceof Error ? error.name : typeof error,
+      });
     },
     runGeneric: async () => {},
     signal: lease.signal,
@@ -7386,20 +7522,56 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         );
       }
       if (_aggBlocking.length > 0) {
+        const _aggBlockReason = `aggregated_data_unavailable:${_aggBlocking.join("+")}`;
+        const _aggDecisionMetrics = {
+          aggregatedData: {
+            blockingInputs: _aggBlocking,
+            missingInputs: _aggMissing,
+            futuresTakerNetBuyPct: _aggFutTaker,
+            spotCvdAvailable: _aggSpotCvd?.available === true,
+            spotCvd: _aggSpotCvd?.available
+              ? {
+                  cvd15m: _aggSpotCvd.cvd15m ?? null,
+                  cvd30m: _aggSpotCvd.cvd30m ?? null,
+                  cvd1h: _aggSpotCvd.cvd1h ?? null,
+                  cvd4h: _aggSpotCvd.cvd4h ?? null,
+                }
+              : null,
+            spotVolumeAvailable: _aggOnDemandSpotVol
+              ? true
+              : Boolean(
+                  _aggPe?.spotVolAvg1h &&
+                    _aggPe.lastSpotVol1h != null &&
+                    Number.isFinite(
+                      _aggPe.lastSpotVol1h / _aggPe.spotVolAvg1h,
+                    ),
+                ),
+            spotVolumeRatio:
+              _aggPe?.spotVolAvg1h && _aggPe.lastSpotVol1h != null
+                ? _aggPe.lastSpotVol1h / _aggPe.spotVolAvg1h
+                : null,
+            oiAvailable: Boolean(coinglassOIMap.get(symbol)?.oiUsd),
+            oiUsd: coinglassOIMap.get(symbol)?.oiUsd ?? null,
+          },
+        };
         logger.info(
           { symbol, pattern: _aggPattern, missing: _aggMissing },
           "SKIP: агрегированные данные недоступны",
         );
-        _pdbReject(_aggPattern, "aggregated_data_unavailable");
+        _pdbReject(_aggPattern, _aggBlockReason, {
+          decisionKind: "blocked",
+          decisionMetrics: _aggDecisionMetrics,
+        });
         _symRej(
           symbol,
           _aggPattern,
-          `aggregated_data_unavailable:${_aggMissing.join("+")}`,
+          _aggBlockReason,
           base.oiChangePercent ?? null,
           base.volumeMultiplier ?? null,
           base.price24hChange ?? null,
           _aggPe?.cycleCount ?? null,
           "blocked",
+          _aggDecisionMetrics,
         );
         skipCount.takerFail++;
         continue;
@@ -9656,14 +9828,6 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 };
               }
             }
-            // Owner 2026-11-10: the 30m candle volume (aggregated, vs 20 bars) was never measured for small
-            // candles. Measure it for every IB that passes all gates — record only, it never blocks.
-            if (_impulseDecision.passes && _impulseDecision.volumeMultiplier === null && _closed30m) {
-              const _ibVol = await getAggregatedFuturesVolume30m(symbol, _closed30m.time).catch(() => null);
-              if (_ibVol && _ibVol.baselineVolumeUsd > 0) {
-                _impulseDecision = { ..._impulseDecision, volumeMultiplier: _ibVol.candleVolumeUsd / _ibVol.baselineVolumeUsd };
-              }
-            }
             const _impulseLiveDecision: ImpulseBuyDecision =
               shouldEmitImpulseBuyLive(
                 _impulseDecision,
@@ -9711,6 +9875,17 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   volMult,
                   price24hChange,
                   _peEP.cycleCount,
+                  "blocked",
+                  {
+                    price24hChange,
+                    volumeMultiplier30m: volMult,
+                    volumeMultiplier4h: volMult4h,
+                    activeRangeArm: activeRangeArmSymbols.has(symbol),
+                    maxVolumeMultiplier30m:
+                      IMPULSE_EXHAUSTED_PUMP_MAX_VOLMULT_30M,
+                    maxVolumeMultiplier4h:
+                      IMPULSE_EXHAUSTED_PUMP_MAX_VOLMULT_4H,
+                  },
                 );
               }
               // Памп уже случился — помечаем для batch expire после loop (не блокируем scan)
@@ -9936,6 +10111,15 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               prescanCycles: prescanTracker.get(symbol)?.cycleCount ?? null,
               priceLedMomentumMetrics: _plmDecisionMetrics,
               impulseBuyMetrics: {
+                decisionPasses: _impulseDecision.passes,
+                liveFireEnabled: IMPULSE_BUY_LIVE_FIRE_ENABLED,
+                liveDecisionPasses: _impulseLiveDecision.passes,
+                missingReasons: _impulseDecision.missingReasons,
+                rejectReasons: _impulseDecision.rejectReasons,
+                score: _impulseDecision.score,
+                wyckoffPhase: _impulseDecision.wyckoffPhase ?? null,
+                wyckoffReason: _impulseDecision.wyckoffReason ?? null,
+                price24hMinimumPct: IMPULSE_BUY_MIN_PRICE_24H_PCT,
                 candleOpen: parseFloat(_closed30m?.open ?? "") || null,
                 candleHigh: parseFloat(_closed30m?.high ?? "") || null,
                 candleLow: parseFloat(_closed30m?.low ?? "") || null,
@@ -11274,6 +11458,50 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     };
                   })()
                 : undefined;
+            const _sbArmForDiagnostics =
+              "arm" in _sbArmed ? _sbArmed.arm : null;
+            const _sbStealthDecisionMetrics = {
+              armStatus: _sbArmed.status,
+              armReason:
+                "waitingReason" in _sbArmed
+                  ? _sbArmed.waitingReason
+                  : "reason" in _sbArmed
+                    ? _sbArmed.reason
+                    : null,
+              armId: "armId" in _sbArmed ? _sbArmed.armId : null,
+              levelSource: _sbArmForDiagnostics?.levelSource ?? null,
+              frozenLevel: _sbArmForDiagnostics?.breakoutLevel ?? null,
+              structureStatus: _sbStructure.status,
+              structureReason:
+                "reason" in _sbStructure ? _sbStructure.reason : null,
+              hasQuietZone: Boolean(_sbStructure.quietZone),
+              breakout4hStatus: _sbOneHour.status,
+              refinement30mStatus: _sbThirtyMinute.status,
+              triggerCandleAt: _sbTriggerAt,
+              preVolumeFire: _sbPreVolumeFire,
+              volumeGate: _sbVolumeGate,
+              breakoutQuality: _sbQuality,
+              oi4hAtBreakout: _sbOi4hAtBreakout,
+              oi4hGatePassed: !_sbOiBlocked,
+              oneHourVolumeRatio: _sbOneHourVolumeRatio,
+              oneHourVolumeGatePassed: !_sbVolRatioBlocked,
+              rangeRecheck: _sbRangeRecheck,
+              srv2Observation: _sbSrv2,
+              livePrice: Number.isFinite(_sbLivePrice) ? _sbLivePrice : null,
+              livePriceBelowFrozenLevel: _sbPriceBelowFrozenLevel,
+              passedFireDecision: isStealthBreakout,
+              decisionMetrics: _sbDecisionMetrics ?? null,
+            };
+            const _sbContext = _pdbCtx.value;
+            if (_sbContext?.symbol === symbol) {
+              _pdbCtx.value = Object.freeze({
+                ..._sbContext,
+                patternDecisionMetrics: {
+                  ...(_sbContext.patternDecisionMetrics ?? {}),
+                  stealth_breakout: _sbStealthDecisionMetrics,
+                },
+              });
+            }
 
             // ── PRICE LED MOMENTUM (Архетип C): spot-led momentum ─────────────────────
             // Цена уже движется вверх, а spot-flow и CVD подтверждают импульс.
@@ -11306,7 +11534,61 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               if (_neonSupportBounceEvent !== null) {
                 _pdbPass("neon_support_bounce");
               } else {
-                _pdbReject("neon_support_bounce", "qualified_event_missing");
+                const diagnostic = neonSupportDecisionDiagnostics.get(
+                  symbol,
+                ) ?? {
+                  status: "not_recorded",
+                  reason: "neon_evaluation_not_recorded",
+                };
+                const reason =
+                  typeof diagnostic.reason === "string"
+                    ? diagnostic.reason
+                    : "neon_evaluation_not_recorded";
+                const status =
+                  typeof diagnostic.status === "string"
+                    ? diagnostic.status
+                    : "not_recorded";
+                const decisionKind =
+                  status === "error" ||
+                  status === "armed" ||
+                  reason === "insufficient_closed_candles"
+                    ? "deferred"
+                    : reason === "qualified_event_not_live_eligible"
+                      ? "blocked"
+                      : "rejected";
+                const detectorEvidence =
+                  diagnostic.detectorEvidence &&
+                  typeof diagnostic.detectorEvidence === "object"
+                    ? (diagnostic.detectorEvidence as Record<string, unknown>)
+                    : {};
+                const nearestZone =
+                  Array.isArray(detectorEvidence.h4ZoneChecks) &&
+                  detectorEvidence.h4ZoneChecks[0] &&
+                  typeof detectorEvidence.h4ZoneChecks[0] === "object"
+                    ? (detectorEvidence.h4ZoneChecks[0] as Record<
+                        string,
+                        unknown
+                      >)
+                    : {};
+                const numberOrNull = (value: unknown) =>
+                  typeof value === "number" && Number.isFinite(value)
+                    ? value
+                    : null;
+                const zoneTop =
+                  numberOrNull(diagnostic.frozenLevel) ??
+                  numberOrNull(detectorEvidence.supportTop) ??
+                  numberOrNull(nearestZone.top);
+                const zoneBottom =
+                  numberOrNull(detectorEvidence.supportBottom) ??
+                  numberOrNull(nearestZone.bottom);
+                _pdbReject("neon_support_bounce", reason, {
+                  decisionKind,
+                  decisionMetrics: {
+                    abneonDecision: diagnostic,
+                    zoneTop,
+                    zoneBottom,
+                  },
+                });
               }
 
               // stealth_breakout — quiet zone → fresh technical breakout (Архетип E)
@@ -11349,7 +11631,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     same?.volMult ?? null,
                     same?.price24h ?? null,
                     same?.prescanCycles ?? null,
-                    "rejected",
+                    "deferred",
                     {
                       stealthVolumeGate: {
                         futuresRatio: _sbVolumeGate.futuresRatio,
@@ -11393,7 +11675,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     }),
                   );
                 }
-                _pdbReject("stealth_breakout", _sbRejectCode);
+                _pdbReject("stealth_breakout", _sbRejectCode, {
+                  decisionKind: "deferred",
+                });
               } else if (_sbArmed.status === "qualified") {
                 // Persist the exact blocker; a generic "paused" hid why a
                 // qualified breakout was not delivered.
@@ -11416,6 +11700,14 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                             : _sbRangeRecheck && !_sbRangeRecheck.ok
                               ? `qualified_range_recheck_blocked:${_sbRangeRecheck.reason}`
                               : "armed_qualified_paused";
+                const _sbPausedKind =
+                  _sbPausedReason === "qualified_fire_gate_closed" ||
+                  _sbPausedReason === "volume_ratio_unavailable" ||
+                  _sbPausedReason === "oi4h_unavailable" ||
+                  _sbPausedReason === "breakout_rejected_below_level" ||
+                  _sbPausedReason === "armed_qualified_paused"
+                    ? "deferred"
+                    : "rejected";
                 {
                   const ctx = _pdbCtx.value;
                   const same =
@@ -11428,7 +11720,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     same?.volMult ?? null,
                     same?.price24h ?? null,
                     same?.prescanCycles ?? null,
-                    "rejected",
+                    _sbPausedKind,
                     {
                       stealthQualifiedBlock: {
                         reason: _sbPausedReason,
@@ -11447,7 +11739,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     same?.entryPrice ?? null,
                   );
                 }
-                _pdbReject("stealth_breakout", _sbPausedReason);
+                _pdbReject("stealth_breakout", _sbPausedReason, {
+                  decisionKind: _sbPausedKind,
+                });
                 await dbWriteBestEffort("stealth/last-blocker", () =>
                   recordStealthQualifiedBlocker(
                     _sbArmed.armId,
@@ -11524,9 +11818,12 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 _pdbReject(
                   "stealth_breakout",
                   `armed_${_sbArmed.waitingReason}:${_sbWaitSource}`,
+                  { decisionKind: "deferred" },
                 );
               } else if (_sbArmed.status === "in_flight") {
-                _pdbReject("stealth_breakout", "armed_fire_in_flight");
+                _pdbReject("stealth_breakout", "armed_fire_in_flight", {
+                  decisionKind: "deferred",
+                });
               } else if (_sbArmed.status === "invalidated") {
                 _pdbReject(
                   "stealth_breakout",
@@ -11552,7 +11849,13 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                           : _sbAutoRangeOneHourIdentity === null
                             ? "range_1h_no_confirmed_range"
                             : `range_1h_${_sbArmed.reason}`;
-                _pdbReject("stealth_breakout", reason);
+                const decisionKind =
+                  reason.includes("insufficient_history") ||
+                  reason.endsWith("_candles_not_fresh") ||
+                  reason.endsWith("_replay_unknown")
+                    ? "deferred"
+                    : "rejected";
+                _pdbReject("stealth_breakout", reason, { decisionKind });
                 _symRej(
                   symbol,
                   "stealth_breakout",
@@ -11561,11 +11864,13 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   volMult,
                   price24hChange,
                   _prcCycles,
+                  decisionKind,
                 );
               } else if (_sbStructure.status === "insufficient_data") {
                 _pdbReject(
                   "stealth_breakout",
                   "structure_4h_insufficient_data",
+                  { decisionKind: "deferred" },
                 );
                 _symRej(
                   symbol,
@@ -11602,9 +11907,14 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   _prcCycles,
                 );
               } else if (_sbThirtyMinute.status !== "near_level") {
+                const decisionKind =
+                  /pending|waiting|awaiting/i.test(_sbThirtyMinute.status)
+                    ? "deferred"
+                    : "rejected";
                 _pdbReject(
                   "stealth_breakout",
                   `refinement_30m_${_sbThirtyMinute.status}`,
+                  { decisionKind },
                 );
                 _symRej(
                   symbol,
@@ -11614,17 +11924,23 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   volMult,
                   price24hChange,
                   _prcCycles,
+                  decisionKind,
                 );
               } else {
-                _pdbReject("stealth_breakout", "technical_gate_unmet");
+                _pdbReject(
+                  "stealth_breakout",
+                  "stealth_unclassified_decision_state",
+                  { decisionKind: "blocked" },
+                );
                 _symRej(
                   symbol,
                   "stealth_breakout",
-                  "technical_gate_unmet",
+                  "stealth_unclassified_decision_state",
                   oi30m ?? null,
                   volMult,
                   price24hChange,
                   _prcCycles,
+                  "blocked",
                 );
               }
             }
@@ -11789,6 +12105,24 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 "SKIP: недостаточно объёма или движения цены (vol < 1.0x или price < 2.5%)",
               );
               skipCount.noOiNoVol++;
+              _symRej(
+                symbol,
+                "gate",
+                "volume_below_1x_and_price_below_2_5pct",
+                oi30m ?? null,
+                volMult,
+                price24hChange,
+                prescanTracker.get(symbol)?.cycleCount ?? null,
+                "blocked",
+                {
+                  priceChange30m: priceChange,
+                  priceChange4h: price4hChange,
+                  volumeMultiplier30m: volMult,
+                  volumeMultiplier4h: volMult4h,
+                  minimumVolumeMultiplier: 1,
+                  minimumPriceChange30mPct: 2.5,
+                },
+              );
               break symbolBlock;
             }
 
@@ -11867,6 +12201,22 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   `low_turnover_to_oi_${turnoverRatio.toFixed(3)}_lt_0.15`,
                 );
                 skipCount.other++;
+                _symRej(
+                  symbol,
+                  "gate",
+                  `low_turnover_to_oi_${turnoverRatio.toFixed(3)}_lt_0.15`,
+                  oi30m ?? null,
+                  volMult,
+                  price24hChange,
+                  prescanTracker.get(symbol)?.cycleCount ?? null,
+                  "blocked",
+                  {
+                    cgVolumeUsd: cgVolUsd,
+                    openInterestUsd: oiUsd,
+                    turnoverRatio,
+                    minimumTurnoverRatio: 0.15,
+                  },
+                );
                 break symbolBlock;
               }
             }
@@ -11942,6 +12292,17 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   `spread_${spreadPct.toFixed(2)}pct_ge_0.5`,
                 );
                 skipCount.other++;
+                _symRej(
+                  symbol,
+                  "gate",
+                  `spread_${spreadPct.toFixed(2)}pct_ge_0.5`,
+                  oi30m ?? null,
+                  volMult,
+                  price24hChange,
+                  prescanTracker.get(symbol)?.cycleCount ?? null,
+                  "blocked",
+                  { bid, ask, spreadPct, maximumSpreadPct: 0.5 },
+                );
                 break symbolBlock;
               }
             }
@@ -12154,6 +12515,22 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 "SKIP: volume below threshold",
               );
               skipCount.lowVolume++;
+              _symRej(
+                symbol,
+                "gate",
+                `volume_below_pattern_threshold_${volThreshold.toFixed(2)}x`,
+                oi30m ?? null,
+                volMult,
+                price24hChange,
+                prescanTracker.get(symbol)?.cycleCount ?? null,
+                "blocked",
+                {
+                  volumeMultiplier30m: volMult,
+                  requiredVolumeMultiplier: volThreshold,
+                  highOiQuiet: isHighOiQuiet,
+                  steadyAccumulation: tSteady,
+                },
+              );
               break symbolBlock;
             }
 
@@ -12197,6 +12574,21 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     "SKIP: stale signal — price already moved too much in last 3 candles",
                   );
                   skipCount.priceTooHigh++;
+                  _symRej(
+                    symbol,
+                    "gate",
+                    `stale_price_move_${staleMove.toFixed(1)}pct_ge_${STALE_THRESHOLD}pct`,
+                    oi30m ?? null,
+                    volMult,
+                    price24hChange,
+                    prescanTracker.get(symbol)?.cycleCount ?? null,
+                    "blocked",
+                    {
+                      movePct: staleMove,
+                      lookbackCandles: STALE_LOOKBACK,
+                      maximumMovePct: STALE_THRESHOLD,
+                    },
+                  );
                   break symbolBlock;
                 }
               }
@@ -12257,6 +12649,23 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   "SKIP: price-gate — цена не выросла ≥ +0.5% от firstPrice за 3+ цикла",
                 );
                 skipCount.priceGate++;
+                _symRej(
+                  symbol,
+                  "gate",
+                  `price_growth_${((_pgLast / _pgFirst - 1) * 100).toFixed(2)}pct_lt_0_5_after_3_cycles`,
+                  oi30m ?? null,
+                  volMult,
+                  price24hChange,
+                  _pe1?.cycleCount ?? null,
+                  "blocked",
+                  {
+                    firstPrice: _pgFirst,
+                    lastPrice: _pgLast,
+                    movePct: ((_pgLast / _pgFirst) - 1) * 100,
+                    cycles: _pe1?.cycleCount ?? null,
+                    requiredMovePct: 0.5,
+                  },
+                );
                 break symbolBlock;
               }
             }
@@ -13062,6 +13471,30 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                       : "oi_low";
                 }
               }
+              const _noMatchReason = !canEvaluateNonStealth
+                ? "pattern_evaluation_not_scheduled_in_supplemental_scan"
+                : "no_live_pattern_matched";
+              for (const _pattern of LIVE_PATTERNS_FOR_REJECT_GAPS) {
+                _symRej(
+                  symbol,
+                  _pattern,
+                  _noMatchReason,
+                  oi30m ?? null,
+                  volMult,
+                  price24hChange,
+                  prescanTracker.get(symbol)?.cycleCount ?? null,
+                  canEvaluateNonStealth ? "rejected" : "deferred",
+                  {
+                    patternEvaluation: {
+                      scheduled: canEvaluateNonStealth,
+                      stealthRangeOnlySupplemental: isRangeOnlySupplemental,
+                      anyOiPass,
+                      coinglassOiAvailable: cgOI?.available === true,
+                      patternKeyDetected: det?.sentiment.key ?? null,
+                    },
+                  },
+                );
+              }
               break symbolBlock;
             }
             // Паттерн найден — сбрасываем причину пропуска
@@ -13124,6 +13557,17 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   "SKIP: все краткосрочные OI глубоко отрицательные (< -3%) — пост-памп дамп",
                 );
                 skipCount.contraSignal++;
+                _symRej(
+                  symbol,
+                  "gate",
+                  "short_term_oi_all_below_minus3pct",
+                  oi30m ?? null,
+                  volMult,
+                  price24hChange,
+                  prescanTracker.get(symbol)?.cycleCount ?? null,
+                  "blocked",
+                  { oi30m, oi1h, minimumOiPct: -3 },
+                );
                 break symbolBlock;
               }
             }
@@ -13233,6 +13677,38 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                       ? 60 * 60 * 1000 // 60 мин: 1h OI
                       : 2 * 60 * 60 * 1000; // 2 часа: 30m/5m/steady — накопление требует времени
                 const waitMin = Math.round(CONFIRM_WINDOW_MS / 60000);
+                const recordConfirmReject = (
+                  reason: string,
+                  decisionKind: "rejected" | "blocked" | "deferred",
+                  decisionMetrics: Record<string, unknown>,
+                ) =>
+                  _symRej(
+                    symbol,
+                    entry.sentimentKey ?? "oi_watch",
+                    reason,
+                    oi30m ?? null,
+                    volMult,
+                    price24hChange,
+                    prescanTracker.get(symbol)?.cycleCount ?? null,
+                    decisionKind,
+                    {
+                      confirmation: {
+                        watchId: entry.id,
+                        triggerTf: entryTf,
+                        ageMs,
+                        expectedWaitMs: CONFIRM_WINDOW_MS,
+                        entryPrice: entry.priceAtEntry,
+                        currentPrice: close,
+                        priceFromDetectionPct: priceFromDetection,
+                        drift4hPct: drift4h,
+                        entryOiChange: entry.oiChange ?? null,
+                        currentOiChange: cgOIChange,
+                        currentVolumeMultiplier: volMult,
+                        ...decisionMetrics,
+                      },
+                    },
+                    entry.priceAtEntry > 0 ? entry.priceAtEntry : null,
+                  );
 
                 if (isSlowPattern) {
                   // Триггер для медленных паттернов: пробой локального хая ИЛИ всплеск объема
@@ -13276,6 +13752,19 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                       },
                       "⏳ SLOW PATTERN: ждём пробоя локального хая ИЛИ всплеска объема",
                     );
+                    recordConfirmReject(
+                      "slow_pattern_waiting_for_local_high_breakout_or_3x_volume",
+                      "deferred",
+                      {
+                        close,
+                        recentHigh,
+                        breakoutRequiredAbove: recentHigh * 1.005,
+                        currentVolume,
+                        averageVolume: avgVol,
+                        requiredVolumeMultiplier: 3,
+                        volumeDataAvailable: avgVol > 0,
+                      },
+                    );
                     break symbolBlock;
                   }
 
@@ -13309,6 +13798,17 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                       },
                       "SKIP: OI Watch накоп. паттерн — нет объёмного тренда (предыдущие свечи < 1.3x нормы)",
                     );
+                    recordConfirmReject(
+                      "oi_watch_accumulation_volume_trend_below_1_3x",
+                      "rejected",
+                      {
+                        previousVolumeMultiplier1: prevVol1Mult,
+                        previousVolumeMultiplier2: prevVol2Mult,
+                        isVolTrend,
+                        isExtremeOiQuiet,
+                        requiredPreviousVolumeMultiplier: 1.3,
+                      },
+                    );
                     break symbolBlock;
                   }
                   // Spot CVD: данные обязательны; CVD 1h+4h должны подтверждать накопление
@@ -13316,6 +13816,11 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     logger.debug(
                       { symbol, pattern: entry.sentimentKey },
                       "SKIP: OI Watch накоп. паттерн — нет данных спота (обязательно для паттерна)",
+                    );
+                    recordConfirmReject(
+                      "oi_watch_accumulation_spot_cvd_unavailable",
+                      "deferred",
+                      { spotCvdAvailable: false },
                     );
                     break symbolBlock;
                   }
@@ -13328,6 +13833,15 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                         cvd4h: spotCvd.cvd4h,
                       },
                       "SKIP: OI Watch накоп. паттерн — спот CVD 1h и/или 4h не подтверждают накопление (false или нет данных)",
+                    );
+                    recordConfirmReject(
+                      "oi_watch_accumulation_spot_cvd_not_positive",
+                      "rejected",
+                      {
+                        cvd1h: spotCvd.cvd1h,
+                        cvd4h: spotCvd.cvd4h,
+                        required: "cvd1h=true_and_cvd4h=true",
+                      },
                     );
                     break symbolBlock;
                   }
@@ -13365,6 +13879,24 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                           : "❌ CONFIRM EARLY CANCEL: цена откатилась > 5% — ложный сигнал",
                     );
                     skipCount.noConfirming++;
+                    recordConfirmReject(
+                      earlyOIDrain
+                        ? "confirm_early_oi_drain"
+                        : earlyOIFaded
+                          ? "confirm_early_oi_faded_below_2pct"
+                          : "confirm_early_price_retrace",
+                      "rejected",
+                      {
+                        oiDrainThresholdPct: OI_DRAIN_PCT,
+                        oiFadeThresholdPct: 2,
+                        minimumEntryOiForFadeCheckPct: 5,
+                        maximumRetracePct: MAX_RETRACE_PCT,
+                        earlyOIDrain,
+                        earlyOIFaded,
+                        earlyRetrace,
+                        currentOiAvailable: cgOI?.available === true,
+                      },
+                    );
                     break symbolBlock;
                   }
                   logger.debug(
@@ -13387,6 +13919,11 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                       .where(eq(oiWatchTable.id, entry.id))
                       .catch(() => {});
                   }
+                  recordConfirmReject("confirm_window_still_open", "deferred", {
+                    currentOiAvailable: cgOI?.available === true,
+                    oiDrainThresholdPct: OI_DRAIN_PCT,
+                    waitRemainingMs: Math.max(0, CONFIRM_WINDOW_MS - ageMs),
+                  });
                   break symbolBlock;
                 }
 
@@ -13408,6 +13945,15 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     `❌ CONFIRM FAILED: ${waitMin} мин прошло, но OI упал — накопление закончилось`,
                   );
                   skipCount.noConfirming++;
+                  recordConfirmReject(
+                    "confirm_window_oi_below_minus3pct",
+                    "rejected",
+                    {
+                      currentOiAvailable: cgOI?.available === true,
+                      currentOiChangePct: cgOIChange,
+                      minimumOiChangePct: OI_DRAIN_PCT,
+                    },
+                  );
                   break symbolBlock;
                 }
 
@@ -13433,6 +13979,16 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     "❌ CONFIRM EXPIRED: OI перестал строиться — накопление завершилось",
                   );
                   skipCount.noConfirming++;
+                  recordConfirmReject(
+                    "confirm_oi_faded_below_2pct_from_entry_5pct",
+                    "rejected",
+                    {
+                      currentOiChangePct: cgOIChange,
+                      entryOiChangePct: entry.oiChange ?? null,
+                      minimumCurrentOiPct: 2,
+                      minimumEntryOiPct: 5,
+                    },
+                  );
                   break symbolBlock;
                 }
 
@@ -13452,6 +14008,14 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     `❌ CONFIRM FAILED: цена откатилась > 5% за ${waitMin} мин — ложный сигнал`,
                   );
                   skipCount.noConfirming++;
+                  recordConfirmReject(
+                    "confirm_price_retrace_below_limit",
+                    "rejected",
+                    {
+                      priceFromDetectionPct: priceFromDetection,
+                      maximumRetracePct: MAX_RETRACE_PCT,
+                    },
+                  );
                   break symbolBlock;
                 }
 
@@ -13471,6 +14035,14 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     `❌ CONFIRM SKIP: цена ушла > ${MAX_RUNAWAY_PCT}% вверх — вход слишком поздний`,
                   );
                   skipCount.priceTooHigh++;
+                  recordConfirmReject(
+                    "confirm_price_runaway_above_limit",
+                    "rejected",
+                    {
+                      priceFromDetectionPct: priceFromDetection,
+                      maximumRunawayPct: MAX_RUNAWAY_PCT,
+                    },
+                  );
                   break symbolBlock;
                 }
 
@@ -13637,6 +14209,16 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     },
                     "⏳ CONFIRM WAIT: цена ещё не в росте — ждём старта движения",
                   );
+                  recordConfirmReject(
+                    "confirm_waiting_for_positive_price_drift",
+                    "deferred",
+                    {
+                      drift4hPct: drift4h,
+                      minimumDrift4hPct: MIN_POSITIVE_DRIFT,
+                      priceFromDetectionPct: priceFromDetection,
+                      minimumPriceFromDetectionPct: priceConfirmFloor,
+                    },
+                  );
                   break symbolBlock; // не отменяем, просто ждём — expire случится через 6ч если роста не будет
                 }
 
@@ -13669,6 +14251,16 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     "❌ GHOST PUMP: 24h рост >30% + объём остыл — памп случился до сигнала, пропускаем",
                   );
                   skipCount.stalePump++;
+                  recordConfirmReject(
+                    "confirm_ghost_pump_price24h_above_40_and_spot_volume_below_2_5x",
+                    "rejected",
+                    {
+                      price24hChangePct: price24hChange,
+                      minimumPrice24hPct: 40,
+                      spotVolumeMultiplier: spotVolMult,
+                      minimumSpotVolumeMultiplier: 2.5,
+                    },
+                  );
                   break symbolBlock;
                 }
 
@@ -13821,6 +14413,27 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                       },
                       `🕐 QUEUED: первое обнаружение — ждём ${waitMin} мин подтверждения OI`,
                     );
+                    _symRej(
+                      symbol,
+                      det!.sentiment.key,
+                      "confirmation_window_started",
+                      oi30m ?? null,
+                      volMult,
+                      price24hChange,
+                      prescanTracker.get(symbol)?.cycleCount ?? null,
+                      "deferred",
+                      {
+                        confirmation: {
+                          triggerTf: oiTriggerTf,
+                          expectedWaitMs: waitMin * 60_000,
+                          entryPrice: confirmPrice,
+                          oiChange: cgOIChange,
+                          volumeMultiplier: volMult,
+                          currentPrice: close,
+                        },
+                      },
+                      confirmPrice > 0 ? confirmPrice : null,
+                    );
                   } // end else: нет watching-записи, INSERT выполнен
                 } catch (err) {
                   logger.warn(
@@ -13854,6 +14467,33 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   });
                   _otherSkipReason.set(symbol, "confirming_watch_started");
                   skipCount.other++;
+                  _symRej(
+                    symbol,
+                    det!.sentiment.key,
+                    "confirmation_window_started_memory_fallback",
+                    oi30m ?? null,
+                    volMult,
+                    price24hChange,
+                    prescanTracker.get(symbol)?.cycleCount ?? null,
+                    "deferred",
+                    {
+                      confirmation: {
+                        triggerTf: oiTriggerTf,
+                        expectedWaitMs:
+                          (oiTriggerTf.includes("24h") ||
+                          oiTriggerTf.includes("4h")
+                            ? 15
+                            : oiTriggerTf.includes("1h")
+                              ? 30
+                              : 60) * 60_000,
+                        entryPrice: confirmPrice,
+                        oiChange: cgOIChange,
+                        volumeMultiplier: volMult,
+                        currentPrice: close,
+                      },
+                    },
+                    confirmPrice > 0 ? confirmPrice : null,
+                  );
                 }
                 break symbolBlock;
               }
@@ -15574,6 +16214,7 @@ export function getScannerLiveness(now = Date.now()): {
 export type ScannerActivityState =
   | {
       kind: "running";
+      startedAt: Date | null;
     }
   | {
       kind: "settlement_fence";
@@ -15596,7 +16237,9 @@ export function getScannerActivityState(): ScannerActivityState {
       restartRequested: fence.restartRequested,
     };
   }
-  return state.isScanning ? { kind: "running" } : { kind: "idle" };
+  return state.isScanning
+    ? { kind: "running", startedAt: state.scanStartedAt }
+    : { kind: "idle" };
 }
 
 /** Watchdog coordination must inspect the discovery row, never market-cycle. */
@@ -15606,6 +16249,7 @@ export function getDiscoveryScannerLeaseStatus() {
 
 export type ScannerRecoveryState = {
   lastSuccessfulScanAt: Date | null;
+  scanStartedAt: Date | null;
   failureReason: string | null;
   failureAt: Date | null;
   expectedLeaseExpiryAt: Date | null;
@@ -15614,14 +16258,15 @@ export type ScannerRecoveryState = {
 
 /**
  * The watchdog may run in a different API worker, so it reads the durable
- * completion cursor and recovery reason rather than inferring success from a
- * local cycle start timestamp.
+ * completion/start timestamps and recovery reason rather than inferring
+ * scanner activity from another worker's local state.
  */
 export async function getScannerRecoveryState(): Promise<ScannerRecoveryState> {
   try {
     const [row] = await db
       .select({
         scannerLastScanAt: settingsTable.scannerLastScanAt,
+        scannerScanStartedAt: settingsTable.scannerScanStartedAt,
         scannerFailureAt: settingsTable.scannerFailureAt,
         scannerFailureReason: settingsTable.scannerFailureReason,
         scannerLeaseExpectedExpiryAt:
@@ -15636,8 +16281,16 @@ export async function getScannerRecoveryState(): Promise<ScannerRecoveryState> {
       (!localSuccess || persistedSuccess.getTime() > localSuccess.getTime())
         ? persistedSuccess
         : localSuccess;
+    const persistedStartedAt = row?.scannerScanStartedAt ?? null;
+    const localStartedAt = state.scanStartedAt;
+    const scanStartedAt =
+      persistedStartedAt &&
+      (!localStartedAt || persistedStartedAt.getTime() > localStartedAt.getTime())
+        ? persistedStartedAt
+        : localStartedAt;
     return {
       lastSuccessfulScanAt,
+      scanStartedAt,
       failureReason: row?.scannerFailureReason ?? state.scannerFailureReason,
       failureAt: row?.scannerFailureAt ?? state.scannerFailureAt,
       expectedLeaseExpiryAt:
@@ -15651,6 +16304,7 @@ export async function getScannerRecoveryState(): Promise<ScannerRecoveryState> {
     );
     return {
       lastSuccessfulScanAt: state.lastSuccessfulScanAt,
+      scanStartedAt: state.scanStartedAt,
       failureReason: state.scannerFailureReason,
       failureAt: state.scannerFailureAt,
       expectedLeaseExpiryAt: state.scannerLeaseExpectedExpiryAt,
