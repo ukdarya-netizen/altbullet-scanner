@@ -1,4 +1,4 @@
-import { ABNEON_PRE_TOUCH_BLUE_MIN, preTouchBlueCount } from "./abneon-volume-gate.js";
+import { ABNEON_PRE_TOUCH_BLUE_MIN, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
 import {
   getStealthOi4hAtBreakout,
   stealthOi4hPasses,
@@ -6770,28 +6770,39 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           aggregatedVolumeAvailable: aggVol100 != null,
           firstTouchTime: gate.ok ? gate.firstTouchTime : null,
         };
-        if (!gate.ok || gate.blue < ABNEON_PRE_TOUCH_BLUE_MIN) {
+        // Owner 2026-11-10: the pre-touch count is recorded only (it gave nothing on history and cut 2189
+        // bounces in 3 days). The blocking rule is the volume ON the touch: the touch 4H candle or one of
+        // the next two closed 4H candles not grey on Welkin VSA (CoinGlass aggregated futures volume).
+        const agg4h = await getAggFuturesVolumeByInterval(symbol, "4h", 60).catch(() => null);
+        const touchVol = agg4h
+          ? touchVolumeNotGrey({
+              candles1h: closed1h,
+              candles4h: closed4h,
+              agg4hUsdByTime: agg4h,
+              armCandleTime: support.armCandleTime,
+              triggerCandleTime: support.triggerCandleTime,
+              zoneTop: support.frozenLevel,
+              nowMs: Date.now(),
+            })
+          : ({ ok: false, reason: "no_aggregated_volume", colours: [] } as const);
+        const evidence = {
+          ...(support.evidence ?? {}),
+          preTouchBlue12: gate.blue,
+          preTouchGate: { ...preTouchGate, blocking: false },
+          touchVolume: touchVol,
+        };
+        if (!touchVol.ok && touchVol.reason === "touch_bar_not_closed") {
+          // The touch 4H candle is still open: wait for its close (the arm stays).
+          support = { ...support, status: "armed", reason: "awaiting_touch_4h_close", evidence };
+        } else if (!touchVol.ok) {
           support = {
             ...support,
             status: "terminal",
-            reason: gate.ok
-              ? `pre_touch_volume_quiet_${gate.blue}_of_12`
-              : `pre_touch_volume_${gate.reason}`,
-            evidence: {
-              ...(support.evidence ?? {}),
-              preTouchBlue12: gate.blue,
-              preTouchGate,
-            },
+            reason: touchVol.reason === "touch_volume_grey" ? `touch_volume_grey_${touchVol.colours.join("")}` : `touch_volume_${touchVol.reason}`,
+            evidence,
           };
         } else {
-          support = {
-            ...support,
-            evidence: {
-              ...(support.evidence ?? {}),
-              preTouchBlue12: gate.blue,
-              preTouchGate,
-            },
-          };
+          support = { ...support, evidence };
         }
       }
       const persistedSupport = await persistStealthAbneonShadow({
@@ -7270,7 +7281,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
 
           if (
             spotTfP2.dominance === "sell" &&
-            finalSentiment.key !== "stealth_breakout"
+            finalSentiment.key !== "stealth_breakout" &&
+            // Owner 2026-11-10: the ABNeon bounce has its own volume rule (aggregated touch volume).
+            finalSentiment.key !== "neon_support_bounce"
           ) {
             logger.info(
               {
@@ -7514,7 +7527,11 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             base.stealthDetectionMethod === NEON_LEVEL_1D_METHOD
             ? []
             : _aggMissing.filter((m) => m === "oi")
-          : _aggMissing;
+          : // Owner 2026-11-10: the ABNeon bounce is decided on aggregated futures volume at the touch
+            // (fail-closed in its own gate); missing spot / taker / CVD / OI no longer block it.
+            _aggPattern === "neon_support_bounce"
+            ? []
+            : _aggMissing;
       if (_aggPattern === "stealth_breakout" && _aggMissing.length > 0) {
         logger.info(
           { symbol, missing: _aggMissing, blocking: _aggBlocking },
@@ -9403,8 +9420,11 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             const preSpotEntry = getSpotPoolEntry(symbol);
             // Owner rule 2026-10-18: no aggregate (spot 24h or market cap), no
             // signal. No optimistic pass for missing pool entries.
+            // Owner 2026-11-10: a qualified ABNeon bounce is exempt like Stealth (its own volume rule is the
+            // aggregated touch volume); these general gates had cut the owner's bounces (EDGEX, INIT, PIEVERSE…).
             if (
               !isStealthTechnicalFire &&
+              !_isQueuedNeonSupportBounce &&
               (!preSpotEntry ||
                 preSpotEntry.spotVol24h === null ||
                 preSpotEntry.mcapUsd === null)
@@ -9425,6 +9445,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             }
             if (
               !isStealthTechnicalFire &&
+              !_isQueuedNeonSupportBounce &&
               preSpotEntry &&
               preSpotEntry.spotVol24h !== null &&
               preSpotEntry.mcapUsd !== null &&
@@ -9502,7 +9523,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 ? _histVols.reduce((s, v) => s + v, 0) / 20
                 : 0;
 
-            if (!avgVol && !isStealthTechnicalFire) {
+            if (!avgVol && !isStealthTechnicalFire && !_isQueuedNeonSupportBounce) {
               _symRej(
                 symbol,
                 "gate",
