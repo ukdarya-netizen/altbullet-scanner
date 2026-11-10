@@ -132,7 +132,9 @@ BEGIN
         'partial', false,
         'trackerStatus', NEW.status,
         'exitPrice', NEW.exit_price,
-        'pnlPercent', NEW.pnl_percent
+        'pnlPercent', NEW.pnl_percent,
+        -- Owner 2026-11-10: a cancellation booked as stop_loss (smart_cancel / max_age / stale_cancel).
+        'closedBy', CASE WHEN NEW.status = 'stop_loss' THEN NEW.decision_metrics->>'closedBy' END
       );
     ELSIF NEW.status IN ('cancelled', 'reclassified')
           AND OLD.status IN ('active', 'in_run') THEN

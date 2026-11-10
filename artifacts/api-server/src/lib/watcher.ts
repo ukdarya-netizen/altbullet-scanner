@@ -9507,6 +9507,8 @@ async function runInRunFastCycle(
                   .update(trackedSignalsTable)
                   .set({
                     status: _oldIsStopLoss ? "stop_loss" : "cancelled",
+                    // Owner 2026-11-10 (HANA): the trading bot must say it was a max_age, not a plain stop.
+                    decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'max_age')`,
                     exitPrice: currentPrice,
                     pnlPercent: pnl,
                     cancelReason: cancelOutcomeReason,
@@ -9939,6 +9941,8 @@ async function runInRunFastCycle(
                 .update(trackedSignalsTable)
                 .set({
                   status: _staleIsStopLoss ? "stop_loss" : "cancelled",
+                  // Owner 2026-11-10 (HANA): the trading bot must say it was a stale_cancel, not a plain stop.
+                  decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'stale_cancel')`,
                   exitPrice: currentPrice,
                   pnlPercent: pnl,
                   cancelReason: cancelOutcomeReason,
@@ -10895,6 +10899,8 @@ async function runInRunFastCycle(
                       .update(trackedSignalsTable)
                       .set({
                         status: _scIsStopLoss ? "stop_loss" : "cancelled",
+                        // Owner 2026-11-10 (HANA): the trading bot must say it was a smart_cancel, not a plain stop.
+                        decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'smart_cancel')`,
                         exitPrice: currentPrice,
                         pnlPercent: pnl,
                         cancelReason: cancelOutcomeReason,
