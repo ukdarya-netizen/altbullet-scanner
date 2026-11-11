@@ -5914,14 +5914,6 @@ app.listen(port, async (err) => {
     } catch (err) {
       logger.error({ err }, "ABNeon low-bounce v1 neutral close failed");
     }
-    // Owner 2026-11-11: new Stealth (4H zone breakout on M/W volume) → open Stealth closed neutrally and
-    // November Stealth outcomes out of the statistics, once.
-    try {
-      const stealthV3 = await runStealthVsaPublishNeutralClose();
-      logger.info(stealthV3, "Stealth VSA v3 publish neutral close reviewed");
-    } catch (err) {
-      logger.error({ err }, "Stealth VSA v3 publish neutral close failed");
-    }
     try {
       const initClose = await reclassifyOwnerReviewedInitNoBreakout();
       logger.info(
@@ -5957,6 +5949,15 @@ app.listen(port, async (err) => {
         { err },
         "Stealth November tracker neutralization failed",
       );
+    }
+    // Runs after the November Stealth neutralization (which keeps its own snapshot).
+    // Owner 2026-11-11: new Stealth (4H zone breakout on M/W volume) → open Stealth closed neutrally and
+    // November Stealth outcomes out of the statistics, once.
+    try {
+      const stealthV3 = await runStealthVsaPublishNeutralClose();
+      logger.info(stealthV3, "Stealth VSA v3 publish neutral close reviewed");
+    } catch (err) {
+      logger.error({ err }, "Stealth VSA v3 publish neutral close failed");
     }
     try {
       const neonFlowGateClose = await neutralizeNeonFlowGateSignals();

@@ -43,7 +43,15 @@ export async function runStealthVsaPublishNeutralClose(): Promise<{
     if (ids.length > 0) {
       await client.query(
         `UPDATE tracked_signals
-            SET status = 'reclassified', cancel_reason = $2,
+            SET decision_metrics = CASE
+                  WHEN decision_metrics ? 'beforeNeutralClose' THEN decision_metrics
+                  ELSE coalesce(decision_metrics, '{}'::jsonb) || jsonb_build_object(
+                    'beforeNeutralClose', jsonb_build_object(
+                      'status', status::text, 'exitPrice', exit_price, 'pnlPercent', pnl_percent,
+                      'closedAt', closed_at, 'cancelReason', cancel_reason, 'neutralizedAt', NOW(),
+                      'reason', $2::text))
+                END,
+                status = 'reclassified', cancel_reason = $2,
                 exit_price = NULL, pnl_percent = NULL, closed_at = NULL,
                 trailing_stop_level = NULL, trailing_stop_armed_at = NULL,
                 last_smart_cancel_check_at = NULL,
