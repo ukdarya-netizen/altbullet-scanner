@@ -89,6 +89,7 @@ import { neutralizeNonAggregatedOpenPositions } from "./lib/non-aggregated-data-
 import { neutralizeReviewedStealthVolumeGateSignals } from "./lib/stealth-volume-gate-neutral-close.js";
 import { neutralizeNeonVolumeGateSignals } from "./lib/neon-volume-gate-neutral-close.js";
 import { runAbneonGateNeutralClose } from "./lib/abneon-gate-neutral-close.js";
+import { runAbneonLowBounceNeutralClose } from "./lib/abneon-low-bounce-neutral-close.js";
 import { excludeAbneonNovemberStops } from "./lib/abneon-nov-stops-neutral.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
 import { neutralizeStealthOnPublish } from "./lib/stealth-publish-neutral-close.js";
@@ -5905,6 +5906,13 @@ app.listen(port, async (err) => {
         .then((r) => logger.info(r, "ABNeon pre-touch volume gate neutral close reviewed"))
         .catch((err) => logger.error({ err }, "ABNeon pre-touch volume gate neutral close failed"));
     }, 60_000);
+    // Owner 2026-11-11: low-bounce ABNeon fired by the first rule (no bright volume on the low) → neutral close.
+    try {
+      const lowClose = await runAbneonLowBounceNeutralClose();
+      logger.info(lowClose, "ABNeon low-bounce v1 neutral close reviewed");
+    } catch (err) {
+      logger.error({ err }, "ABNeon low-bounce v1 neutral close failed");
+    }
     try {
       const initClose = await reclassifyOwnerReviewedInitNoBreakout();
       logger.info(
