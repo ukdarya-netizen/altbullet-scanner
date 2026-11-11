@@ -17196,6 +17196,29 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
       // 2026-10-10): it keeps the original LC fire rules, so the two newer
       // filters below (detection-candle range, limit entry) never apply.
       const lcIsBtc = symbol === "BTC-USDT" || symbol === "BTCUSDT";
+      // BTC crowd filter (owner 2026-11-11, reports/btc-signal-metrics): every
+      // profitable CAB BTC trade had a Binance global account long share of
+      // 56-70% at the signal; the November stops (#3611 #3704 #3710 #3714) had
+      // 73.6-75.5% — the crowd was already long, no fuel for the bounce. 14
+      // trades: the cut is fitted on them. No data blocks (no data, no signal).
+      if (lcIsBtc) {
+        const LC_BTC_MAX_GLOBAL_LONG_PCT = 70;
+        const btcCrowd = await getGlobalAccountRatio(symbol).catch(() => null);
+        const btcLongPct = btcCrowd?.longPct ?? null;
+        if (btcLongPct === null || !Number.isFinite(btcLongPct)) {
+          _pdbReject("liquidation_cascade_bg", "btc_global_long_unavailable");
+          observeLiqCandidate("rejected", "btc_global_long_unavailable");
+          continue;
+        }
+        if (btcLongPct > LC_BTC_MAX_GLOBAL_LONG_PCT) {
+          _pdbReject("liquidation_cascade_bg", "btc_crowd_long");
+          observeLiqCandidate("rejected", "btc_crowd_long", {
+            globalLongPct: btcLongPct,
+            maxGlobalLongPct: LC_BTC_MAX_GLOBAL_LONG_PCT,
+          });
+          continue;
+        }
+      }
       // Speed filter (owner rule 2026-10-07): the detection 15m candle must be a
       // large reaction candle (range >= 6%, closed candle only; an open candle waits
       // as non-terminal detection_candle_pending). No data blocks.

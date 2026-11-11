@@ -1566,6 +1566,7 @@
   "ЧИСТАЯ ПРИБЫЛЬ · ЗАКРЫТЫЕ": "NET PROFIT · CLOSED",
   "Через 2ч: закрытие / пик / просадка": "In 2h: close / peak / drawdown",
   "Через 4 дня сделка закрывается по рынку": "In 4 days, trade closes at market",
+  "BTC: вход только когда доля лонгов на рынке не выше 70%. Стоп −1%, с +1% стоп в безубыток, с +2% стоп идёт за ценой на 1 п.п. ниже пика": "BTC: entry only when the market long share is 70% or lower. Stop −1%, at +1% stop moves to breakeven, from +2% stop trails 1 p.p. below the peak",
   "Через 5 дней «хвост» закрывается по рынку": "In 5 days, “tail” closes at market",
   "Через 72 ч сделка закрывается по рынку": "In 72h, trade closes at market",
   "Чистая прибыль: PnL измеримых закрытых позиций, без BE STOP": "Net profit: PnL of measurable closed positions, excluding BE STOP",

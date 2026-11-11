@@ -35,6 +35,9 @@ export const LC_MIN_QUOTE_VOL_PCT_OF_MCAP = 0.06; // was $300k
 export const LC_LIQ_SPIKE_MIN_PCT_OF_MCAP = 0.01; // was $50k
 export const LC_ORDER_STREAM_MIN_PCT_OF_MCAP = 0.02; // was $100k
 export const LC_MAX_LONG_LIQ_4H_PCT_OF_MCAP = 0.066; // was $330k
+// BTC liquidation-spike floor (owner 2026-10-24 kept BTC at $50k; owner 2026-11-11: percent only, never
+// absolute): $50k at the ~$1.5T BTC market cap of November 2026.
+export const LC_BTC_LIQ_SPIKE_MIN_PCT_OF_MCAP = 0.0000033;
 
 /** True when `amountUsd` is below the share-of-market-cap minimum. Unknown
  *  market cap cannot be judged, so it never rejects. */

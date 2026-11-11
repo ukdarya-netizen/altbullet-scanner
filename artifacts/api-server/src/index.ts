@@ -91,6 +91,7 @@ import { neutralizeNeonVolumeGateSignals } from "./lib/neon-volume-gate-neutral-
 import { excludeAbneonNovemberStops } from "./lib/abneon-nov-stops-neutral.js";
 import { runAbneonLowBounceNeutralClose } from "./lib/abneon-low-bounce-neutral-close.js";
 import { runStealthVsaPublishNeutralClose } from "./lib/stealth-vsa-publish-neutral-close.js";
+import { runBtcCrowdNeutralClose } from "./lib/btc-crowd-neutral-close.js";
 import { reclassifyClosedAbneonNovemberStats } from "./lib/abneon-november-neutral-reclassification.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
 import { neutralizeStealthOnPublish } from "./lib/stealth-publish-neutral-close.js";
@@ -5958,6 +5959,14 @@ app.listen(port, async (err) => {
       logger.info(stealthV3, "Stealth VSA v3 publish neutral close reviewed");
     } catch (err) {
       logger.error({ err }, "Stealth VSA v3 publish neutral close failed");
+    }
+    // Owner 2026-11-11: CAB BTC LC fires only at a global long share ≤ 70% → the November BTC signals that
+    // filter would have stopped leave the statistics (the open one is closed neutrally), once.
+    try {
+      const btcCrowd = await runBtcCrowdNeutralClose();
+      logger.info(btcCrowd, "BTC crowd filter neutral close reviewed");
+    } catch (err) {
+      logger.error({ err }, "BTC crowd filter neutral close failed");
     }
     try {
       const neonFlowGateClose = await neutralizeNeonFlowGateSignals();

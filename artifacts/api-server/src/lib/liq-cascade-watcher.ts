@@ -39,6 +39,7 @@ import { fetchMarketCap } from "./whale_watch_v2.js";
 import {
   belowPctOfMcap,
   LC_LIQ_SPIKE_MIN_PCT_OF_MCAP,
+  LC_BTC_LIQ_SPIKE_MIN_PCT_OF_MCAP,
   LC_MIN_QUOTE_VOL_PCT_OF_MCAP,
   LC_ORDER_STREAM_MIN_PCT_OF_MCAP,
 } from "./turnover-threshold.js";
@@ -140,8 +141,6 @@ const _lcLastDecision = new Map<
   string,
   { watchId: number; reason: string; at: number }
 >();
-
-const LC_BTC_LIQ_SPIKE_MIN_USD = 50_000;
 
 export function recordLcDecisionReason(
   symbol: string,
@@ -409,17 +408,16 @@ export async function runLiqCascadeWatcherJob(
         });
         continue;
       } // CG недоступен — пропуск
-      // BTC keeps the original $50K floor (owner 2026-10-24): 0.01% of BTC's
-      // market cap is ~$160M per hour, which BTC long liquidations never reach;
-      // BTC produced no cascade watch since the %-of-mcap switch on 2026-10-13.
-      const spikeTooSmall =
+      // BTC has its own floor (owner 2026-10-24): 0.01% of BTC's market cap is
+      // ~$160M per hour, which BTC long liquidations never reach. Owner
+      // 2026-11-11: percent of market cap only, never an absolute amount.
+      const spikeTooSmall = belowPctOfMcap(
+        liq.longLiq1h,
+        await lcMcap(ticker.symbol),
         ticker.symbol === "BTC-USDT"
-          ? liq.longLiq1h < LC_BTC_LIQ_SPIKE_MIN_USD
-          : belowPctOfMcap(
-              liq.longLiq1h,
-              await lcMcap(ticker.symbol),
-              LC_LIQ_SPIKE_MIN_PCT_OF_MCAP,
-            );
+          ? LC_BTC_LIQ_SPIKE_MIN_PCT_OF_MCAP
+          : LC_LIQ_SPIKE_MIN_PCT_OF_MCAP,
+      );
       if (spikeTooSmall) {
         recordLiqDetectorRejection({
           symbol: ticker.symbol,
