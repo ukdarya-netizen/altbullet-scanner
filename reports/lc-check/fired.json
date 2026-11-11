@@ -1,0 +1,558 @@
+[
+  {
+    "id": 2910,
+    "symbol": "BTW-USDT",
+    "detected_at": "2026-10-27T03:24:53.042",
+    "entry_price": 1.2255,
+    "status": "profit",
+    "decision_metrics": {
+      "entryVolume": {
+        "tf1h": {
+          "bars": [
+            {
+              "time": 1793066400000,
+              "ratio": 0.551837617042102,
+              "volume": 11995340.539310345,
+              "turnoverUsd": 15306054.52816,
+              "priorMeanVolume": 21737083.824778788
+            },
+            {
+              "time": 1793062800000,
+              "ratio": 0.25900167214643277,
+              "volume": 5578847.853412314,
+              "turnoverUsd": 6686807.0371,
+              "priorMeanVolume": 21539814.037409686
+            },
+            {
+              "time": 1793059200000,
+              "ratio": 0.2786159575973224,
+              "volume": 5952574.355730889,
+              "turnoverUsd": 7016299.3931,
+              "priorMeanVolume": 21364800.519911412
+            }
+          ],
+          "available": true
+        },
+        "tf30m": {
+          "bars": [
+            {
+              "time": 1793068200000,
+              "ratio": 0.7623263213758864,
+              "volume": 7494634.885587774,
+              "turnoverUsd": 9563154.11401,
+              "priorMeanVolume": 9831268.677777078
+            },
+            {
+              "time": 1793066400000,
+              "ratio": 0.41067028968791164,
+              "volume": 4829552.757104028,
+              "turnoverUsd": 5863560.002400001,
+              "priorMeanVolume": 11760170.819209348
+            },
+            {
+              "time": 1793064600000,
+              "ratio": 0.2090353133089963,
+              "volume": 2856326.3303020187,
+              "turnoverUsd": 3423592.7394999997,
+              "priorMeanVolume": 13664324.391351968
+            }
+          ],
+          "available": true
+        },
+        "version": "entry_volume_ctx:v1",
+        "capturedAt": 1793071494356
+      },
+      "rangeDeviation": {
+        "tf1d": {
+          "lower": null,
+          "upper": null,
+          "reason": "Insufficient closed 1D candles to seed ATR(200)",
+          "brokenAt": null,
+          "hasRange": false,
+          "openedAt": null,
+          "position": null,
+          "deviations": [],
+          "rangeState": "none",
+          "distToLowerPct": null,
+          "belowUnreclaimed": false
+        },
+        "tf1h": {
+          "lower": 1.4677,
+          "upper": 1.833,
+          "reason": "Closed 1H history replayed",
+          "brokenAt": 1793023200000,
+          "hasRange": true,
+          "openedAt": 1792656000000,
+          "position": "below",
+          "deviations": [
+            {
+              "probeAt": 1793002500000,
+              "depthPct": 1.7987327110444902,
+              "reclaimAt": 1793003400000,
+              "reclaimClose": 1.529
+            },
+            {
+              "probeAt": 1793014200000,
+              "depthPct": 0.5246303740546461,
+              "reclaimAt": 1793015100000,
+              "reclaimClose": 1.4717
+            }
+          ],
+          "rangeState": "broken_down",
+          "distToLowerPct": -16.502009947536962,
+          "belowUnreclaimed": true
+        },
+        "tf4h": {
+          "lower": 1.38235,
+          "upper": 2.0587,
+          "reason": "Closed 4H history replayed",
+          "brokenAt": 1793030400000,
+          "hasRange": true,
+          "openedAt": 1792828800000,
+          "position": "below",
+          "deviations": [
+            {
+              "probeAt": 1793023200000,
+              "depthPct": 25.43133070495895,
+              "reclaimAt": 1793028600000,
+              "reclaimClose": 1.4321
+            }
+          ],
+          "rangeState": "broken_down",
+          "distToLowerPct": -11.346619886425286,
+          "belowUnreclaimed": true
+        },
+        "tf15m": {
+          "lower": 1.13455,
+          "upper": 1.2248,
+          "reason": "Closed 15m history replayed",
+          "brokenAt": 1793069100000,
+          "hasRange": true,
+          "openedAt": 1793065500000,
+          "position": "above",
+          "deviations": [
+            {
+              "probeAt": 1793046600000,
+              "depthPct": 2.3401348552289325,
+              "reclaimAt": 1793048400000,
+              "reclaimClose": 1.1512
+            },
+            {
+              "probeAt": 1793048400000,
+              "depthPct": 1.0620951037856325,
+              "reclaimAt": 1793049300000,
+              "reclaimClose": 1.1435
+            },
+            {
+              "probeAt": 1793049300000,
+              "depthPct": 0.6037636067163212,
+              "reclaimAt": 1793050200000,
+              "reclaimClose": 1.1414
+            }
+          ],
+          "rangeState": "broken_up",
+          "distToLowerPct": 8.016394165087487,
+          "belowUnreclaimed": false
+        },
+        "source": "fire_time",
+        "version": "range_deviation_ctx:v1",
+        "capturedAt": 1793071493627,
+        "entryPrice": 1.2255,
+        "candleReaction": {
+          "low": 1.0663,
+          "time": 1793025900000,
+          "close": 1.2073,
+          "recoveryPct": 13.223295507830818,
+          "turnoverUsd": 34052356.8899,
+          "volumeRatio": 10.03289653241508,
+          "lowerWickPct": 13.223295507830818
+        }
+      },
+      "candleRealVolume": {
+        "last": {
+          "ratio": 1.1085253833140805,
+          "bodyPct": -0.8307210031347934,
+          "spotRatio": null,
+          "candleOpenTime": 1793070000000
+        },
+        "peak": {
+          "ratio": 3.2268001117196543,
+          "bodyPct": 6.984597644345603,
+          "spotRatio": null,
+          "lowerWickPct": 0.14002141503995016,
+          "candleOpenTime": 1793068200000
+        },
+        "source": "aggregated_futures+price:bingx_price_scanner_candles",
+        "status": "ok",
+        "version": "liq_candle_real_volume:v1",
+        "interval": "15m"
+      },
+      "lcDetectionVolume": {
+        "source": "fire_time",
+        "version": "lc_detection_volume:v1",
+        "spotRatio": null,
+        "candleOpen": 1793027700000,
+        "futuresRatio": 7.949481452832592
+      },
+      "rangeDeviationAfter": {
+        "tf1h": {
+          "lower": 1.4677,
+          "events": [],
+          "belowUnreclaimed": true
+        },
+        "tf4h": {
+          "lower": 1.38235,
+          "events": [
+            {
+              "probeAt": 1793070900000,
+              "depthPct": 11.476832929431762,
+              "reclaimAt": 1793079900000,
+              "reclaimClose": 1.3831
+            },
+            {
+              "probeAt": 1793079900000,
+              "depthPct": 0.43042644771583893,
+              "reclaimAt": 1793080800000,
+              "reclaimClose": 1.4035
+            },
+            {
+              "probeAt": 1793080800000,
+              "depthPct": 0.3146815205989855,
+              "reclaimAt": 1793081700000,
+              "reclaimClose": 1.3853
+            },
+            {
+              "probeAt": 1793081700000,
+              "depthPct": 1.3274496328715495,
+              "reclaimAt": 1793083500000,
+              "reclaimClose": 1.3858
+            },
+            {
+              "probeAt": 1793083500000,
+              "depthPct": 3.8159655658841887,
+              "reclaimAt": 1793086200000,
+              "reclaimClose": 1.4223
+            },
+            {
+              "probeAt": 1793088000000,
+              "depthPct": 2.586175715267476,
+              "reclaimAt": 1793090700000,
+              "reclaimClose": 1.4057
+            }
+          ],
+          "belowUnreclaimed": false
+        },
+        "since": 1793071493627,
+        "source": "post_fire_15m",
+        "updatedAt": 1793095759001,
+        "candleReaction": {
+          "low": 1.2518,
+          "time": 1793073600000,
+          "close": 1.2957,
+          "recoveryPct": 3.5069499920115073,
+          "turnoverUsd": 4134822.2323000003,
+          "volumeRatio": null,
+          "lowerWickPct": 3.5069499920115073
+        }
+      }
+    }
+  },
+  {
+    "id": 2949,
+    "symbol": "JCT-USDT",
+    "detected_at": "2026-10-29T08:00:55.965",
+    "entry_price": 0.006077,
+    "status": "bu_stop",
+    "decision_metrics": {
+      "entryVolume": {
+        "tf1h": {
+          "bars": [
+            {
+              "time": 1793257200000,
+              "ratio": 2.896310687670017,
+              "volume": 3074040762.111278,
+              "turnoverUsd": 19434085.6980675,
+              "priorMeanVolume": 1061364298.7949746
+            },
+            {
+              "time": 1793253600000,
+              "ratio": 1.3843633658991938,
+              "volume": 1450925643.2050383,
+              "turnoverUsd": 10366863.7207,
+              "priorMeanVolume": 1048081507.3162601
+            },
+            {
+              "time": 1793250000000,
+              "ratio": 2.6198688934158945,
+              "volume": 2741308878.0625973,
+              "turnoverUsd": 19356381.987999998,
+              "priorMeanVolume": 1046353458.7367706
+            }
+          ],
+          "available": true
+        },
+        "tf30m": {
+          "bars": [
+            {
+              "time": 1793259000000,
+              "ratio": 4.583719611985701,
+              "volume": 2741260680.4545903,
+              "turnoverUsd": 17258977.2441421,
+              "priorMeanVolume": 598042836.932396
+            },
+            {
+              "time": 1793257200000,
+              "ratio": 0.5172252744552216,
+              "volume": 304280314.25972575,
+              "turnoverUsd": 2174387.1257,
+              "priorMeanVolume": 588293591.3760506
+            },
+            {
+              "time": 1793255400000,
+              "ratio": 1.6688249053861166,
+              "volume": 920745856.6550034,
+              "turnoverUsd": 6578729.1458,
+              "priorMeanVolume": 551733051.0129043
+            }
+          ],
+          "available": true
+        },
+        "version": "entry_volume_ctx:v1",
+        "capturedAt": 1793260857884
+      },
+      "rangeDeviation": {
+        "tf1d": {
+          "lower": 0.00155,
+          "upper": 0.002847,
+          "reason": "Closed 1D history replayed",
+          "brokenAt": 1792886400000,
+          "hasRange": true,
+          "openedAt": 1788393600000,
+          "position": "above",
+          "deviations": [],
+          "rangeState": "broken_up",
+          "distToLowerPct": 292.06451612903226,
+          "belowUnreclaimed": false
+        },
+        "tf1h": {
+          "lower": 0.00688,
+          "upper": 0.00815,
+          "reason": "Closed 1H history replayed",
+          "brokenAt": 1793260800000,
+          "hasRange": true,
+          "openedAt": 1793131200000,
+          "position": "below",
+          "deviations": [],
+          "rangeState": "broken_down",
+          "distToLowerPct": -11.671511627906977,
+          "belowUnreclaimed": true
+        },
+        "tf4h": {
+          "lower": 0.001624,
+          "upper": 0.001772,
+          "reason": "Closed 4H history replayed",
+          "brokenAt": 1791504000000,
+          "hasRange": true,
+          "openedAt": 1791000000000,
+          "position": "above",
+          "deviations": [],
+          "rangeState": "broken_up",
+          "distToLowerPct": 274.1995073891626,
+          "belowUnreclaimed": false
+        },
+        "tf15m": {
+          "lower": 0.007075,
+          "upper": 0.00805,
+          "reason": "Closed 15m history replayed",
+          "brokenAt": 1793259900000,
+          "hasRange": true,
+          "openedAt": 1793223900000,
+          "position": "below",
+          "deviations": [
+            {
+              "probeAt": 1793251800000,
+              "depthPct": 1.2438162544169546,
+              "reclaimAt": 1793252700000,
+              "reclaimClose": 0.007129
+            },
+            {
+              "probeAt": 1793252700000,
+              "depthPct": 0.8480565371024635,
+              "reclaimAt": 1793255400000,
+              "reclaimClose": 0.007136
+            },
+            {
+              "probeAt": 1793255400000,
+              "depthPct": 0.7773851590105936,
+              "reclaimAt": 1793256300000,
+              "reclaimClose": 0.007113
+            }
+          ],
+          "rangeState": "broken_down",
+          "distToLowerPct": -14.106007067137808,
+          "belowUnreclaimed": true
+        },
+        "source": "fire_time",
+        "version": "range_deviation_ctx:v1",
+        "capturedAt": 1793260856567,
+        "entryPrice": 0.006077,
+        "candleReaction": {
+          "low": 0.006015,
+          "time": 1793259900000,
+          "close": 0.006322,
+          "recoveryPct": 5.103906899418121,
+          "turnoverUsd": 11348283.9965421,
+          "volumeRatio": 3.452608714530973,
+          "lowerWickPct": 5.103906899418121
+        }
+      },
+      "candleRealVolume": {
+        "last": {
+          "ratio": 2.913536394970884,
+          "bodyPct": -4.039018442310615,
+          "spotRatio": null,
+          "candleOpenTime": 1793259900000
+        },
+        "peak": {
+          "ratio": 2.913536394970884,
+          "bodyPct": -4.039018442310615,
+          "spotRatio": null,
+          "lowerWickPct": 4.28288370675202,
+          "candleOpenTime": 1793259900000
+        },
+        "source": "aggregated_futures+price:bingx_price",
+        "status": "ok",
+        "version": "liq_candle_real_volume:v1",
+        "interval": "15m"
+      },
+      "lcDetectionVolume": {
+        "source": "fire_time",
+        "version": "lc_detection_volume:v1",
+        "spotRatio": null,
+        "candleOpen": 1793259900000,
+        "futuresRatio": 2.913536394970884
+      },
+      "rangeDeviationAfter": {
+        "tf1d": {
+          "lower": 0.00155,
+          "events": [],
+          "belowUnreclaimed": false
+        },
+        "tf1h": {
+          "lower": 0.00688,
+          "events": [],
+          "belowUnreclaimed": true
+        },
+        "tf4h": {
+          "lower": 0.001624,
+          "events": [],
+          "belowUnreclaimed": false
+        },
+        "since": 1793260856567,
+        "source": "post_fire_15m",
+        "updatedAt": 1793262818745,
+        "candleReaction": {
+          "low": 0.005386,
+          "time": 1793261700000,
+          "close": 0.006484,
+          "recoveryPct": 20.38618640920906,
+          "turnoverUsd": 14251669.8798984,
+          "volumeRatio": null,
+          "lowerWickPct": 5.0686966208689155
+        }
+      }
+    }
+  },
+  {
+    "id": 3712,
+    "symbol": "BR-USDT",
+    "detected_at": "2026-11-10T03:16:25.044",
+    "entry_price": 0.4788,
+    "status": "active",
+    "decision_metrics": {
+      "entryVolume": {
+        "tf1h": {
+          "bars": [
+            {
+              "time": 1794276000000,
+              "ratio": 11.005740198473392,
+              "volume": 17138748.89215373,
+              "turnoverUsd": 8696201.1878788,
+              "priorMeanVolume": 1557255.4488003494
+            },
+            {
+              "time": 1794272400000,
+              "ratio": 0.5913472276096441,
+              "volume": 918981.5640297201,
+              "turnoverUsd": 420525.96369999996,
+              "priorMeanVolume": 1554047.3027064763
+            },
+            {
+              "time": 1794268800000,
+              "ratio": 0.8088387139294876,
+              "volume": 1241118.2251933701,
+              "turnoverUsd": 561605.9969,
+              "priorMeanVolume": 1534444.6350296328
+            }
+          ],
+          "available": true
+        },
+        "tf30m": {
+          "bars": [
+            {
+              "time": 1794277800000,
+              "ratio": 18.810289462384013,
+              "volume": 16711414.961132836,
+              "turnoverUsd": 8479371.9512788,
+              "priorMeanVolume": 888418.8090008708
+            },
+            {
+              "time": 1794276000000,
+              "ratio": 0.5320101005932778,
+              "volume": 475085.9493865031,
+              "turnoverUsd": 216829.2273,
+              "priorMeanVolume": 893001.7472538678
+            },
+            {
+              "time": 1794274200000,
+              "ratio": 0.49969212632982996,
+              "volume": 444761.944493007,
+              "turnoverUsd": 203523.06579999998,
+              "priorMeanVolume": 890071.9484209655
+            }
+          ],
+          "available": true
+        },
+        "version": "entry_volume_ctx:v1",
+        "capturedAt": 1794280586630
+      },
+      "rangeDeviation": null,
+      "candleRealVolume": {
+        "last": {
+          "ratio": 7.576538792751897,
+          "bodyPct": -5.3409538825384235,
+          "spotRatio": null,
+          "candleOpenTime": 1794279600000
+        },
+        "peak": {
+          "ratio": 23.23876927579081,
+          "bodyPct": 2.2365504735039066,
+          "spotRatio": null,
+          "lowerWickPct": 2.256699576868838,
+          "candleOpenTime": 1794278700000
+        },
+        "source": "aggregated_futures+price:bingx_price",
+        "status": "ok",
+        "version": "liq_candle_real_volume:v1",
+        "interval": "15m"
+      },
+      "lcDetectionVolume": {
+        "source": "fire_time",
+        "version": "lc_detection_volume:v1",
+        "spotRatio": null,
+        "candleOpen": 1794279600000,
+        "futuresRatio": 7.576538792751897
+      }
+    }
+  }
+]
