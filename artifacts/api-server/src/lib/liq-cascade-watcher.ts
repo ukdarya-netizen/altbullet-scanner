@@ -17,7 +17,7 @@
  *      основного сканера. getLiqCascadeLayer10Candidates() экспортирует активные записи.
  *
  * Статусы записи:
- *   watching → ожидаем сигнала (12ч окно)
+ *   watching → ожидаем сигнала (72ч окно)
  *   fired    → liquidation_cascade сигнал выдан (tracked_signals матч, auto-cleanup)
  *   expired  → истёк без сигнала → пишем в missed_signals_log
  *
@@ -94,8 +94,9 @@ import {
 } from "./liq-cascade-observation.js";
 
 // ── Константы ──────────────────────────────────────────────────────────────────
-const WATCH_WINDOW_MS = 12 * 60 * 60 * 1000; // 12ч окно наблюдения
-const DEDUP_MS = 12 * 60 * 60 * 1000; // не добавлять символ повторно в течение 12ч
+const WATCH_WINDOW_MS = 72 * 60 * 60 * 1000; // 72ч окно наблюдения
+const WATCH_DEDUP_MS = WATCH_WINDOW_MS; // не создавать параллельный watch для символа
+const REJECTION_DEDUP_MS = 12 * 60 * 60 * 1000; // 12ч бизнес-окно для истории отказов
 
 /** Минимальный 24ч объём (USD) — фильтр ликвидности */
 const _liqRejectedDecisionBuffer = new Map<string, PatternDecisionEventInput>();
@@ -139,30 +140,103 @@ const _watchMap = new Map<string, WatchEntry>();
 // the real LC reason instead of silence.
 const _lcLastDecision = new Map<
   string,
-  { watchId: number; reason: string; at: number }
+  {
+    watchId: number;
+    reason: string;
+    at: number;
+    metrics: Record<string, unknown>;
+  }
 >();
 
 export function recordLcDecisionReason(
   symbol: string,
   watchId: number,
   reason: string,
+  metrics: Record<string, unknown> = {},
 ): void {
-  _lcLastDecision.set(symbol, { watchId, reason, at: Date.now() });
+  _lcLastDecision.set(symbol, { watchId, reason, at: Date.now(), metrics });
+}
+
+export function getLcScanDecisionForSymbol(symbol: string): {
+  reason: string;
+  decisionKind: "rejected" | "blocked" | "deferred";
+  decisionMetrics: Record<string, unknown>;
+  fired: boolean;
+} {
+  const now = Date.now();
+  const watch = _watchMap.get(symbol);
+  const last = _lcLastDecision.get(symbol);
+  const lastForWatch = last && watch && last.watchId === watch.watchId ? last : null;
+  if (!watch) {
+    const unavailableReason = !_running
+      ? "lc_watcher_not_running"
+      : !_initialized
+        ? "lc_watcher_not_initialized"
+        : "lc_no_active_watch_no_cascade_detected";
+    return {
+      reason: unavailableReason,
+      decisionKind:
+        unavailableReason === "lc_no_active_watch_no_cascade_detected"
+          ? "rejected"
+          : "deferred",
+      fired: false,
+      decisionMetrics: {
+        activeWatch: false,
+        watcherInitialized: _initialized,
+        watcherRunning: _running,
+        lastDecision: last
+          ? { reason: last.reason, at: new Date(last.at).toISOString(), metrics: last.metrics }
+          : null,
+      },
+    };
+  }
+  const ageMs = Math.max(0, now - watch.detectedAt);
+  const active = ageMs <= WATCH_WINDOW_MS;
+  const stage = lastForWatch?.reason.startsWith("fired:")
+    ? "fired"
+    : lastForWatch?.reason.startsWith("rejected:")
+      ? "rejected"
+      : null;
+  const rawReason = lastForWatch?.reason.replace(/^(?:fired|rejected):/, "") ?? null;
+  const fired = active && stage === "fired";
+  const reason = !active
+    ? "lc_watch_expired"
+    : lastForWatch && stage === "rejected"
+      ? `lc_last_rejection:${rawReason}`
+      : fired
+        ? `lc_fire_already_recorded:${rawReason}`
+        : "lc_watch_active_no_fire_decision_yet";
+  return {
+    reason,
+    decisionKind: !active ? "rejected" : stage === "rejected" ? "rejected" : "deferred",
+    fired,
+    decisionMetrics: {
+      activeWatch: active,
+      watchId: watch.watchId,
+      detectedAt: new Date(watch.detectedAt).toISOString(),
+      ageMs,
+      windowMs: WATCH_WINDOW_MS,
+      liqExhausted: watch.liqExhausted,
+      entryReason: watch.entryReason,
+      longLiq1hAtDetect: watch.longLiq1hAtDetect,
+      longLiq24hAtDetect: watch.longLiq24hAtDetect,
+      cycleCountAtDetect: watch.cycleCountAtDetect,
+      lastDecision: lastForWatch
+        ? {
+            stage,
+            reason: rawReason,
+            at: new Date(lastForWatch.at).toISOString(),
+            ageMs: Math.max(0, now - lastForWatch.at),
+            metrics: lastForWatch.metrics,
+          }
+        : null,
+    },
+  };
 }
 
 /** Exact LC state for a symbol, for scan_reject_log (never empty). */
 export function describeLcStateForScan(symbol: string): string {
-  const watch = _watchMap.get(symbol);
-  if (!watch || watch.detectedAt < Date.now() - WATCH_WINDOW_MS) {
-    return "lc_no_active_watch_no_cascade_detected";
-  }
-  const last = _lcLastDecision.get(symbol);
-  const ageMin = Math.round((Date.now() - watch.detectedAt) / 60_000);
-  const tail =
-    last && last.watchId === watch.watchId
-      ? `last_reject=${last.reason}`
-      : "no_fire_decision_yet";
-  return `lc_watch_active_${ageMin}m:${tail}`;
+  return getLcScanDecisionForSymbol(symbol).reason;
 }
 
 // ── Флаги ─────────────────────────────────────────────────────────────────────
@@ -221,7 +295,7 @@ function recordLiqDetectorRejection(input: {
   entryPrice: number | null;
   metrics: Record<string, number | null>;
 }): void {
-  const bucket = Math.floor(input.observedAt.getTime() / DEDUP_MS);
+  const bucket = Math.floor(input.observedAt.getTime() / REJECTION_DEDUP_MS);
   const eventKey = liqCascadeRejectedDecisionEventKey(
     input.symbol,
     bucket,
@@ -319,6 +393,39 @@ export async function runLiqCascadeWatcherJob(
 
     const now = Date.now();
     const tickerMap = new Map(tickers.map((t) => [t.symbol, t]));
+
+    // Extend existing non-terminal watches created under the former 12-hour
+    // policy. Terminal rows are intentionally never reopened here.
+    const extendedWatchDeadlines = await dbWriteBestEffort(
+      "liqCascade/extend-watch-deadlines-72h",
+      () =>
+        db
+          .update(liqCascadeWatchTable)
+          .set({
+            expiresAt: sql`${liqCascadeWatchTable.detectedAt} + interval '72 hours'`,
+          })
+          .where(
+            and(
+              eq(liqCascadeWatchTable.status, "watching"),
+              gte(
+                liqCascadeWatchTable.detectedAt,
+                new Date(now - WATCH_WINDOW_MS),
+              ),
+              lt(
+                liqCascadeWatchTable.expiresAt,
+                sql`${liqCascadeWatchTable.detectedAt} + interval '72 hours'`,
+              ),
+            ),
+          )
+          .returning({ id: liqCascadeWatchTable.id }),
+      { perAttemptTimeoutMs: 5000, attempts: 1 },
+    );
+    if (extendedWatchDeadlines && extendedWatchDeadlines.length > 0) {
+      logger.info(
+        { count: extendedWatchDeadlines.length },
+        "LiqCascade: active watch deadlines extended to 72h",
+      );
+    }
 
     // ── 1b. CoinGlass liquidation coin-list (batch) + real-time order stream ──
     // Только один воркер из двух делает реальный CG-запрос (liq-bulk-refresh lease,
@@ -650,7 +757,19 @@ export async function runLiqCascadeWatcherJob(
           .select({ symbol: liqCascadeWatchTable.symbol })
           .from(liqCascadeWatchTable)
           .where(
-            gte(liqCascadeWatchTable.detectedAt, new Date(now - DEDUP_MS)),
+            or(
+              and(
+                eq(liqCascadeWatchTable.status, "watching"),
+                gte(
+                  liqCascadeWatchTable.detectedAt,
+                  new Date(now - WATCH_DEDUP_MS),
+                ),
+              ),
+              gte(
+                liqCascadeWatchTable.detectedAt,
+                new Date(now - REJECTION_DEDUP_MS),
+              ),
+            ),
           );
         existingSymbols = new Set(rows.map((r) => r.symbol));
       } catch (err) {
@@ -761,7 +880,19 @@ export async function runLiqCascadeWatcherJob(
             .where(
               and(
                 eq(liqCascadeWatchTable.symbol, ticker.symbol),
-                gte(liqCascadeWatchTable.detectedAt, new Date(now - DEDUP_MS)),
+                or(
+                  and(
+                    eq(liqCascadeWatchTable.status, "watching"),
+                    gte(
+                      liqCascadeWatchTable.detectedAt,
+                      new Date(now - WATCH_DEDUP_MS),
+                    ),
+                  ),
+                  gte(
+                    liqCascadeWatchTable.detectedAt,
+                    new Date(now - REJECTION_DEDUP_MS),
+                  ),
+                ),
               ),
             )
             .limit(1);
@@ -1095,7 +1226,7 @@ export async function runLiqCascadeWatcherJob(
               or(
                 lte(
                   trackedSignalsTable.detectedAt,
-                  liqCascadeWatchTable.expiresAt,
+                  sql`${liqCascadeWatchTable.detectedAt} + interval '72 hours'`,
                 ),
                 sql`EXISTS (
                   SELECT 1
@@ -1182,24 +1313,33 @@ export async function runLiqCascadeWatcherJob(
     try {
       const expired = await db
         .update(liqCascadeWatchTable)
-        .set({ status: "expired" })
+        .set({
+          status: "expired",
+          expiresAt: sql`${liqCascadeWatchTable.detectedAt} + interval '72 hours'`,
+        })
         .where(
           and(
             eq(liqCascadeWatchTable.status, "watching"),
-            lt(liqCascadeWatchTable.expiresAt, new Date()),
+            lt(
+              liqCascadeWatchTable.detectedAt,
+              new Date(Date.now() - WATCH_WINDOW_MS),
+            ),
           ),
         )
         .returning();
 
       for (const row of expired) {
         _watchMap.delete(row.symbol);
+        const watchDeadline = new Date(
+          row.detectedAt.getTime() + WATCH_WINDOW_MS,
+        );
         void recordLiqCascadeObservation({
           watchId: row.id,
           symbol: row.symbol,
           detectedAt: row.detectedAt,
-          observedAt: row.expiresAt,
+          observedAt: watchDeadline,
           stage: "expired",
-          reason: "no_signal_12h",
+          reason: "no_signal_72h",
           price:
             row.currentPrice != null && row.currentPrice > 0
               ? row.currentPrice
@@ -1223,7 +1363,7 @@ export async function runLiqCascadeWatcherJob(
           `oi1h=${row.oi1hAtDetect?.toFixed(1) ?? "—"}%`,
           `cvd1h=${row.cvd1hAtDetect ?? "—"}`,
           `curChg=${row.currentPctChange?.toFixed(1) ?? "—"}%`,
-          "no_signal_12h",
+          "no_signal_72h",
         ];
         const source = `liq_cascade_watch:${row.id}`;
         const reason = _reasonParts.join(" ");
@@ -1255,7 +1395,7 @@ export async function runLiqCascadeWatcherJob(
                   ${row.oi1hAtDetect}, ${row.oi4hAtDetect},
                   ${row.spotVolMultAtDetect}, ${row.cvd1hAtDetect},
                   ${row.cvd4hAtDetect}, ${row.cycleCountAtDetect},
-                  ${row.expiresAt}
+                  ${watchDeadline}
                 WHERE NOT EXISTS (
                   SELECT 1
                   FROM missed_signals_log
