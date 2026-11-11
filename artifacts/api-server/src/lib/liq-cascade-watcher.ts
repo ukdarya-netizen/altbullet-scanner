@@ -286,6 +286,71 @@ export function getLiqCascadeLayer10Candidates(): LiqCascadeL10Entry[] {
   return result;
 }
 
+/**
+ * Owner 2026-11-11 (LC lost candidates): the fire cycle takes its candidates from the database, not from this
+ * process's memory. With several workers a watch inserted by one worker was never seen by the worker that ran
+ * the next fire cycles (production log: a candidate got one "detection_candle_pending" check and no other until
+ * it expired). The in-memory map is refreshed from the rows; on a database error it is the fallback.
+ */
+export async function getLiqCascadeFireCandidates(): Promise<LiqCascadeL10Entry[]> {
+  const cutoff = new Date(Date.now() - WATCH_WINDOW_MS);
+  try {
+    const rows = await db
+      .select({
+        id: liqCascadeWatchTable.id,
+        symbol: liqCascadeWatchTable.symbol,
+        detectedAt: liqCascadeWatchTable.detectedAt,
+        liqExhausted: liqCascadeWatchTable.liqExhausted,
+        entryReason: liqCascadeWatchTable.entryReason,
+        longLiq1hAtDetect: liqCascadeWatchTable.longLiq1hAtDetect,
+        longLiq24hAtDetect: liqCascadeWatchTable.longLiq24hAtDetect,
+        cycleCountAtDetect: liqCascadeWatchTable.cycleCountAtDetect,
+      })
+      .from(liqCascadeWatchTable)
+      .where(
+        and(
+          eq(liqCascadeWatchTable.status, "watching"),
+          gte(liqCascadeWatchTable.detectedAt, cutoff),
+        ),
+      )
+      .orderBy(asc(liqCascadeWatchTable.detectedAt));
+    const bySymbol = new Map<string, LiqCascadeL10Entry>();
+    for (const row of rows) {
+      // one watch per symbol: the newest one wins, as in the in-memory map
+      bySymbol.set(row.symbol, {
+        watchId: row.id,
+        symbol: row.symbol,
+        detectedAt: row.detectedAt.getTime(),
+        liqExhausted: row.liqExhausted ?? null,
+        entryReason: row.entryReason ?? "liq_spike",
+        longLiq1hAtDetect: row.longLiq1hAtDetect ?? null,
+        longLiq24hAtDetect: row.longLiq24hAtDetect ?? null,
+        cycleCountAtDetect: row.cycleCountAtDetect ?? null,
+      });
+    }
+    for (const e of bySymbol.values()) {
+      const mem = _watchMap.get(e.symbol);
+      if (!mem || mem.watchId !== e.watchId) {
+        _watchMap.set(e.symbol, {
+          watchId: e.watchId,
+          detectedAt: e.detectedAt,
+          liqExhausted: e.liqExhausted,
+          entryReason: e.entryReason,
+          longLiq1hAtDetect: e.longLiq1hAtDetect,
+          longLiq24hAtDetect: e.longLiq24hAtDetect,
+          cycleCountAtDetect: e.cycleCountAtDetect,
+        });
+      } else if (mem.liqExhausted !== null) {
+        e.liqExhausted = mem.liqExhausted;
+      }
+    }
+    return [...bySymbol.values()];
+  } catch (err) {
+    logger.warn({ err }, "LiqCascade fire candidates from DB failed — in-memory fallback");
+    return getLiqCascadeLayer10Candidates();
+  }
+}
+
 // ── Main job ──────────────────────────────────────────────────────────────────
 
 function recordLiqDetectorRejection(input: {

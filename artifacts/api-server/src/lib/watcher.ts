@@ -293,6 +293,7 @@ import { backfillOiHistoryAfterCollisionCleanup } from "./oiHistoryBackfill.js";
 import {
   runLiqCascadeWatcherJob,
   getLiqCascadeLayer10Candidates,
+  getLiqCascadeFireCandidates,
   recordLcDecisionReason,
   type LiqCascadeL10Entry,
 } from "./liq-cascade-watcher.js";
@@ -15574,18 +15575,33 @@ export function startWatcher(): void {
     } catch (err) {
       logger.error({ err }, "LiqCascadeWatcherJob error");
     }
-    if (!(await deferWhileScannerActive("liq-cascade-fire"))) {
-      try {
-        await _runLiqCascadeFireCycle();
-      } catch (err) {
-        logger.error({ err }, "LiqCascadeFireCycle error");
-      }
-    }
     _jobTimings.liqCascade.lastRunAt = Date.now();
     liqCascadeTimer = setTimeout(runLiqCascade, LIQ_CASCADE_INTERVAL_MS);
   };
   liqCascadeTimer = setTimeout(runLiqCascade, 5 * 60_000);
   logger.info("Layer 10 Liq Cascade Watch scheduled (3min, first run at 5min)");
+
+  // Owner 2026-11-11: the LC fire cycle has its own 1-minute timer. Before, it ran only right after the
+  // watcher job, so every deferred watcher run (289 of 586 in 48h) also skipped the fire check, and the
+  // capitulation entry window is only 15 minutes after the detection candle closes.
+  const LIQ_CASCADE_FIRE_INTERVAL_MS = 60_000;
+  let liqCascadeFireRunning = false;
+  const runLiqCascadeFire = async () => {
+    if (!liqCascadeTimer) return; // stopped together with the watcher job
+    if (!liqCascadeFireRunning && !(await deferWhileScannerActive("liq-cascade-fire"))) {
+      liqCascadeFireRunning = true;
+      try {
+        await _runLiqCascadeFireCycle();
+      } catch (err) {
+        logger.error({ err }, "LiqCascadeFireCycle error");
+      } finally {
+        liqCascadeFireRunning = false;
+      }
+    }
+    setTimeout(runLiqCascadeFire, LIQ_CASCADE_FIRE_INTERVAL_MS);
+  };
+  setTimeout(runLiqCascadeFire, 6 * 60_000);
+  logger.info("Layer 10 Liq Cascade fire cycle scheduled (1min, first run at 6min)");
 
   // Price24h refresh every 20 min — пересчитывает lastPrice24h через 1h klines.
   // BingX ticker priceChangePercent считается от суточной свечи (UTC midnight), а не
@@ -16741,7 +16757,8 @@ async function refreshNullEntryMetrics(): Promise<void> {
 }
 
 async function _runLiqCascadeFireCycle(): Promise<void> {
-  const candidates = getLiqCascadeLayer10Candidates();
+  // Owner 2026-11-11: candidates from the database (every worker sees every watch).
+  const candidates = await getLiqCascadeFireCandidates();
   const cycleNow = Date.now();
   await db.execute(sql`
     UPDATE lc_ob_wait w
