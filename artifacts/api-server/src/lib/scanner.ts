@@ -6700,7 +6700,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         neonAtr4h == null ||
         closed1h.some(
           (c) =>
-            c.time + 3_600_000 > arm.armedAt && c.low <= arm.level + neonAtr4h,
+            // Owner 2026-11-11: the touch may be inside the arming 4H candle (as the detector).
+            c.time + 3_600_000 > arm.armedAt - 4 * 3_600_000 &&
+            c.low <= arm.level + neonAtr4h,
         );
       if (
         support.reason === "srv2_touch_without_reaction" ||

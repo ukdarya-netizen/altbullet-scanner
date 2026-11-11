@@ -550,11 +550,14 @@ export function evaluateAbneonSupportBounce(input: {
     // Confirmation: bullish latest closed 1H (same or later than the touch) with
     // close ≥ bottom and low ≤ top + 2×ATR(4H); volume/turnover gates below.
     const atr4h = wilderAtr(h4);
+    // Owner 2026-11-11 (EDGEX 9.11): the touch may be inside the arming 4H candle itself — price touched
+    // the zone and left it within those 4 hours; the later bullish 1H reaction still confirms the bounce.
+    const touchFrom = arm - ZONE_TF;
     const touchSeen =
       atr4h != null &&
       h1.some(
         (k) =>
-          k.time + H1 > arm &&
+          k.time + H1 > touchFrom &&
           k.time <= (reaction?.time ?? -1) &&
           (sweep != null
             ? k.low <= zone.top + atr4h &&
@@ -566,7 +569,7 @@ export function evaluateAbneonSupportBounce(input: {
         ? undefined
         : h1.find(
             (k) =>
-              k.time + H1 > arm &&
+              k.time + H1 > touchFrom &&
               k.time <= (reaction?.time ?? -1) &&
               (sweep != null
                 ? k.low <= zone.top + atr4h &&
