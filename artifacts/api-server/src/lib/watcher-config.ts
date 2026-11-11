@@ -104,6 +104,14 @@ const WHALE_WATCH_EXIT_PROFILE: ExitProfile = {
 
 // BTC is managed in one-point steps: +1% earns BE; +2% arms the trailing
 // boundary at +1%, and each further point of peak PnL raises it by one point.
+// Owner 2026-11-11: ABNeon — B.U. only at +10%, trailing from +20% at 20 p.p. under the peak (her
+// November coins: ELSA +52%, INIT +52%, PIEVERSE +39/+40%, sum +181% vs +111% on the old +8 / +15 / 10).
+const NEON_SUPPORT_EXIT_PROFILE: ExitProfile = {
+  firstTarget: 10,
+  trailingActivation: 20,
+  trailingGap: 20,
+};
+
 const BITCOIN_EXIT_PROFILE: ExitProfile = {
   firstTarget: 1,
   trailingActivation: 2,
@@ -117,6 +125,7 @@ export function getExitProfile(
   if (symbol === "BTC-USDT" || symbol === "BTCUSDT")
     return BITCOIN_EXIT_PROFILE;
   if (sentimentKey === "whale_watch") return WHALE_WATCH_EXIT_PROFILE;
+  if (sentimentKey === "neon_support_bounce") return NEON_SUPPORT_EXIT_PROFILE;
   return DEFAULT_EXIT_PROFILE;
 }
 
@@ -170,6 +179,7 @@ export const PATTERN_MAX_STOP: Record<string, number> = {
   price_led_momentum: 10,
   impulse_buy: 8,
   // Owner decision 2026-10-22: Neon Support stop is exactly 8% (was global 10%).
+  // Owner 2026-11-11: under the level (zone bottom / low −1%, 3…15%) when the level is known; 8% otherwise.
   neon_support_bounce: 8,
   balanced_grind: 10,
   // Owner decision 2026-10-10: Liquidation Cascade stop is back to exactly 10%
@@ -225,9 +235,12 @@ export function getBuStopMilestone(
   // Owner decision 2026-10-28: Liquidation Cascade B.U. at +8%, then the
   // ordinary trailing from +15% at 10 pp, no +10% → +5% promotion
   // (174 signals on the live candle rule: +844% vs +795% current).
+  // Owner 2026-11-11: Neon Support B.U. only at +10% (a +8% B.U. was hit by wicks before INIT +154%).
+  if (sentimentKey === "neon_support_bounce") {
+    return 10;
+  }
   if (
     sentimentKey === "stealth_breakout" ||
-    sentimentKey === "neon_support_bounce" ||
     sentimentKey === "liquidation_cascade"
   ) {
     return 8;

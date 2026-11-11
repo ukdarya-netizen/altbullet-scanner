@@ -1,4 +1,5 @@
 import { ABNEON_PRE_TOUCH_BLUE_MIN, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
+import { findLowBounce, lowBouncePriceCandidate, stopUnderLevel } from "./abneon-low-bounce.js";
 import {
   getStealthOi4hAtBreakout,
   stealthOi4hPasses,
@@ -5592,6 +5593,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       armCandleTime: number;
       triggerCandleTime: number;
       confluence?: string | null;
+      lowBounce?: boolean;
+      /** Owner 2026-11-11: bottom of the level (zone bottom, or the low of a low bounce) — stop and cancel. */
+      levelBottom?: number | null;
     };
     isScalpOnly: boolean; // MTF Spot CVD: старшие ТФ (1h/4h) не подтверждают
     futVolMult: number; // оригинальный фьюч BingX volMult (до замены на спот)
@@ -5907,6 +5911,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       armCandleTime: number;
       triggerCandleTime: number;
       confluence?: string | null;
+      lowBounce?: boolean;
     }
   >();
   try {
@@ -6635,7 +6640,13 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
   const _phase2StartMs = Date.now();
   const newlyQualifiedNeonEvents = new Map<
     string,
-    { frozenLevel: number; armCandleTime: number; triggerCandleTime: number }
+    {
+      frozenLevel: number;
+      armCandleTime: number;
+      triggerCandleTime: number;
+      /** Owner 2026-11-11: bounce from a fresh low (no zone); frozenLevel = the low. */
+      lowBounce?: boolean;
+    }
   >();
   const neonSupportDecisionDiagnostics = new Map<
     string,
@@ -6805,6 +6816,34 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           support = { ...support, evidence };
         }
       }
+      // Owner 2026-11-11 (KNOTS, SI, GANG): a bounce from a fresh low has no ABNeon zone yet (a pivot is
+      // confirmed only a day later). With no zone arm open, the bounce from the low itself is taken: the
+      // low of the last 10 days, then the first green 4H close above the low candle's close with not-grey
+      // aggregated volume, within 24h of the low and ≤ 25% above it. Aggregated volume is requested only
+      // when the price pattern is there.
+      let lowBounce = false;
+      if (
+        arm == null &&
+        support.status !== "qualified" &&
+        support.status !== "armed" &&
+        lowBouncePriceCandidate(closed4h)
+      ) {
+        const agg4hLow = await getAggFuturesVolumeByInterval(symbol, "4h", 60).catch(() => null);
+        const lb = agg4hLow ? findLowBounce({ candles4h: closed4h, agg4hUsdByTime: agg4hLow }) : null;
+        if (lb) {
+          lowBounce = true;
+          support = {
+            method: "abneon_support_bounce",
+            status: "qualified",
+            reason: "low_bounce_4h_not_grey",
+            frozenLevel: lb.low,
+            armCandleTime: lb.lowTime,
+            triggerCandleTime: lb.triggerTime,
+            volumeEvidence: { triggerVolume: null, baselineVolume: null, ratio: null },
+            evidence: { lowBounce: lb },
+          };
+        }
+      }
       const persistedSupport = await persistStealthAbneonShadow({
         symbol,
         result: support,
@@ -6911,6 +6950,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           frozenLevel: persistedSupport.frozenLevel,
           armCandleTime: persistedSupport.armCandleTime,
           triggerCandleTime: persistedSupport.triggerCandleTime,
+          ...(lowBounce || persistedSupport.detectorEvidence?.lowBounce != null ? { lowBounce: true } : {}),
         });
       }
       const obArm = await getFrozenStealthAbneonLevel({
@@ -8122,13 +8162,23 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   stealthNeonLevel?: { stopPrice?: unknown };
                 }
               | undefined;
+            // Owner 2026-11-11: ABNeon stop under the level (zone bottom, or the low of a low bounce)
+            // −1%, 3…15% from entry; without a level the pattern stop (−8%) stays.
+            const _neonStopRaw =
+              res.sentimentKey === "neon_support_bounce" &&
+              res.neonSupportBounceEvent?.levelBottom != null
+                ? stopUnderLevel(
+                    canonicalFire.entryPrice,
+                    res.neonSupportBounceEvent.levelBottom,
+                  )
+                : null;
             const _fhStopRaw = _isRStealth
               ? Number(
                   _rMetrics?.stealthNeonLevel?.stopPrice ??
                     _rMetrics?.stealthRange4h?.stopPrice ??
                     _rMetrics?.stealthFreshHigh?.stopPrice,
                 )
-              : null;
+              : _neonStopRaw;
             const _fhStop =
               _fhStopRaw !== null &&
               Number.isFinite(_fhStopRaw) &&
@@ -8899,6 +8949,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       armCandleTime: number;
       triggerCandleTime: number;
       confluence?: string | null;
+      lowBounce?: boolean;
     } | null = isRangeOnlySupplemental
       ? null
       : (persistedNeonSupportEvents.get(symbol) ?? null);
@@ -13300,8 +13351,13 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     _neonSupportBounceEvent.armCandleTime,
                   )
                 : null;
+            // Owner 2026-11-11: a low bounce has no zone — its level is the low itself.
+            const _neonLevelBottom =
+              _neonSupportBounceEvent?.lowBounce === true
+                ? _neonSupportBounceEvent.frozenLevel
+                : (_neonZones?.zone?.bottom ?? null);
             const _neonZoneMetrics = {
-              zoneBottom: _neonZones?.zone?.bottom ?? null,
+              zoneBottom: _neonLevelBottom,
               zoneTop:
                 _neonZones?.zone?.top ??
                 _neonSupportBounceEvent?.frozenLevel ??
@@ -14624,8 +14680,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   }
                 : {}),
               neonSupportBounceEvent:
-                det!.sentiment.key === "neon_support_bounce"
-                  ? (_neonSupportBounceEvent ?? undefined)
+                det!.sentiment.key === "neon_support_bounce" && _neonSupportBounceEvent
+                  ? { ..._neonSupportBounceEvent, levelBottom: _neonLevelBottom }
                   : undefined,
               isScalpOnly,
               futVolMult: volMult, // фьюч BingX klines (Phase 2)
@@ -14643,7 +14699,16 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 ? _plmDecisionMetrics
                 : isStealthBreakout
                   ? _sbDecisionMetrics
-                  : undefined,
+                  : det!.sentiment.key === "neon_support_bounce" && _neonSupportBounceEvent
+                    ? {
+                        // Owner 2026-11-11: the level for the ABNeon stop and the 4H-close cancel.
+                        neonLevel: {
+                          bottom: _neonLevelBottom,
+                          top: _neonZoneMetrics.zoneTop,
+                          lowBounce: _neonSupportBounceEvent.lowBounce === true,
+                        },
+                      }
+                    : undefined,
               plmSpotVolMult: isPriceLedMomentum ? _plmSpotVolMult : undefined,
               baOiPath: _baOiPath,
             });

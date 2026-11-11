@@ -1971,5 +1971,15 @@
   "🧪 Эксперимент · пробой узкого ренджа 1H": "🧪 Experiment · narrow-range breakout 1H",
   "🩷 Neon Support — Отскок от поддержки #neon_support_bounce": "🩷 Neon Support — Bounce off support #neon_support_bounce",
   "Вход в аккаунт": "Sign in",
-  "Теневой паттерн: пробой ренджа на закрытой 1H свече без фильтров; в Telegram не отправляется; стоп −8% от закрытия, Б/У на +1R, трейлинг 1R": "Shadow pattern: breakout of a range on a closed 1H candle with no filters; not sent to Telegram; stop −8% from close, breakeven at +1R, 1R trailing"
+  "Теневой паттерн: пробой ренджа на закрытой 1H свече без фильтров; в Telegram не отправляется; стоп −8% от закрытия, Б/У на +1R, трейлинг 1R": "Shadow pattern: breakout of a range on a closed 1H candle with no filters; not sent to Telegram; stop −8% from close, breakeven at +1R, 1R trailing",
+  "Цена вернулась к сильной зоне поддержки или обновила минимум и оттолкнулась вверх на объёме. Ловим отскок от поддержки.": "Price returned to a strong support zone or made a new low and bounced up on volume. Catching the bounce off support.",
+  "цена дошла до зоны (касание — до 2% выше её верха); прокол ниже допускается, если цена вернулась в течение 12 часов": "price reached the zone (a touch is up to 2% above its top); a dip below is allowed if the price returned within 12 hours",
+  "часовая свеча отскока закрылась вверх": "the hourly bounce candle closed upward",
+  "объём на касании: 4H-свеча касания или одна из двух следующих не серая по VSA (объём фьючерсов всех бирж)": "volume on the touch: the 4H touch candle or one of the next two is not grey on VSA (futures volume of all exchanges)",
+  "отскок от нового минимума, где зоны ещё нет: цена обновила минимум за 10 дней, и в течение суток 4H-свеча закрылась зелёной выше закрытия свечи минимума на не сером объёме, не дальше 25% от минимума": "a bounce from a new low where there is no zone yet: price made a 10-day low, and within a day a 4H candle closed green above the low candle's close on not-grey volume, no more than 25% above the low",
+  "Сигнал приходит после закрытия свечи отскока. Если зона пробита вниз, сигнал не выходит и ждётся следующая зона.": "The signal arrives after the bounce candle closes. If the zone breaks downward, no signal is issued and the next zone is awaited.",
+  "Стоп: под уровнем −1% (низ зоны или минимум), не ближе 3% и не дальше 15% от входа": "Stop: 1% under the level (zone bottom or the low), no closer than 3% and no further than 15% from entry",
+  "Цена прошла +10%: стоп в безубыток": "Price moved +10%: stop to breakeven",
+  "С +20%: стоп идёт за ценой на 20 п.п. ниже пика и только поднимается": "From +20%: the stop follows price at 20 p.p. below the peak and only moves up",
+  "Отмена: 4H-свеча закрылась под уровнем — сделка закрывается по рынку": "Cancel: a 4H candle closed under the level — the trade is closed at market"
 }

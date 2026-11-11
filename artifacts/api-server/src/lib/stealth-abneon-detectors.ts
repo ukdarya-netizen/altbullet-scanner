@@ -157,6 +157,12 @@ export function hasConsecutiveClosesBelow(
 /** Owner 2026-10-18: touch / bounce tolerance around a support zone. */
 const SUPPORT_TOUCH_TOLERANCE = 0.01;
 /**
+ * Owner 2026-11-11 (EDGEX 9.11: low 1.5% above the zone top, the bounce was missed): a candle whose low
+ * comes within 2% above the zone top touches the zone. Only the touch from above; the breakdown and
+ * reclaim checks keep 1%.
+ */
+export const SUPPORT_TOUCH_ABOVE_TOLERANCE = 0.02;
+/**
  * Owner 2026-10-22: a zone is not support when price already traded below its
  * bottom after the zone's latest pivot low (SOPH: the zone was the fall's own
  * low and price kept dropping through it).
@@ -239,7 +245,7 @@ function sweepTouchesZone(
   zone: SupportZone,
 ): boolean {
   return (
-    candle.low <= zone.top * (1 + SUPPORT_TOUCH_TOLERANCE) &&
+    candle.low <= zone.top * (1 + SUPPORT_TOUCH_ABOVE_TOLERANCE) &&
     candle.close >= zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE)
   );
 }

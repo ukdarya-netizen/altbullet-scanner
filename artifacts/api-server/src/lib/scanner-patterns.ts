@@ -252,6 +252,10 @@ export interface AlphaResult {
     triggerCandleTime: number;
     /** Coinciding SRv2 timeframes, e.g. "1H+4H". */
     confluence?: string | null;
+    /** Owner 2026-11-11: bounce from a fresh low (no zone); frozenLevel = the low. */
+    lowBounce?: boolean;
+    /** Owner 2026-11-11: bottom of the level (zone bottom, or the low of a low bounce) — stop and cancel. */
+    levelBottom?: number | null;
   };
   /** Фандинг рейт в процентах (напр. -0.04 = -0.04% за 8ч; источник: CoinGlass aggregate) */
   fundingRate?: number | null;
