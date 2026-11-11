@@ -155,6 +155,10 @@ export function buildSignalManagementLine(
     return `🛡 <b>Сопровождение BTC:</b> Б/У после +1% · трейлинг только с +2% от входа, отступ от пика 1 п.п. · после активации каждый новый +1% пика подтягивает стоп на +1 п.п.`;
   }
 
+  // Owner 2026-11-11: ABNeon — B.U. at +10%, trailing from +20% at 20 p.p., cancel on a 4H close under the level.
+  if (sentimentKey === "neon_support_bounce") {
+    return `🛡 <b>Сопровождение:</b> БУ с +${beActivation}% · трейлинг с +${exitProfile.trailingActivation}% на ${exitProfile.trailingGap} п.п. ниже пика · отмена, если 4H закроется под уровнем`;
+  }
   const protectionPlan = hasNoProfitStopPromotion(sentimentKey)
     ? `БУ с +${beActivation}%`
     : beActivation === 10
@@ -1042,7 +1046,7 @@ export interface AlphaResult {
   stealthEntryPath?: string | null;
   stealthVolumeUnconfirmed?: boolean;
   stealthNoSpotMarket?: boolean;
-  neonSupportBounceEvent?: { confluence?: string | null };
+  neonSupportBounceEvent?: { confluence?: string | null; lowBounce?: boolean };
   stealthRangeConfirmingVenues?: string[] | null;
   stealthBingxOnly?: boolean;
   /** Фандинг рейт в процентах (напр. -0.04 = -0.04% за 8ч; источник: CoinGlass aggregate) */
@@ -1218,10 +1222,12 @@ function isBulletScoreHidden(sentimentKey: string): boolean {
 }
 
 function telegramNeonConfluence(s: AlphaResult): string {
-  return s.sentimentKey === "neon_support_bounce" &&
-    s.neonSupportBounceEvent?.confluence
-    ? ` · 🧲 совпадение ${s.neonSupportBounceEvent.confluence}`
-    : "";
+  if (s.sentimentKey !== "neon_support_bounce") return "";
+  // Owner 2026-11-11: a bounce from a fresh low (no zone yet) is named in the signal.
+  const low = s.neonSupportBounceEvent?.lowBounce === true ? " · 📉 отскок от нового минимума" : "";
+  return s.neonSupportBounceEvent?.confluence
+    ? `${low} · 🧲 совпадение ${s.neonSupportBounceEvent.confluence}`
+    : low;
 }
 
 function telegramReentryLabel(s: AlphaResult): string {

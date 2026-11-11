@@ -2176,6 +2176,39 @@ async function processImpulseRunnerMilestone(
 }
 
 // ── Add signal to tracker ─────────────────────────────────────────────────────
+/**
+ * ABNeon cancel (owner 2026-11-11): the close of the first closed 4H candle after the entry that closed
+ * under the level, or null. BingX 4H candles, fetched once per new 4H close per symbol.
+ */
+const _neonLevelChecked = new Map<string, { candleTime: number; close: number | null }>();
+async function neonLevelLostClose(
+  symbol: string,
+  levelBottom: number,
+  entryAtMs: number,
+): Promise<number | null> {
+  const H4 = 4 * 3_600_000;
+  const lastClosedOpen = Math.floor(Date.now() / H4) * H4 - H4;
+  const key = `${symbol}:${levelBottom}:${entryAtMs}`;
+  const memo = _neonLevelChecked.get(key);
+  if (memo && memo.candleTime >= lastClosedOpen) return memo.close;
+  const rows = await getKlines(symbol, "4h", 12).catch(() => null);
+  if (!rows) return null;
+  let lost: number | null = null;
+  for (const r of rows) {
+    const t = Number(r.time);
+    const close = Number(r.close);
+    // Closed candles that opened after the entry's 4H candle.
+    if (t + H4 > Date.now() || t + H4 <= entryAtMs) continue;
+    if (Number.isFinite(close) && close > 0 && close < levelBottom) {
+      lost = close;
+      break;
+    }
+  }
+  _neonLevelChecked.set(key, { candleTime: lastClosedOpen, close: lost });
+  if (_neonLevelChecked.size > 2000) _neonLevelChecked.clear();
+  return lost;
+}
+
 // ── Индивидуальный стоп-лосс по Liquidation Heatmap ──────────────────────────
 // Эффективная глубина стопа сигнала: персональная (liq heatmap) или стандартная -10%.
 // Положительное число — глубина в % от входа.
@@ -9218,6 +9251,98 @@ async function runInRunFastCycle(
           );
         }
         continue;
+      }
+
+      // ── ABNeon: отмена при закрытии 4H под уровнем (owner 2026-11-11) ───────
+      // Level = the zone bottom, or the low of a low bounce (decision_metrics.neonLevel.bottom).
+      // A closed 4H candle after the entry that closed under it ends the trade at the market price.
+      if (
+        tracked.status === "active" &&
+        tracked.sentimentKey === "neon_support_bounce" &&
+        tracked.entryPrice != null &&
+        tracked.entryPrice > 0
+      ) {
+        const _nlBottom = Number(
+          (tracked.decisionMetrics as { neonLevel?: { bottom?: unknown } } | null)
+            ?.neonLevel?.bottom,
+        );
+        const _nlClose =
+          Number.isFinite(_nlBottom) && _nlBottom > 0
+            ? await neonLevelLostClose(
+                tracked.symbol,
+                _nlBottom,
+                tracked.detectedAt.getTime(),
+              )
+            : null;
+        if (_nlClose !== null) {
+          const _nlIsStopLoss = pnl <= -CANCEL_STOP_LOSS_PCT;
+          const closedAt = new Date();
+          const zoneLostMessage = [
+            _nlIsStopLoss
+              ? `🔴 <b>${tracked.symbol.replace("-USDT", "")}</b> — ОТМЕНА: 4H ЗАКРЫЛАСЬ ПОД УРОВНЕМ — STOP LOSS`
+              : `⚠️ <b>${tracked.symbol.replace("-USDT", "")}</b> — ОТМЕНА: 4H ЗАКРЫЛАСЬ ПОД УРОВНЕМ`,
+            `Причина: 4H-свеча закрылась на ${_nlClose.toPrecision(4)} — ниже уровня ${_nlBottom.toPrecision(4)}; отскок не удержался`,
+            _nlIsStopLoss
+              ? `⚠️ Засчитан как стоп лосс (цена ниже входа ≥5%)`
+              : `<i>Позиция закрыта по рынку.</i>`,
+            `Вход: <b>${tracked.entryPrice.toPrecision(4)}</b> | Сейчас: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
+            activeForLine(tracked.detectedAt, closedAt),
+            ``,
+            `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_nlIsStopLoss ? "#stop_loss" : "#level_lost"}`,
+          ]
+            .filter(Boolean)
+            .join("\n");
+          const _nlReason = _nlIsStopLoss ? "stop_loss" : "neon_level_lost_4h";
+          const delivery = await broadcastPhotoAfterClaim(
+            _nlIsStopLoss ? STOP_LOSS_IMG : CANCEL_IMG,
+            zoneLostMessage,
+            `cancel:${tracked.id}:level_lost`,
+            async (tx) => {
+              const claimed = await tx
+                .update(trackedSignalsTable)
+                .set({
+                  status: _nlIsStopLoss ? "stop_loss" : "cancelled",
+                  decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'level_lost')`,
+                  exitPrice: currentPrice,
+                  pnlPercent: pnl,
+                  cancelReason: _nlReason,
+                  closedAt,
+                  updatedAt: closedAt,
+                })
+                .where(
+                  sql`${trackedSignalsTable.id} = ${tracked.id} AND ${trackedSignalsTable.status} = 'active'`,
+                )
+                .returning({ id: trackedSignalsTable.id });
+              if (!claimed.length) return false;
+              await _recordCancelOutcomeInClaim(tx, {
+                signalId: tracked.id,
+                symbol: tracked.symbol,
+                sentimentKey: tracked.sentimentKey ?? null,
+                cancelReason: _nlReason,
+                pnlAtCancel: pnl,
+                priceAtCancel: currentPrice,
+                entryPrice: tracked.entryPrice ?? null,
+                sentAt: closedAt,
+              });
+              return true;
+            },
+          );
+          if (delivery.claimed) {
+            void _writeExitMetrics(tracked.id, tracked.symbol);
+            await recordCloseSnapshot(
+              tracked,
+              currentPrice,
+              pnl,
+              peakPnlNow,
+              _nlIsStopLoss ? "stop_loss" : "cancelled",
+            );
+            logger.info(
+              { symbol: tracked.symbol, level: _nlBottom, close4h: _nlClose, pnl: pnl.toFixed(1), queued: delivery.queued },
+              "CANCEL: ABNeon 4H close under the level",
+            );
+          }
+          continue;
+        }
       }
 
       // ── STALE SIGNAL: динамическая авто-отмена на основе OI ─────────────────

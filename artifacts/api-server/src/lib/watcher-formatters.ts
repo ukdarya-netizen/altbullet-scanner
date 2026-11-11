@@ -978,7 +978,7 @@ export function msgPreTargetMilestone(
       : [
           hasOwnPreTargetFivePctText(t.sentimentKey) && milestone === 5
             ? // Owner 2026-10-30: Stealth/Neon +5% notice, own wording.
-              `Позиция в плюсе 5%, по желанию зафиксируйте часть позиции, б/у с 8%`
+              `Позиция в плюсе 5%, по желанию зафиксируйте часть позиции, б/у с ${getBuStopMilestone(t.sentimentKey, t.symbol)}%`
             : // Owner 2026-10-29: +5% is not a take-profit; no fixation advice.
               `⏳ Стоп в Б/У при +${nextTarget}%`,
         ],
