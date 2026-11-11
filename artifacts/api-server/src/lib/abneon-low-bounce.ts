@@ -11,6 +11,9 @@
  *      itself counts when it closes green), with not-grey Welkin volume on CoinGlass aggregated futures
  *      volume (A / Y / O / M / W — the same volume rule as the touch of a zone).
  *   3. The entry is not more than 25% above the low.
+ *   4. Owner 2026-11-11 (7 of the first 10 live signals were low bounces on falling coins with grey / blue
+ *      volume at the low; KNOTS and SI had orange): the low candle itself has bright aggregated volume —
+ *      Welkin O / M / W (≥ average + 2σ), a capitulation low.
  * The low is the level: stop under it (−1%, 3…15% from entry), cancel on a 4H close under it.
  * No aggregated volume for the bars = no signal (aggregated data only).
  */
@@ -23,6 +26,7 @@ export const LOW_BOUNCE_WINDOW = 6;
 export const LOW_BOUNCE_MAX_ABOVE_LOW = 0.25;
 const AVG_BARS = 20;
 const NOT_GREY = new Set(["A", "Y", "O", "M", "W"]);
+const BRIGHT = new Set(["O", "M", "W"]);
 
 type Bar = { time: number; open: number; high: number; low: number; close: number };
 
@@ -30,6 +34,7 @@ export type LowBounce = {
   lowTime: number;
   low: number;
   lowClose: number;
+  lowColour: string;
   triggerTime: number;
   triggerClose: number;
   colour: string;
@@ -88,6 +93,8 @@ export function findLowBounce(input: {
     }
     return welkinColour(vol, vol.length - 1);
   };
+  const lowColour = colourAt(li);
+  if (lowColour === null || !BRIGHT.has(lowColour)) return null;
   // The first trigger only: an earlier candle of the same low that already qualified fired then.
   for (let k = li; k < t; k++) {
     if (!isTrigger(cs, li, k)) continue;
@@ -100,6 +107,7 @@ export function findLowBounce(input: {
     lowTime: cs[li]!.time,
     low: cs[li]!.low,
     lowClose: cs[li]!.close,
+    lowColour,
     triggerTime: cs[t]!.time,
     triggerClose: cs[t]!.close,
     colour,
