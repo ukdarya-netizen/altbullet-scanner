@@ -46,6 +46,7 @@ import {
   withMarketCycleLease,
 } from "./schedulerLease.js";
 import {
+  getWatchdogElapsedMs,
   readWatchdogDiscoveryLeaseStatus,
   resolveWatchdogScanState,
   type ScannerWatchdogActivity,
@@ -644,10 +645,8 @@ const TRAILING_STOP_IMG = new URL(
   import.meta.url,
 ).pathname;
 const BU_STOP_IMG = new URL("../assets/bu_stop.png", import.meta.url).pathname;
-const BREAKEVEN_STOP_IMG = new URL(
-  "../assets/breakeven_locked.png",
-  import.meta.url,
-).pathname;
+const STOP_LOSS_IMG = new URL("../assets/stoploss.png", import.meta.url)
+  .pathname;
 const IMPULSE_RUNNER_CLOSED_IMG = new URL(
   "../assets/impulse_runner_closed.png",
   import.meta.url,
@@ -2177,39 +2176,6 @@ async function processImpulseRunnerMilestone(
 }
 
 // ── Add signal to tracker ─────────────────────────────────────────────────────
-/**
- * ABNeon cancel (owner 2026-11-11): the close of the first closed 4H candle after the entry that closed
- * under the level, or null. BingX 4H candles, fetched once per new 4H close per symbol.
- */
-const _neonLevelChecked = new Map<string, { candleTime: number; close: number | null }>();
-async function neonLevelLostClose(
-  symbol: string,
-  levelBottom: number,
-  entryAtMs: number,
-): Promise<number | null> {
-  const H4 = 4 * 3_600_000;
-  const lastClosedOpen = Math.floor(Date.now() / H4) * H4 - H4;
-  const key = `${symbol}:${levelBottom}:${entryAtMs}`;
-  const memo = _neonLevelChecked.get(key);
-  if (memo && memo.candleTime >= lastClosedOpen) return memo.close;
-  const rows = await getKlines(symbol, "4h", 12).catch(() => null);
-  if (!rows) return null;
-  let lost: number | null = null;
-  for (const r of rows) {
-    const t = Number(r.time);
-    const close = Number(r.close);
-    // Closed candles that opened after the entry's 4H candle.
-    if (t + H4 > Date.now() || t + H4 <= entryAtMs) continue;
-    if (Number.isFinite(close) && close > 0 && close < levelBottom) {
-      lost = close;
-      break;
-    }
-  }
-  _neonLevelChecked.set(key, { candleTime: lastClosedOpen, close: lost });
-  if (_neonLevelChecked.size > 2000) _neonLevelChecked.clear();
-  return lost;
-}
-
 // ── Индивидуальный стоп-лосс по Liquidation Heatmap ──────────────────────────
 // Эффективная глубина стопа сигнала: персональная (liq heatmap) или стандартная -10%.
 // Положительное число — глубина в % от входа.
@@ -9254,98 +9220,6 @@ async function runInRunFastCycle(
         continue;
       }
 
-      // ── ABNeon: отмена при закрытии 4H под уровнем (owner 2026-11-11) ───────
-      // Level = the zone bottom, or the low of a low bounce (decision_metrics.neonLevel.bottom).
-      // A closed 4H candle after the entry that closed under it ends the trade at the market price.
-      if (
-        tracked.status === "active" &&
-        tracked.sentimentKey === "neon_support_bounce" &&
-        tracked.entryPrice != null &&
-        tracked.entryPrice > 0
-      ) {
-        const _nlBottom = Number(
-          (tracked.decisionMetrics as { neonLevel?: { bottom?: unknown } } | null)
-            ?.neonLevel?.bottom,
-        );
-        const _nlClose =
-          Number.isFinite(_nlBottom) && _nlBottom > 0
-            ? await neonLevelLostClose(
-                tracked.symbol,
-                _nlBottom,
-                tracked.detectedAt.getTime(),
-              )
-            : null;
-        if (_nlClose !== null) {
-          const _nlIsStopLoss = pnl <= -CANCEL_STOP_LOSS_PCT;
-          const closedAt = new Date();
-          const zoneLostMessage = [
-            _nlIsStopLoss
-              ? `🔴 <b>${tracked.symbol.replace("-USDT", "")}</b> — ОТМЕНА: 4H ЗАКРЫЛАСЬ ПОД УРОВНЕМ — STOP LOSS`
-              : `⚠️ <b>${tracked.symbol.replace("-USDT", "")}</b> — ОТМЕНА: 4H ЗАКРЫЛАСЬ ПОД УРОВНЕМ`,
-            `Причина: 4H-свеча закрылась на ${_nlClose.toPrecision(4)} — ниже уровня ${_nlBottom.toPrecision(4)}; отскок не удержался`,
-            _nlIsStopLoss
-              ? `⚠️ Засчитан как стоп лосс (цена ниже входа ≥5%)`
-              : `<i>Позиция закрыта по рынку.</i>`,
-            `Вход: <b>${tracked.entryPrice.toPrecision(4)}</b> | Сейчас: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
-            activeForLine(tracked.detectedAt, closedAt),
-            ``,
-            `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_nlIsStopLoss ? "#stop_loss" : "#level_lost"}`,
-          ]
-            .filter(Boolean)
-            .join("\n");
-          const _nlReason = _nlIsStopLoss ? "stop_loss" : "neon_level_lost_4h";
-          const delivery = await broadcastPhotoAfterClaim(
-            _nlIsStopLoss ? BREAKEVEN_STOP_IMG : CANCEL_IMG,
-            zoneLostMessage,
-            `cancel:${tracked.id}:level_lost`,
-            async (tx) => {
-              const claimed = await tx
-                .update(trackedSignalsTable)
-                .set({
-                  status: _nlIsStopLoss ? "stop_loss" : "cancelled",
-                  decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'level_lost')`,
-                  exitPrice: currentPrice,
-                  pnlPercent: pnl,
-                  cancelReason: _nlReason,
-                  closedAt,
-                  updatedAt: closedAt,
-                })
-                .where(
-                  sql`${trackedSignalsTable.id} = ${tracked.id} AND ${trackedSignalsTable.status} = 'active'`,
-                )
-                .returning({ id: trackedSignalsTable.id });
-              if (!claimed.length) return false;
-              await _recordCancelOutcomeInClaim(tx, {
-                signalId: tracked.id,
-                symbol: tracked.symbol,
-                sentimentKey: tracked.sentimentKey ?? null,
-                cancelReason: _nlReason,
-                pnlAtCancel: pnl,
-                priceAtCancel: currentPrice,
-                entryPrice: tracked.entryPrice ?? null,
-                sentAt: closedAt,
-              });
-              return true;
-            },
-          );
-          if (delivery.claimed) {
-            void _writeExitMetrics(tracked.id, tracked.symbol);
-            await recordCloseSnapshot(
-              tracked,
-              currentPrice,
-              pnl,
-              peakPnlNow,
-              _nlIsStopLoss ? "stop_loss" : "cancelled",
-            );
-            logger.info(
-              { symbol: tracked.symbol, level: _nlBottom, close4h: _nlClose, pnl: pnl.toFixed(1), queued: delivery.queued },
-              "CANCEL: ABNeon 4H close under the level",
-            );
-          }
-          continue;
-        }
-      }
-
       // ── STALE SIGNAL: динамическая авто-отмена на основе OI ─────────────────
       // Логика: НЕ ждём 6-8ч статического окна.
       // С 1ч после входа — проверяем CoinGlass OI каждый цикл (~2 мин).
@@ -9624,7 +9498,7 @@ async function runInRunFastCycle(
               ? "stop_loss"
               : cancelReasonFor("max_age", cancellationPolicy);
             const delivery = await broadcastPhotoAfterClaim(
-              _oldIsStopLoss ? BREAKEVEN_STOP_IMG : CANCEL_IMG,
+              _oldIsStopLoss ? STOP_LOSS_IMG : CANCEL_IMG,
               maxAgeMessage,
               `cancel:${tracked.id}:max_age`,
               async (tx) => {
@@ -9632,8 +9506,6 @@ async function runInRunFastCycle(
                   .update(trackedSignalsTable)
                   .set({
                     status: _oldIsStopLoss ? "stop_loss" : "cancelled",
-                    // Owner 2026-11-10 (HANA): the trading bot must say it was a max_age, not a plain stop.
-                    decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'max_age')`,
                     exitPrice: currentPrice,
                     pnlPercent: pnl,
                     cancelReason: cancelOutcomeReason,
@@ -10058,7 +9930,7 @@ async function runInRunFastCycle(
             ? "stop_loss"
             : cancelReasonFor("stale", cancellationPolicy);
           const delivery = await broadcastPhotoAfterClaim(
-            _staleIsStopLoss ? BREAKEVEN_STOP_IMG : CANCEL_IMG,
+            _staleIsStopLoss ? STOP_LOSS_IMG : CANCEL_IMG,
             staleMessage,
             `cancel:${tracked.id}:stale`,
             async (tx) => {
@@ -10066,8 +9938,6 @@ async function runInRunFastCycle(
                 .update(trackedSignalsTable)
                 .set({
                   status: _staleIsStopLoss ? "stop_loss" : "cancelled",
-                  // Owner 2026-11-10 (HANA): the trading bot must say it was a stale_cancel, not a plain stop.
-                  decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'stale_cancel')`,
                   exitPrice: currentPrice,
                   pnlPercent: pnl,
                   cancelReason: cancelOutcomeReason,
@@ -11016,7 +10886,7 @@ async function runInRunFastCycle(
                   ? "stop_loss"
                   : cancelReasonFor("smart", smartCancellationPolicy);
                 const delivery = await broadcastPhotoAfterClaim(
-                  _scIsStopLoss ? BREAKEVEN_STOP_IMG : CANCEL_IMG,
+                  _scIsStopLoss ? STOP_LOSS_IMG : CANCEL_IMG,
                   smartCancelMessage,
                   `cancel:${tracked.id}:smart_cancel`,
                   async (tx) => {
@@ -11024,8 +10894,6 @@ async function runInRunFastCycle(
                       .update(trackedSignalsTable)
                       .set({
                         status: _scIsStopLoss ? "stop_loss" : "cancelled",
-                        // Owner 2026-11-10 (HANA): the trading bot must say it was a smart_cancel, not a plain stop.
-                        decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'smart_cancel')`,
                         exitPrice: currentPrice,
                         pnlPercent: pnl,
                         cancelReason: cancelOutcomeReason,
@@ -16023,6 +15891,7 @@ let watchdogGetDiscoveryScannerLeaseStatus:
 let watchdogGetScannerRecoveryState:
   | (() => Promise<{
       lastSuccessfulScanAt: Date | null;
+      scanStartedAt: Date | null;
       failureReason: string | null;
       failureAt: Date | null;
       expectedLeaseExpiryAt: Date | null;
@@ -16037,7 +15906,6 @@ async function runWatchdog(): Promise<void> {
     const lastScanAtRaw =
       recoveryState?.lastSuccessfulScanAt ?? watchdogGetLastScanAt?.() ?? null;
     const lastScanAt = lastScanAtRaw ? lastScanAtRaw.getTime() : null;
-    const staleness = lastScanAt ? now - lastScanAt : null;
 
     // Scanner ownership is deliberately separate from market-cycle: watcher,
     // heatmap and other background jobs must not make discovery look busy or
@@ -16078,9 +15946,29 @@ async function runWatchdog(): Promise<void> {
     // Если idle — используем WARN порог (35 мин).
     const isScanning = watchdogScanState.isScanning;
     const effectiveThreshold = isScanning ? WATCHDOG_CRIT_MS : WATCHDOG_WARN_MS;
+    const elapsedMs = getWatchdogElapsedMs({
+      activity: scannerActivity,
+      scannerLeaseBusy: leaseStatus.lease.busy,
+      lastSuccessfulScanAt: lastScanAtRaw,
+      persistedScanStartedAt: recoveryState?.scanStartedAt ?? null,
+      now,
+    });
+    const persistedScanIsActive =
+      leaseStatus.lease.busy &&
+      recoveryState?.scanStartedAt != null &&
+      (lastScanAtRaw == null ||
+        recoveryState.scanStartedAt.getTime() > lastScanAtRaw.getTime());
+    const currentScanStartedAt =
+      scannerActivity.kind === "running"
+        ? scannerActivity.startedAt
+        : watchdogScanState.source === "scanner-lease-wait" &&
+            persistedScanIsActive
+          ? (recoveryState?.scanStartedAt ?? null)
+          : null;
 
-    // Первый скан ещё не прошёл (холодный старт) или всё в норме
-    if (staleness === null || staleness < effectiveThreshold) {
+    // During an active scan, measure its own runtime. Never infer that it has
+    // been stuck for 100 minutes only because the last successful cycle is old.
+    if (elapsedMs === null || elapsedMs < effectiveThreshold) {
       watchdogAlertCount = 0;
       watchdogTimer = setTimeout(runWatchdog, WATCHDOG_CHECK_MS);
       return;
@@ -16092,8 +15980,8 @@ async function runWatchdog(): Promise<void> {
       return;
     }
     // Определяем уровень
-    const isCritical = staleness >= WATCHDOG_CRIT_MS;
-    const staleMinutes = Math.round(staleness / 60_000);
+    const isCritical = elapsedMs >= WATCHDOG_CRIT_MS;
+    const staleMinutes = Math.round(elapsedMs / 60_000);
     watchdogAlertCount++;
     const controlPlaneRecovery =
       recoveryState?.failureReason === "lease_control_plane_unavailable";
@@ -16103,7 +15991,7 @@ async function runWatchdog(): Promise<void> {
     if (
       watchdogRestartWorker &&
       controlPlaneRecovery &&
-      staleness >= WATCHDOG_WARN_MS
+      elapsedMs >= WATCHDOG_WARN_MS
     ) {
       const restart = claimScannerRestartBudget(now);
       if (restart.allowed) {
@@ -16140,8 +16028,15 @@ async function runWatchdog(): Promise<void> {
     const lines = [
       `${emoji} <b>Watchdog: ${level}</b>`,
       ``,
-      `Сканер не делал скан <b>${staleMinutes} мин</b>`,
-      `Последний скан: <code>${lastStr}</code>`,
+      currentScanStartedAt
+        ? `Текущий скан выполняется <b>${staleMinutes} мин</b>`
+        : scannerActivity.kind === "settlement_fence"
+          ? `Предыдущий цикл не завершил восстановление <b>${staleMinutes} мин</b>`
+          : `Сканер не завершал скан <b>${staleMinutes} мин</b>`,
+      currentScanStartedAt
+        ? `Текущий цикл начат: <code>${currentScanStartedAt.toISOString().replace("T", " ").slice(0, 19)} UTC</code>`
+        : null,
+      `Последний успешный скан: <code>${lastStr}</code>`,
       `Блокер: <code>${watchdogScanState.blocker}</code>`,
       `Действие: ${watchdogScanState.expectedAction}`,
       recoveryState?.failureReason
@@ -16269,6 +16164,7 @@ export function startWatchdog(
   }>,
   getScannerRecoveryState?: () => Promise<{
     lastSuccessfulScanAt: Date | null;
+    scanStartedAt: Date | null;
     failureReason: string | null;
     failureAt: Date | null;
     expectedLeaseExpiryAt: Date | null;
@@ -17104,7 +17000,21 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
         metrics: Record<string, unknown> = {},
         signalId?: number,
       ) => {
-        recordLcDecisionReason(symbol, watchId, `${stage}:${reason}`);
+        const observationMetrics = {
+          ageMin: (Date.now() - detectedAt) / 60_000,
+          entryReason,
+          liqExhausted,
+          longLiq1hAtDetect,
+          longLiq24hAtDetect,
+          priceAtDecision: priceMap.get(symbol) ?? null,
+          ...metrics,
+        };
+        recordLcDecisionReason(
+          symbol,
+          watchId,
+          `${stage}:${reason}`,
+          observationMetrics,
+        );
         void recordLiqCascadeObservation({
           watchId,
           signalId,
@@ -17113,14 +17023,7 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
           stage,
           reason,
           price: priceMap.get(symbol) ?? null,
-          metrics: {
-            ageMin: (Date.now() - detectedAt) / 60_000,
-            entryReason,
-            liqExhausted,
-            longLiq1hAtDetect,
-            longLiq24hAtDetect,
-            ...metrics,
-          },
+          metrics: observationMetrics,
         }).catch((err) =>
           logger.warn(
             { err, watchId, symbol, stage, reason },
@@ -17304,7 +17207,20 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
         if (_lcAggMissing.length > 0) {
           const _lcAggReason = `liquidation_cascade_${_lcAggMissing.join("+")}_unavailable`;
           _pdbReject("liquidation_cascade_bg", _lcAggReason);
-          observeLiqCandidate("rejected", _lcAggReason, { price24hPct });
+          observeLiqCandidate("rejected", _lcAggReason, {
+            price24hPct,
+            missingInputs: _lcAggMissing,
+            oiUsd: oiData?.oiUsd ?? null,
+            oi30m: oiData?.oiChange30m ?? null,
+            oi1h: oiData?.oiChange1h ?? null,
+            oi4h: oiData?.oiChange4h ?? null,
+            oi24h: oiData?.oiChange24h ?? null,
+            futuresTakerAvailable: futTakerData?.available === true,
+            spotCvdAvailable: cvdData?.available === true,
+            spotTakerAvailable: spotTakerData?.available === true,
+            whaleIndexAvailable: _gateWi !== null,
+            spotCvd4h: cvdData?.available ? (cvdData.cvd4h ?? null) : null,
+          });
           continue;
         }
       }
@@ -17574,7 +17490,9 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
         .limit(1);
       if (openPosition.length > 0) {
         _pdbReject("liquidation_cascade_bg", "same_symbol_position_open");
-        observeLiqCandidate("rejected", "same_symbol_position_open");
+        observeLiqCandidate("rejected", "same_symbol_position_open", {
+          openTrackedSignalId: openPosition[0]?.id ?? null,
+        });
         if (waitRelease) {
           await db
             .update(lcObWaitTable)

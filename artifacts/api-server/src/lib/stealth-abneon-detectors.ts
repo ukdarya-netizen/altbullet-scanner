@@ -157,12 +157,6 @@ export function hasConsecutiveClosesBelow(
 /** Owner 2026-10-18: touch / bounce tolerance around a support zone. */
 const SUPPORT_TOUCH_TOLERANCE = 0.01;
 /**
- * Owner 2026-11-11 (EDGEX 9.11: low 1.5% above the zone top, the bounce was missed): a candle whose low
- * comes within 2% above the zone top touches the zone. Only the touch from above; the breakdown and
- * reclaim checks keep 1%.
- */
-export const SUPPORT_TOUCH_ABOVE_TOLERANCE = 0.02;
-/**
  * Owner 2026-10-22: a zone is not support when price already traded below its
  * bottom after the zone's latest pivot low (SOPH: the zone was the fall's own
  * low and price kept dropping through it).
@@ -245,7 +239,7 @@ function sweepTouchesZone(
   zone: SupportZone,
 ): boolean {
   return (
-    candle.low <= zone.top * (1 + SUPPORT_TOUCH_ABOVE_TOLERANCE) &&
+    candle.low <= zone.top * (1 + SUPPORT_TOUCH_TOLERANCE) &&
     candle.close >= zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE)
   );
 }
@@ -468,8 +462,20 @@ export function evaluateAbneonSupportBounce(input: {
   const ZONE_TF = input.zoneTimeframeMs ?? H4;
   const h4 = closed(input.candles4h, ZONE_TF, input.observedAt);
   const h1 = closed(input.candles1h, H1, input.observedAt);
-  if (h1.length < VOLUME_LOOKBACK + 1)
-    return empty("abneon_support_bounce", "insufficient_closed_candles");
+  if (h1.length < VOLUME_LOOKBACK + 1) {
+    return {
+      ...empty("abneon_support_bounce", "insufficient_closed_candles"),
+      evidence: {
+        requiredClosedH1: VOLUME_LOOKBACK + 1,
+        providedH1: input.candles1h.length,
+        closedH1: h1.length,
+        requiredClosedH4: 5,
+        providedH4: input.candles4h.length,
+        closedH4: h4.length,
+        observedAt: input.observedAt,
+      },
+    };
+  }
   if (input.frozenLevel != null) {
     const frozenLevel = input.frozenLevel;
     const arm = input.armCandleTime ?? 0;
@@ -482,19 +488,34 @@ export function evaluateAbneonSupportBounce(input: {
         armCandleTime: arm || null,
         triggerCandleTime: null,
         volumeEvidence: volumeEvidence(h1, h1.length - 1),
+        evidence: {
+          elapsedMs: arm ? input.observedAt - arm : null,
+          ttlMs: SHADOW_ARM_TTL_MS,
+          observedAt: input.observedAt,
+          frozenLevel,
+        },
       };
     }
-    const zone = resolveFrozenZone(h4, arm, frozenLevel, ZONE_TF, input.researchMaxZones);
+    const zone = resolveFrozenZone(
+      h4,
+      arm,
+      frozenLevel,
+      ZONE_TF,
+      input.researchMaxZones,
+    );
     const brokenBelow = zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE);
-    if (
+    const breakdownCandles = h4.filter((c) => c.time >= arm);
+    const invalidatingCandle =
       sweep != null
-        ? hasBreakdownRun(
-            h4.filter((c) => c.time >= arm),
-            zone,
-            sweep,
+        ? breakdownCandles.find((c, index) =>
+            hasBreakdownRun(breakdownCandles.slice(index), zone, sweep),
           )
-        : h4.some((c) => c.time >= arm && c.close < brokenBelow)
-    ) {
+        : breakdownCandles.find((c) => c.close < brokenBelow);
+    const invalidated =
+      sweep != null
+        ? hasBreakdownRun(breakdownCandles, zone, sweep)
+        : invalidatingCandle != null;
+    if (invalidated) {
       return {
         method: "abneon_support_bounce",
         status: "terminal",
@@ -503,13 +524,21 @@ export function evaluateAbneonSupportBounce(input: {
         armCandleTime: arm,
         triggerCandleTime: null,
         volumeEvidence: volumeEvidence(h1, h1.length - 1),
+        evidence: {
+          supportTop: zone.top,
+          supportBottom: zone.bottom,
+          breakdownCloseBoundary: brokenBelow,
+          invalidationBars: sweep ?? 1,
+          invalidatingCandleTime: invalidatingCandle?.time ?? null,
+          invalidatingCandleClose: invalidatingCandle?.close ?? null,
+          latestClosed4hTime: latest(h4)?.time ?? null,
+        },
       };
     }
     const reaction = latest(h1);
     const reactionIndex = h1.length - 1;
     const isLater = reaction != null && reaction.time + H1 > arm;
     const reactionVolumeEvidence = volumeEvidence(h1, reactionIndex);
-    const reactionVolumeUsd = reaction == null ? 0 : usd(reaction);
     // Owner 2026-10-21: touch and volume confirmation are separate candles.
     // Touch: any closed 1H in the window with low in [zone bottom, top + 1×ATR(4H)].
     // Confirmation: bullish latest closed 1H (same or later than the touch) with
@@ -526,6 +555,18 @@ export function evaluateAbneonSupportBounce(input: {
               k.close >= zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE)
             : k.low >= zone.bottom && k.low <= zone.top + atr4h),
       );
+    const touchCandle =
+      atr4h == null
+        ? undefined
+        : h1.find(
+            (k) =>
+              k.time + H1 > arm &&
+              k.time <= (reaction?.time ?? -1) &&
+              (sweep != null
+                ? k.low <= zone.top + atr4h &&
+                  k.close >= zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE)
+                : k.low >= zone.bottom && k.low <= zone.top + atr4h),
+          );
     const reactionLike =
       isLater &&
       reaction.close > reaction.open &&
@@ -561,7 +602,16 @@ export function evaluateAbneonSupportBounce(input: {
           resistanceBottom: brokenResistance!.bottom,
           close: reaction.close,
           closeAboveResistancePct:
-            ((reaction.close - brokenResistance!.top) / brokenResistance!.top) * 100,
+            ((reaction.close - brokenResistance!.top) / brokenResistance!.top) *
+            100,
+          reaction: {
+            time: reaction.time,
+            open: reaction.open,
+            high: reaction.high,
+            low: reaction.low,
+            close: reaction.close,
+          },
+          volume: reactionVolumeEvidence,
         },
       };
     }
@@ -599,40 +649,149 @@ export function evaluateAbneonSupportBounce(input: {
             armCandleTime: arm,
             triggerCandleTime: r15.time,
             volumeEvidence: ev15,
+            evidence: {
+              supportTop: zone.top,
+              supportBottom: zone.bottom,
+              atr4h,
+              touchCandleTime: touchCandle?.time ?? null,
+              reactionCandle: {
+                time: r15.time,
+                open: r15.open,
+                high: r15.high,
+                low: r15.low,
+                close: r15.close,
+              },
+              reactionVolume: ev15,
+              confirmationTimeframe: "15m",
+            },
           };
         }
       }
     }
+    const failedConditions: string[] = [];
+    if (!isLater) failedConditions.push("no_later_closed_1h_candle");
+    if (reaction && reaction.close <= reaction.open)
+      failedConditions.push("reaction_candle_not_bullish");
+    if (atr4h == null) failedConditions.push("atr4h_unavailable");
+    if (!touchSeen) failedConditions.push("support_touch_not_seen_after_arm");
+    if (reaction && atr4h != null && reaction.low > zone.top + 2 * atr4h) {
+      failedConditions.push("reaction_low_too_far_above_support");
+    }
+    if (reaction && reaction.close < zone.bottom)
+      failedConditions.push("reaction_closed_below_support");
+    if ((reactionVolumeEvidence.ratio ?? 0) < SUPPORT_VOLUME_RATIO) {
+      failedConditions.push("reaction_volume_below_threshold");
+    }
+    const pendingReason = failedConditions[0] ?? "awaiting_later_1h_reaction";
     return {
       method: "abneon_support_bounce",
       status: qualified ? "qualified" : "armed",
-      reason: qualified
-        ? "later_closed_1h_bullish_reaction"
-        : "awaiting_later_1h_reaction",
+      reason: qualified ? "later_closed_1h_bullish_reaction" : pendingReason,
       frozenLevel,
       armCandleTime: arm,
       triggerCandleTime: qualified ? reaction.time : null,
       volumeEvidence: qualified
         ? reactionVolumeEvidence
         : volumeEvidence(h1, h1.length - 1),
+      evidence: {
+        supportTop: zone.top,
+        supportBottom: zone.bottom,
+        breakdownCloseBoundary: brokenBelow,
+        atr4h,
+        touchSeen,
+        touchCandleTime: touchCandle?.time ?? null,
+        reactionCandle: reaction
+          ? {
+              time: reaction.time,
+              open: reaction.open,
+              high: reaction.high,
+              low: reaction.low,
+              close: reaction.close,
+              isLater,
+              bullish: reaction.close > reaction.open,
+            }
+          : null,
+        reactionVolume: reactionVolumeEvidence,
+        supportVolumeRatioThreshold: SUPPORT_VOLUME_RATIO,
+        failedConditions,
+        confirmationTimeframe: "1h",
+      },
     };
   }
-  if (h4.length < 5)
-    return empty("abneon_support_bounce", "insufficient_closed_candles");
+  if (h4.length < 5) {
+    return {
+      ...empty("abneon_support_bounce", "insufficient_closed_candles"),
+      evidence: {
+        requiredClosedH4: 5,
+        providedH4: input.candles4h.length,
+        closedH4: h4.length,
+        requiredClosedH1: VOLUME_LOOKBACK + 1,
+        providedH1: input.candles1h.length,
+        closedH1: h1.length,
+        observedAt: input.observedAt,
+      },
+    };
+  }
   const arm = latest(h4);
   if (!arm)
-    return empty("abneon_support_bounce", "insufficient_closed_candles");
+    return {
+      ...empty("abneon_support_bounce", "insufficient_closed_candles"),
+      evidence: {
+        requiredClosedH4: 5,
+        providedH4: input.candles4h.length,
+        closedH4: h4.length,
+        observedAt: input.observedAt,
+      },
+    };
   // Owner 2026-10-22 (SOPH): no support under a falling price — drop zones
   // that price has already traded through after their latest pivot.
-  const zones = computeSupportZones(h4, input.researchMaxZones).filter((z) =>
-    input.researchKeepBrokenZones
-      ? true
-      : sweep != null
-        ? !zoneBrokenAfterPivot(h4, z, sweep)
-        : !zoneUndercutAfterPivot(h4, z),
-  );
-  if (zones.length === 0)
-    return empty("abneon_support_bounce", "no_retested_support");
+  const rawZones = computeSupportZones(h4, input.researchMaxZones);
+  const zoneChecks = rawZones.map((zone) => {
+    const brokenAfterPivot =
+      sweep != null && !input.researchKeepBrokenZones
+        ? zoneBrokenAfterPivot(h4, zone, sweep)
+        : false;
+    const undercutAfterPivot =
+      sweep == null && !input.researchKeepBrokenZones
+        ? zoneUndercutAfterPivot(h4, zone)
+        : false;
+    return { zone, brokenAfterPivot, undercutAfterPivot };
+  });
+  const zones = zoneChecks
+    .filter(({ brokenAfterPivot, undercutAfterPivot }) =>
+      input.researchKeepBrokenZones
+        ? true
+        : !brokenAfterPivot && !undercutAfterPivot,
+    )
+    .map(({ zone }) => zone);
+  if (zones.length === 0) {
+    return {
+      ...empty("abneon_support_bounce", "no_retested_support"),
+      evidence: {
+        rawSupportZoneCount: rawZones.length,
+        liveSupportZoneCount: 0,
+        removedZones: zoneChecks.filter(
+          ({ brokenAfterPivot, undercutAfterPivot }) =>
+            brokenAfterPivot || undercutAfterPivot,
+          )
+          .map(({ zone, brokenAfterPivot, undercutAfterPivot }) => ({
+            top: zone.top,
+            bottom: zone.bottom,
+            center: zone.center,
+            pivotCount: zone.count,
+            brokenAfterPivot,
+            undercutAfterPivot,
+          })),
+        latestClosed4hCandle: {
+          time: arm.time,
+          open: arm.open,
+          high: arm.high,
+          low: arm.low,
+          close: arm.close,
+        },
+      },
+    };
+  }
   // Sweep-and-reclaim inside the arming 4H candle: a closed bullish 1H candle
   // that dips into the support zone and closes back inside/above it is the
   // reaction itself; waiting for the next 4H close would enter far too late.
@@ -674,6 +833,21 @@ export function evaluateAbneonSupportBounce(input: {
           armCandleTime: lastH1.time,
           triggerCandleTime: lastH1.time,
           volumeEvidence: evidence,
+          evidence: {
+            supportTop: direct.top,
+            supportBottom: direct.bottom,
+            supportCenter: direct.center,
+            supportPivotCount: direct.count,
+            reactionCandle: {
+              time: lastH1.time,
+              open: lastH1.open,
+              high: lastH1.high,
+              low: lastH1.low,
+              close: lastH1.close,
+            },
+            reactionVolume: evidence,
+            confirmationTimeframe: "1h",
+          },
         };
       }
     }
@@ -694,7 +868,89 @@ export function evaluateAbneonSupportBounce(input: {
           (z) => arm.close >= z.bottom * (1 - SUPPORT_TOUCH_TOLERANCE),
         );
   if (!zone) {
-    return empty("abneon_support_bounce", "support_not_reached");
+    const touchRangeFor = (candidate: SupportZone, low: number) => {
+      const lower = candidate.bottom * (1 - SUPPORT_TOUCH_TOLERANCE);
+      const upper = candidate.top * (1 + SUPPORT_TOUCH_TOLERANCE);
+      const distancePct =
+        low > upper
+          ? ((low - upper) / upper) * 100
+          : sweep == null && low < lower
+            ? ((lower - low) / lower) * 100
+            : 0;
+      return {
+        top: candidate.top,
+        bottom: candidate.bottom,
+        center: candidate.center,
+        pivotCount: candidate.count,
+        touchLowerBound: lower,
+        touchUpperBound: upper,
+        low,
+        lowInsideTouchRange:
+          sweep == null ? low >= lower && low <= upper : low <= upper,
+        distancePctFromTouchRange: distancePct,
+      };
+    };
+    const h4ZoneChecks = zones
+      .map((candidate) => ({
+        ...touchRangeFor(candidate, arm.low),
+        closeReclaimed:
+          arm.close >= candidate.bottom * (1 - SUPPORT_TOUCH_TOLERANCE),
+      }))
+      .sort(
+        (a, b) => a.distancePctFromTouchRange - b.distancePctFromTouchRange,
+      );
+    const latestH1 = lastH1
+      ? {
+          time: lastH1.time,
+          open: lastH1.open,
+          high: lastH1.high,
+          low: lastH1.low,
+          close: lastH1.close,
+          bullish: lastH1.close > lastH1.open,
+          zones: zones
+            .map((candidate) => ({
+              ...touchRangeFor(candidate, lastH1.low),
+              closeInsideOrAbove:
+                lastH1.close >= candidate.bottom &&
+                lastH1.close <= candidate.top * (1 + SUPPORT_TOUCH_TOLERANCE),
+              openAboveZoneFloor:
+                lastH1.open >= candidate.bottom * (1 - SUPPORT_TOUCH_TOLERANCE),
+            }))
+            .sort(
+              (a, b) =>
+                a.distancePctFromTouchRange - b.distancePctFromTouchRange,
+            ),
+        }
+      : null;
+    const nearestH4Zone = h4ZoneChecks[0];
+    const nearestReason = !nearestH4Zone
+      ? "support_not_reached"
+      : !nearestH4Zone.lowInsideTouchRange
+        ? sweep != null || arm.low > nearestH4Zone.touchUpperBound
+          ? "price_above_support_touch_range"
+          : "price_below_support_touch_range"
+        : !nearestH4Zone.closeReclaimed
+          ? "support_touch_not_reclaimed"
+          : "support_not_reached";
+    return {
+      ...empty("abneon_support_bounce", nearestReason),
+      evidence: {
+        observedAt: input.observedAt,
+        supportTouchTolerancePct: SUPPORT_TOUCH_TOLERANCE * 100,
+        activeSupportZoneCount: zones.length,
+        latestClosed4hCandle: {
+          time: arm.time,
+          open: arm.open,
+          high: arm.high,
+          low: arm.low,
+          close: arm.close,
+        },
+        h4ZoneChecks,
+        nearestZone: nearestH4Zone ?? null,
+        latestClosed1hCandle: latestH1,
+        sweepReclaimBars: sweep ?? null,
+      },
+    };
   }
   return {
     method: "abneon_support_bounce",
@@ -704,6 +960,30 @@ export function evaluateAbneonSupportBounce(input: {
     armCandleTime: arm.time + ZONE_TF,
     triggerCandleTime: null,
     volumeEvidence: volumeEvidence(h1, h1.length - 1),
+    evidence: {
+      supportTop: zone.top,
+      supportBottom: zone.bottom,
+      supportCenter: zone.center,
+      supportPivotCount: zone.count,
+      armCandleTime: arm.time + ZONE_TF,
+      armCandle: {
+        time: arm.time,
+        open: arm.open,
+        high: arm.high,
+        low: arm.low,
+        close: arm.close,
+      },
+      latestClosed1hCandle: lastH1
+        ? {
+            time: lastH1.time,
+            open: lastH1.open,
+            high: lastH1.high,
+            low: lastH1.low,
+            close: lastH1.close,
+          }
+        : null,
+      reason: "touch_found_waiting_for_later_closed_1h_reaction",
+    },
   };
 }
 

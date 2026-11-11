@@ -103,19 +103,27 @@ export interface SpotHealth {
 /**
  * Formats a compact one-line health snapshot, e.g.:
  *   "📈 OI: +3.2% | CVD15 ↑ | CVD30 ↓ | CVD1h ↓"
- * Returns "" when health is null/undefined or all fields are null.
+ * Missing values are shown as "н/д" when the caller supplied a health result,
+ * so milestone messages always make unavailable telemetry explicit.
  */
-export function fmtHealthLine(h: SpotHealth | null | undefined): string {
-  if (!h) return "";
+export function fmtHealthLine(
+  h: SpotHealth | null | undefined,
+  showUnavailable = false,
+): string {
+  if (!h && !showUnavailable) return "";
   const parts: string[] = [];
-  if (h.oiPct != null)
+  if (h?.oiPct != null)
     parts.push(`OI: ${h.oiPct >= 0 ? "+" : ""}${h.oiPct.toFixed(1)}%`);
-  if (h.cvd15m === true) parts.push("CVD15 ↑");
-  else if (h.cvd15m === false) parts.push("CVD15 ↓");
-  if (h.cvd30m === true) parts.push("CVD30 ↑");
-  else if (h.cvd30m === false) parts.push("CVD30 ↓");
-  if (h.cvd1h === true) parts.push("CVD1h ↑");
-  else if (h.cvd1h === false) parts.push("CVD1h ↓");
+  else if (showUnavailable) parts.push("OI: н/д");
+  if (h?.cvd15m === true) parts.push("CVD15 ↑");
+  else if (h?.cvd15m === false) parts.push("CVD15 ↓");
+  else if (showUnavailable) parts.push("CVD15 н/д");
+  if (h?.cvd30m === true) parts.push("CVD30 ↑");
+  else if (h?.cvd30m === false) parts.push("CVD30 ↓");
+  else if (showUnavailable) parts.push("CVD30 н/д");
+  if (h?.cvd1h === true) parts.push("CVD1h ↑");
+  else if (h?.cvd1h === false) parts.push("CVD1h ↓");
+  else if (showUnavailable) parts.push("CVD1h н/д");
   return parts.length > 0 ? `📈 ${parts.join(" | ")}` : "";
 }
 
@@ -504,7 +512,7 @@ function buildPositionUpdate(
     // Exit policy text only for the Core-close message (and the IB signal).
     options.showRunnerPolicy ? fmtImpulseRunnerPolicyLine(t) : "",
     ...(options.context ?? []),
-    fmtHealthLine(options.health),
+    fmtHealthLine(options.health, options.health !== undefined),
     ...lifecycleEvidence(t, options.liqCtx),
     ``,
     // Owner 2026-10-23: the hashtag carries the pattern; no pattern-name line.
@@ -609,7 +617,9 @@ function nextStepAfterBu(t: TrackedSignal): string {
   const m = t.stealthDetectionMethod;
   if (
     t.sentimentKey === "stealth_breakout" &&
-    (m === "range_1h_breakout" || m === "range_4h_breakout" || m === "fresh_24h_high_breakout")
+    (m === "range_1h_breakout" ||
+      m === "range_4h_breakout" ||
+      m === "fresh_24h_high_breakout")
   ) {
     return `⏳ Дальше стоп идёт за ценой на 1R ниже пика`;
   }
@@ -968,7 +978,7 @@ export function msgPreTargetMilestone(
       : [
           hasOwnPreTargetFivePctText(t.sentimentKey) && milestone === 5
             ? // Owner 2026-10-30: Stealth/Neon +5% notice, own wording.
-              `Позиция в плюсе 5%, по желанию зафиксируйте часть позиции, б/у с ${getBuStopMilestone(t.sentimentKey, t.symbol)}%`
+              `Позиция в плюсе 5%, по желанию зафиксируйте часть позиции, б/у с 8%`
             : // Owner 2026-10-29: +5% is not a take-profit; no fixation advice.
               `⏳ Стоп в Б/У при +${nextTarget}%`,
         ],

@@ -59,6 +59,7 @@ import {
   type TelegramPhotoMessage,
   type TelegramApiCallResult,
 } from "./telegram-api.js";
+import { isMutedTelegramMethod } from "./telegram-mute.js";
 import {
   beginTelegramEgressAudit,
   finishTelegramEgressAudit,
@@ -154,10 +155,6 @@ export function buildSignalManagementLine(
     return `🛡 <b>Сопровождение BTC:</b> Б/У после +1% · трейлинг только с +2% от входа, отступ от пика 1 п.п. · после активации каждый новый +1% пика подтягивает стоп на +1 п.п.`;
   }
 
-  // Owner 2026-11-11: ABNeon — B.U. at +10%, trailing from +20% at 20 p.p., cancel on a 4H close under the level.
-  if (sentimentKey === "neon_support_bounce") {
-    return `🛡 <b>Сопровождение:</b> БУ с +${beActivation}% · трейлинг с +${exitProfile.trailingActivation}% на ${exitProfile.trailingGap} п.п. ниже пика · отмена, если 4H закроется под уровнем`;
-  }
   const protectionPlan = hasNoProfitStopPromotion(sentimentKey)
     ? `БУ с +${beActivation}%`
     : beActivation === 10
@@ -315,6 +312,11 @@ export async function sendMessageResult(
     auditSource = "telegram.sendMessageResult",
     auditEventKey,
     auditDeliveryPath = requireActiveSubscription ? "direct" : "service-bypass",
+    allowImpulseBuyWhileMuted = false,
+    allowAbneonPrimaryWhileMuted = false,
+    allowAbneonTrackedLifecycleWhileMuted = false,
+    allowStealthPrimaryWhileMuted = false,
+    allowStealthTrackedLifecycleWhileMuted = false,
   }: {
     appendChartLinks?: boolean;
     parseMode?: "HTML" | null;
@@ -322,6 +324,11 @@ export async function sendMessageResult(
     auditSource?: string;
     auditEventKey?: string;
     auditDeliveryPath?: "outbox" | "direct" | "service-bypass";
+    allowImpulseBuyWhileMuted?: boolean;
+    allowAbneonPrimaryWhileMuted?: boolean;
+    allowAbneonTrackedLifecycleWhileMuted?: boolean;
+    allowStealthPrimaryWhileMuted?: boolean;
+    allowStealthTrackedLifecycleWhileMuted?: boolean;
   } = {},
 ): Promise<TelegramApiCallResult> {
   assertMarketCycleLeaseOwnership("Telegram message delivery");
@@ -363,6 +370,11 @@ export async function sendMessageResult(
       deliveryPath: auditDeliveryPath,
       eventKey: auditEventKey,
     },
+    allowImpulseBuyWhileMuted,
+    allowAbneonPrimaryWhileMuted,
+    allowAbneonTrackedLifecycleWhileMuted,
+    allowStealthPrimaryWhileMuted,
+    allowStealthTrackedLifecycleWhileMuted,
   });
   if (!result.ok && result.status === 403) {
     await markSubscriberBotBlocked(chatId, result.description);
@@ -653,15 +665,43 @@ export async function sendPhotoCaptionResult(
     auditSource = "telegram.sendPhotoCaptionResult",
     auditEventKey,
     auditDeliveryPath = requireActiveSubscription ? "direct" : "service-bypass",
+    allowImpulseBuyWhileMuted = false,
+    allowAbneonPrimaryWhileMuted = false,
+    allowAbneonTrackedLifecycleWhileMuted = false,
+    allowStealthPrimaryWhileMuted = false,
+    allowStealthTrackedLifecycleWhileMuted = false,
   }: {
     appendChartLinks?: boolean;
     requireActiveSubscription?: boolean;
     auditSource?: string;
     auditEventKey?: string;
     auditDeliveryPath?: "outbox" | "direct" | "service-bypass";
+    allowImpulseBuyWhileMuted?: boolean;
+    allowAbneonPrimaryWhileMuted?: boolean;
+    allowAbneonTrackedLifecycleWhileMuted?: boolean;
+    allowStealthPrimaryWhileMuted?: boolean;
+    allowStealthTrackedLifecycleWhileMuted?: boolean;
   } = {},
 ): Promise<TelegramApiCallResult<TelegramPhotoMessage>> {
   assertMarketCycleLeaseOwnership("Telegram photo delivery");
+  if (
+    isMutedTelegramMethod(
+      "sendPhoto",
+      auditEventKey,
+      allowImpulseBuyWhileMuted,
+      allowAbneonPrimaryWhileMuted,
+      allowAbneonTrackedLifecycleWhileMuted,
+      allowStealthPrimaryWhileMuted,
+      allowStealthTrackedLifecycleWhileMuted,
+    )
+  ) {
+    return {
+      ok: false,
+      status: null,
+      retryable: false,
+      description: "telegram_muted",
+    };
+  }
   if (requireActiveSubscription) {
     const rejection = await rejectIneligibleBroadcastRecipient(chatId);
     if (rejection) return rejection;
@@ -855,11 +895,21 @@ export async function sendPhotoByFileIdResult(
     auditSource = "telegram.sendPhotoByFileIdResult",
     auditEventKey,
     auditDeliveryPath = requireActiveSubscription ? "direct" : "service-bypass",
+    allowImpulseBuyWhileMuted = false,
+    allowAbneonPrimaryWhileMuted = false,
+    allowAbneonTrackedLifecycleWhileMuted = false,
+    allowStealthPrimaryWhileMuted = false,
+    allowStealthTrackedLifecycleWhileMuted = false,
   }: {
     requireActiveSubscription?: boolean;
     auditSource?: string;
     auditEventKey?: string;
     auditDeliveryPath?: "outbox" | "direct" | "service-bypass";
+    allowImpulseBuyWhileMuted?: boolean;
+    allowAbneonPrimaryWhileMuted?: boolean;
+    allowAbneonTrackedLifecycleWhileMuted?: boolean;
+    allowStealthPrimaryWhileMuted?: boolean;
+    allowStealthTrackedLifecycleWhileMuted?: boolean;
   } = {},
 ): Promise<TelegramApiCallResult> {
   assertMarketCycleLeaseOwnership("Telegram cached-photo delivery");
@@ -901,6 +951,11 @@ export async function sendPhotoByFileIdResult(
       deliveryPath: auditDeliveryPath,
       eventKey: auditEventKey,
     },
+    allowImpulseBuyWhileMuted,
+    allowAbneonPrimaryWhileMuted,
+    allowAbneonTrackedLifecycleWhileMuted,
+    allowStealthPrimaryWhileMuted,
+    allowStealthTrackedLifecycleWhileMuted,
   });
   if (!result.ok && result.status === 403) {
     await markSubscriberBotBlocked(chatId, result.description);
@@ -987,7 +1042,7 @@ export interface AlphaResult {
   stealthEntryPath?: string | null;
   stealthVolumeUnconfirmed?: boolean;
   stealthNoSpotMarket?: boolean;
-  neonSupportBounceEvent?: { confluence?: string | null; lowBounce?: boolean };
+  neonSupportBounceEvent?: { confluence?: string | null };
   stealthRangeConfirmingVenues?: string[] | null;
   stealthBingxOnly?: boolean;
   /** Фандинг рейт в процентах (напр. -0.04 = -0.04% за 8ч; источник: CoinGlass aggregate) */
@@ -1163,12 +1218,10 @@ function isBulletScoreHidden(sentimentKey: string): boolean {
 }
 
 function telegramNeonConfluence(s: AlphaResult): string {
-  if (s.sentimentKey !== "neon_support_bounce") return "";
-  // Owner 2026-11-11: a bounce from a fresh low (no zone yet) is named in the signal.
-  const low = s.neonSupportBounceEvent?.lowBounce === true ? " · 📉 отскок от нового минимума" : "";
-  return s.neonSupportBounceEvent?.confluence
-    ? `${low} · 🧲 совпадение ${s.neonSupportBounceEvent.confluence}`
-    : low;
+  return s.sentimentKey === "neon_support_bounce" &&
+    s.neonSupportBounceEvent?.confluence
+    ? ` · 🧲 совпадение ${s.neonSupportBounceEvent.confluence}`
+    : "";
 }
 
 function telegramReentryLabel(s: AlphaResult): string {
