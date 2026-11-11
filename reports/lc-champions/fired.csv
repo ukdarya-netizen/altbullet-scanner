@@ -1,0 +1,8 @@
+id,symbol,detected_utc,status,pnl_tracked,peak_4d_pct,champion,lc_exit_pct
+3017,BTC-USDT,2026-11-01T14:50:34.797Z,stop_loss,-1,4,0,0.96
+3611,BTC-USDT,2026-11-08T02:53:58.367Z,stop_loss,-1,0.7,,
+3704,BTC-USDT,2026-11-09T15:52:53.309Z,stop_loss,-1,0.2,,
+3710,BTC-USDT,2026-11-09T20:14:22.908Z,stop_loss,-1,0.7,,
+3712,BR-USDT,2026-11-10T03:16:25.044Z,active,,7.4,,
+3714,BTC-USDT,2026-11-10T09:46:23.864Z,stop_loss,-1,0.6,,
+3717,BTC-USDT,2026-11-10T17:20:09.885Z,in_run,,1.6,,
