@@ -16,6 +16,10 @@
  *   be5_tp10       break-even +5%, the whole position at +10%
  *   tp10 / tp15    the whole position at +10% / +15%, no break-even
  *   h10_h20        50% at +10% (stop → entry), the rest at +20%
+ *   be10_tr20g20   break-even only at +10%, trailing from +20% (peak − 20 p.p.)
+ *   h10_tr20g20    50% at +10% (stop → entry), the rest trailing from +20% (peak − 20 p.p.)
+ *   h10_tr25g15    50% at +10%, the rest trailing from +25% (peak − 15 p.p.)
+ *   h10_hold       50% at +10%, the rest held 7 days (or until the 4H-close cancel in the c1 variants)
  * Cancel: none | c1 (one 4H close under the level: ABNeon — zone bottom, Stealth — broken zone top)
  * Horizon 7 days (then closed at the price). One trade per coin and entry type at a time (by the trk trade),
  * the same trades in every variant. Four periods. Every trade listed.
@@ -138,6 +142,11 @@ const MGMT: Record<string, Mgmt> = {
   tp10: { be: null, partial: null, take: 10, trail: null },
   tp15: { be: null, partial: null, take: 15, trail: null },
   h10_h20: { be: null, partial: { at: 10, share: 0.5 }, take: 20, trail: null },
+  // Wider (owner 2026-11-11, INIT 9.11: break-even at +8% and a 10 p.p. trail cut +80% moves):
+  be10_tr20g20: { be: 10, partial: null, take: null, trail: { act: 20, gap: 20 } },
+  h10_tr20g20: { be: null, partial: { at: 10, share: 0.5 }, take: null, trail: { act: 20, gap: 20 } },
+  h10_tr25g15: { be: null, partial: { at: 10, share: 0.5 }, take: null, trail: { act: 25, gap: 15 } },
+  h10_hold: { be: null, partial: { at: 10, share: 0.5 }, take: null, trail: null },
 };
 
 /** Long trade on 15m candles; returns the result % (fee included) and the close time, or null when open. */
@@ -237,7 +246,7 @@ async function main() {
   const fmt = (r: Row) => `${String(r.variant).padEnd(40)} ${String(r.period).padEnd(11)} | сделок ${r.trades} | ср ${r.avg_pct ?? "—"}% сумма ${r.sum_pct} | в плюсе ${r.win_pct ?? "—"}% (ср +${r.avg_win ?? "—"} / ${r.avg_loss ?? "—"}) | p10 ${r.p10 ?? "—"} p25 ${r.p25 ?? "—"} p75 ${r.p75 ?? "—"} p90 ${r.p90 ?? "—"} | депозит ${r.deposit_2pct_per_trade}%`;
   const s =
     `Выходы ABNeon / Stealth · ${new Date(from).toISOString()} .. ${new Date(now).toISOString()} · монет ${symbols.length}, ошибок ${Object.keys(errors).length}, входов ${entriesN}\n` +
-    `Стоп s8 −8% / szone под зоной (−3…−15%); ведение trk (Б.У. +8, трейл с +15), be5_trk, be5_h10_tr15 (Б.У. +5, 50% на +10, трейл с +15), be5_h8_tr12, be5_tp10, tp10, tp15, h10_h20; отмена none / c1 (закрытие 4H под уровнем)\n` +
+    `Стоп s8 −8% / szone под зоной (−3…−15%); ведение trk (Б.У. +8, трейл с +15), be5_trk, be5_h10_tr15 (Б.У. +5, 50% на +10, трейл с +15), be5_h8_tr12, be5_tp10, tp10, tp15, h10_h20, be10_tr20g20, h10_tr20g20, h10_tr25g15, h10_hold; отмена none / c1 (закрытие 4H под уровнем)\n` +
     `Депозит: 2% депозита на сделку, без плеча, по времени закрытия; комиссия 0.1%\n\n` +
     table.map(fmt).join("\n") +
     `\n\nCoinGlass: запросов ${cgStats.requests}, ok ${cgStats.ok}, пусто ${cgStats.empty}, ошибок ${cgStats.errors}, 429: ${cgStats.r429}\nФайлы: variants.csv, trades.csv, errors.json`;
