@@ -13,6 +13,10 @@
  *      ranges), and every trade: pattern, time, peak and low within 4 days, result now and in the best
  *      variants; trades.csv; variants.csv.
  *
+ * v2: older trades where BingX has no 5m candles fall back to 15m (marked); a trade with no candles is left out.
+ * Entry filters by the BTC trend at the signal (closed candles only): 24h / 72h / 7d change, close vs EMA20 /
+ * EMA50 / EMA200 on 4H and 1D, EMA20 vs EMA50 on 4H. For each filter: trades kept / dropped and their sums under
+ * the current exit and under the best variant.
  * The script does not connect to any database: the agent exports the rows with its read-only production SQL
  * tool into a JSON file (array of row objects):
  *   SELECT id, sentiment_key, detected_at, entry_price, status::text AS status, pnl_percent, stop_loss_pct, is_short
@@ -23,7 +27,7 @@
  */
 import { join } from "node:path";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { type Row, ensureDir, parseArgs, writeCsv } from "./study-v2/lib.js";
+import { type Row, ensureDir, klines, parseArgs, writeCsv } from "./study-v2/lib.js";
 
 const args = parseArgs();
 const OUT = args.get("out") ?? "btc-exit";
@@ -97,19 +101,42 @@ async function main() {
   const sig = { rows: (JSON.parse(readFileSync(f, "utf8")) as { id: number; sentiment_key: string; detected_at: string; entry_price: number; status: string; pnl_percent: number | null; stop_loss_pct: number | null; is_short: boolean | null }[]).map((r) => ({ ...r, detected_at: new Date(r.detected_at) })) };
   const rows = sig.rows.filter((r) => r.is_short !== true);
   if (!rows.length) { writeFileSync(join(OUT, "summary.txt"), "BTC-сигналов CAB в базе нет\n"); return; }
-  const cs = await klines5m(new Date(rows[0]!.detected_at).getTime() - D1, now);
+  const t0 = new Date(rows[0]!.detected_at).getTime();
+  const cs = await klines5m(t0 - D1, now);
+  const m15all = await klines(CACHE, "BTC-USDT", "15m", t0 - D1, now);
+  const h4 = await klines(CACHE, "BTC-USDT", "4h", t0 - 260 * 4 * H1, now);
+  const d1 = await klines(CACHE, "BTC-USDT", "1d", t0 - 260 * D1, now);
+  const ema = (xs: number[], n: number) => { let e = xs[0]!; const k = 2 / (n + 1); for (const x of xs) e = x * k + e * (1 - k); return e; };
+  const trend = (at: number, entry: number): Row => {
+    const closed = (arr: { time: number; close: number }[], step: number) => arr.filter((c) => c.time + step <= at).map((c) => c.close);
+    const c4 = closed(h4, 4 * H1), cd = closed(d1, D1);
+    const chg = (hours: number) => { const ref = m15all.filter((c) => c.time + 15 * 60_000 <= at - hours * H1).at(-1); return ref ? Math.round(((entry / ref.close) - 1) * 1000) / 10 : null; };
+    const vs = (arr: number[], n: number) => (arr.length >= n ? Math.round(((entry / ema(arr.slice(-Math.max(n * 3, 60)), n)) - 1) * 1000) / 10 : null);
+    return {
+      chg24h: chg(24), chg72h: chg(72), chg7d: chg(168),
+      vs_ema20_4h: vs(c4, 20), vs_ema50_4h: vs(c4, 50), vs_ema200_4h: vs(c4, 200),
+      vs_ema20_1d: vs(cd, 20), vs_ema50_1d: vs(cd, 50),
+      ema20_over_50_4h: c4.length >= 50 ? (ema(c4.slice(-150), 20) > ema(c4.slice(-150), 50) ? 1 : 0) : null,
+    };
+  };
   const per: Row[] = [];
   const res = new Map<string, number[]>();
   for (const r of rows) {
     const at = new Date(r.detected_at).getTime(), entry = Number(r.entry_price);
-    const i0 = cs.findIndex((c) => c.time + M5 > at);
-    if (i0 < 0) continue;
+    let src = cs, tf = "5m";
+    let i0 = cs.findIndex((c) => c.time + M5 > at);
+    if (i0 < 0 || cs[i0]!.time > at + H1) {
+      src = m15all; tf = "15m";
+      i0 = m15all.findIndex((c) => c.time + 15 * 60_000 > at);
+      if (i0 < 0 || m15all[i0]!.time > at + H1) continue;
+    }
     let hi = entry, lo = entry;
-    for (let i = i0; i < cs.length && cs[i]!.time < Math.min(at + HORIZON, now); i++) { hi = Math.max(hi, cs[i]!.high); lo = Math.min(lo, cs[i]!.low); }
+    for (let i = i0; i < src.length && src[i]!.time < Math.min(at + HORIZON, now); i++) { hi = Math.max(hi, src[i]!.high); lo = Math.min(lo, src[i]!.low); }
     const row: Row = { id: r.id, pattern: r.sentiment_key, detected_utc: new Date(at).toISOString(), entry, status_now: r.status, pnl_tracked: r.pnl_percent, stop_pct_tracked: r.stop_loss_pct,
+      candles: tf, ...trend(at, entry),
       peak_4d_pct: Math.round(((hi / entry) - 1) * 1000) / 10, low_4d_pct: Math.round(((lo / entry) - 1) * 1000) / 10 };
     for (const v of variants) {
-      const s = sim(cs, i0, at, entry, v, now);
+      const s = sim(src, i0, at, entry, v, now);
       if (s) { row[v.name] = Math.round(s.pct * 100) / 100; res.set(v.name, [...(res.get(v.name) ?? []), s.pct]); if (v.name === CURRENT) row.how_current = s.how; }
     }
     per.push(row);
@@ -138,6 +165,21 @@ async function main() {
     `Каждая сделка (пик/просадка за 4 дня; итог сейчас и в трёх лучших вариантах):`,
     ...per.map((r) => ` #${r.id} ${String(r.pattern).padEnd(20)} ${r.detected_utc} вход ${r.entry} · пик +${r.peak_4d_pct}% / ${r.low_4d_pct}% · сейчас ${r[CURRENT] ?? "идёт"} (${r.how_current ?? "—"}) · ${top.slice(0, 3).map((t) => `${t.variant} ${r[String(t.variant)] ?? "идёт"}`).join(" · ")}`),
   ];
+  const best = String(top[0]!.variant);
+  const done = per.filter((r) => typeof r[CURRENT] === "number");
+  const filters: [string, (r: Row) => boolean][] = [
+    ["24ч > 0", (r) => Number(r.chg24h) > 0], ["24ч > −2%", (r) => Number(r.chg24h) > -2], ["72ч > 0", (r) => Number(r.chg72h) > 0],
+    ["7д > 0", (r) => Number(r.chg7d) > 0], ["7д > −5%", (r) => Number(r.chg7d) > -5],
+    ["выше EMA20 4H", (r) => Number(r.vs_ema20_4h) > 0], ["выше EMA50 4H", (r) => Number(r.vs_ema50_4h) > 0], ["выше EMA200 4H", (r) => Number(r.vs_ema200_4h) > 0],
+    ["выше EMA20 1D", (r) => Number(r.vs_ema20_1d) > 0], ["выше EMA50 1D", (r) => Number(r.vs_ema50_1d) > 0], ["EMA20 > EMA50 4H", (r) => r.ema20_over_50_4h === 1],
+  ];
+  const sum = (rs: Row[], k: string) => Math.round(rs.reduce((a, r) => a + Number(r[k] ?? 0), 0) * 100) / 100;
+  out.push(``, `Фильтры входа по тренду BTC (закрытые сделки ${done.length}; суммы: сейчас / ${best}):`);
+  for (const [name, f] of filters) {
+    const keep = done.filter(f), drop = done.filter((r) => !f(r));
+    out.push(` ${name.padEnd(18)} оставляет ${keep.length}: ${sum(keep, CURRENT)}% / ${sum(keep, best)}% · отсекает ${drop.length}: ${sum(drop, CURRENT)}% / ${sum(drop, best)}% · отсечены: ${drop.map((r) => `#${r.id}`).join(" ")}`);
+  }
+  out.push(``, `Тренд на каждой сделке:`, ...per.map((r) => ` #${r.id} ${r.detected_utc} [${r.candles}] 24ч ${r.chg24h}% 72ч ${r.chg72h}% 7д ${r.chg7d}% · к EMA20/50/200 4H ${r.vs_ema20_4h}/${r.vs_ema50_4h}/${r.vs_ema200_4h}% · к EMA20/50 1D ${r.vs_ema20_1d}/${r.vs_ema50_1d}% · EMA20>50 4H ${r.ema20_over_50_4h} · итог сейчас ${r[CURRENT] ?? "идёт"}`));
   writeFileSync(join(OUT, "summary.txt"), out.join("\n") + "\n");
   console.log(out.slice(0, 8).join("\n"));
 }
