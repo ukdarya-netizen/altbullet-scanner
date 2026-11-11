@@ -8,6 +8,11 @@
  *   mfi_slope12 / cmf_slope12, mfi|cmf _bull_div / _bear_div (last 12 bars vs the 36 before).
  * A reading that has a missing volume bar in its window is null (never BingX volume).
  * Stored in signal_entry_extras.metrics.moneyFlow; a background pass fills the signals of the last 20 days.
+ *
+ * v2 (owner 2026-11-11, observation only): VPVR at the entry — the 30-day volume profile of closed 1H BingX
+ * candles with aggregated futures volume (USD spread evenly over each candle's low…high, 120 bins), relative to
+ * the entry price: poc_dist_pct, in_value_area (70%), vah/val_dist_pct, share of the 30-day volume within
+ * +5% / +10% above and −5% / −10% under the entry, entry_bin_pctile. Same as scripts/vpvr-study.ts.
  */
 import { pool } from "@workspace/db";
 import { getKlinesRange } from "./bingx.js";
@@ -20,7 +25,7 @@ import { ensureExtrasTable } from "./entry-extras.js";
 import { logger } from "./logger.js";
 
 export const MONEY_FLOW_KEYS = ["stealth_breakout", "neon_support_bounce", "liquidation_cascade"] as const;
-export const MONEY_FLOW_VERSION = 1;
+export const MONEY_FLOW_VERSION = 2;
 const H1 = 3_600_000, H4 = 4 * H1;
 const BACKFILL_DAYS = 20;
 const RETRY_MS = 3 * H1;
@@ -95,6 +100,57 @@ export function moneyFlowReadings(cs: Bar[], i: number, longN: number): Record<s
   return out;
 }
 
+/** VPVR readings at the entry (see the header); null when >10% of the 30 days lacks aggregated volume. */
+export function vpvrReadings(
+  bars1h: { time: number; high: number; low: number }[],
+  usd1h: Map<number, number>,
+  entry: number,
+  endOpen: number,
+): Record<string, number> | null {
+  const BINS = 120;
+  const from = endOpen - 30 * 24 * H1 + H1;
+  const bars: { lo: number; hi: number; usd: number }[] = [];
+  let total = 0, missing = 0;
+  for (const c of bars1h) {
+    if (c.time < from || c.time > endOpen) continue;
+    total++;
+    const v = usd1h.get(c.time);
+    if (v === undefined) { missing++; continue; }
+    if (v > 0 && c.high >= c.low && c.low > 0) bars.push({ lo: c.low, hi: c.high, usd: v });
+  }
+  if (!(entry > 0) || total < 24 * 20 || missing > 0.1 * total || bars.length === 0) return null;
+  const lo = Math.min(...bars.map((b) => b.lo)), hi = Math.max(...bars.map((b) => b.hi));
+  if (!(hi > lo)) return null;
+  const w = (hi - lo) / BINS;
+  const vol = new Array<number>(BINS).fill(0);
+  const binOf = (p: number) => Math.min(BINS - 1, Math.max(0, Math.floor((p - lo) / w)));
+  for (const b of bars) { const a = binOf(b.lo), z = binOf(b.hi); for (let k = a; k <= z; k++) vol[k]! += b.usd / (z - a + 1); }
+  const sum = vol.reduce((x, y) => x + y, 0);
+  let poc = 0;
+  for (let k = 1; k < BINS; k++) if (vol[k]! > vol[poc]!) poc = k;
+  let a = poc, z = poc, acc = vol[poc]!;
+  while (acc < 0.7 * sum && (a > 0 || z < BINS - 1)) {
+    const left = a > 0 ? vol[a - 1]! : -1, right = z < BINS - 1 ? vol[z + 1]! : -1;
+    if (right >= left) { z++; acc += vol[z]!; } else { a--; acc += vol[a]!; }
+  }
+  const mid = (k: number) => lo + (k + 0.5) * w;
+  const val = lo + a * w, vah = lo + (z + 1) * w;
+  const share = (p1: number, p2: number) => { let t = 0; for (let k = 0; k < BINS; k++) { const m = mid(k); if (m >= p1 && m <= p2) t += vol[k]!; } return (100 * t) / sum; };
+  const eb = binOf(entry);
+  const r = (x: number) => Math.round(x * 100) / 100;
+  return {
+    poc_dist_pct: r((mid(poc) / entry - 1) * 100),
+    in_value_area: entry >= val && entry <= vah ? 1 : 0,
+    vah_dist_pct: r((vah / entry - 1) * 100),
+    val_dist_pct: r((val / entry - 1) * 100),
+    above5: r(share(entry, entry * 1.05)),
+    above10: r(share(entry, entry * 1.1)),
+    below5: r(share(entry * 0.95, entry)),
+    below10: r(share(entry * 0.9, entry)),
+    entry_bin_pctile: r((100 * vol.filter((x) => x < vol[eb]!).length) / BINS),
+  };
+}
+
 // ─── data ────────────────────────────────────────────────────────────────────
 /** Aggregated spot taker volume (USD) per 1H bar, the last `limit` bars (≤ 4500). */
 async function aggSpotVolume1h(symbol: string, limit: number): Promise<Map<number, number> | null> {
@@ -138,13 +194,14 @@ function withVol(bars: Bar[], usd1h: Map<number, number> | null, step: number): 
   });
 }
 
-export async function computeMoneyFlow(symbol: string, detectedAt: number): Promise<Record<string, unknown>> {
+export async function computeMoneyFlow(symbol: string, detectedAt: number, entryPrice?: number | null): Promise<Record<string, unknown>> {
   const e1 = Math.floor(detectedAt / H1) * H1 - H1; // last closed 1H bar
   const e4 = Math.floor(detectedAt / H4) * H4 - H4; // last closed 4H bar
   const raw1 = await getKlinesRange(symbol, "1h", e1 - 170 * H1, e1 + H1).catch(() => []);
   const raw4 = await getKlinesRange(symbol, "4h", e4 - 170 * H4, e4 + H4).catch(() => []);
   const b1 = toBars(raw1).filter((b) => b.time <= e1), b4 = toBars(raw4).filter((b) => b.time <= e4);
-  const need = Math.ceil((Date.now() - (e4 - 170 * H4)) / H1) + 4;
+  const need = Math.ceil((Date.now() - Math.min(e4 - 170 * H4, e1 - 30 * 24 * H1)) / H1) + 4;
+  const raw30 = await getKlinesRange(symbol, "1h", e1 - 30 * 24 * H1, e1 + H1).catch(() => []);
   const fut = need <= 4500 ? await getAggFuturesVolumeByInterval(symbol, "1h", need, Date.now(), "low", 60_000).catch(() => null) : null;
   const spot = need <= 4500 ? await aggSpotVolume1h(symbol, need) : null;
   const out: Record<string, unknown> = { version: MONEY_FLOW_VERSION, source: "bingx_ohlc+coinglass_aggregated_volume", futVolume: fut ? "ok" : "missing", spotVolume: spot ? "ok" : "missing" };
@@ -155,6 +212,8 @@ export async function computeMoneyFlow(symbol: string, detectedAt: number): Prom
       out[`${name}_${tf}`] = i < 0 ? { reason: "нет свечи входа" } : vol ? moneyFlowReadings(cs, i, longN) : { reason: "нет агрегированного объёма" };
     }
   }
+  const v = fut && entryPrice ? vpvrReadings(toBars(raw30).filter((b) => b.time <= e1), fut, entryPrice, e1) : null;
+  out.vpvr = v ?? { reason: fut ? (entryPrice ? "мало истории или объёма" : "нет цены входа") : "нет агрегированного объёма" };
   return out;
 }
 
@@ -164,7 +223,7 @@ export async function runMoneyFlowBackfillCycle(limit = 20, gapMs = 1_500) {
   await ensureExtrasTable();
   const cooling = [...failures.entries()].filter(([, at]) => Date.now() - at < RETRY_MS).map(([id]) => id);
   const { rows } = await pool.query(
-    `SELECT t.id, t.symbol, t.sentiment_key, t.detected_at
+    `SELECT t.id, t.symbol, t.sentiment_key, t.detected_at, t.entry_price
        FROM tracked_signals t
        LEFT JOIN signal_entry_extras x ON x.tracked_signal_id = t.id
       WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
@@ -178,7 +237,7 @@ export async function runMoneyFlowBackfillCycle(limit = 20, gapMs = 1_500) {
   for (const r of rows) {
     tried++;
     try {
-      const mf = await computeMoneyFlow(r.symbol, new Date(r.detected_at).getTime());
+      const mf = await computeMoneyFlow(r.symbol, new Date(r.detected_at).getTime(), r.entry_price == null ? null : Number(r.entry_price));
       await pool.query(
         `INSERT INTO signal_entry_extras (tracked_signal_id, symbol, sentiment_key, metrics)
          VALUES ($1, $2, $3, jsonb_build_object('moneyFlow', $4::jsonb))
