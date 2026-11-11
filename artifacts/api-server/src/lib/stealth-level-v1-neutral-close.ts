@@ -1,6 +1,6 @@
 import { pool } from "@workspace/db";
 import { closeGroup } from "./impulse-buy-filter-neutral-close.js";
-import { NEON_RANGE_VERSION } from "./stealth-neon-level-breakout.js";
+import { NEON_RANGE_VERSION, NEON_VSA_VERSION } from "./stealth-neon-level-breakout.js";
 
 /**
  * Owner 2026-11-07: Stealth detection changes from the plain ABNeon level crossing (stealth-neon-level-v1) to the
@@ -25,8 +25,11 @@ export async function closeOpenStealthLevelV1(): Promise<{ openClosed: number }>
           WHERE sentiment_key = 'stealth_breakout'
             AND status::text IN ('active', 'in_run')
             AND (decision_metrics #>> '{stealthNeonLevel,version}') IS DISTINCT FROM $1
+            AND (decision_metrics #>> '{stealthNeonLevel,version}') IS DISTINCT FROM $2
           ORDER BY id FOR UPDATE`,
-        [NEON_RANGE_VERSION],
+        // Owner 2026-11-11: the current Stealth (4H zone breakout on M/W volume) writes NEON_VSA_VERSION; it
+        // is the new detection and is never touched here (AGT / MAGMA were closed by mistake on 11.11).
+        [NEON_RANGE_VERSION, NEON_VSA_VERSION],
       )
     ).rows as { id: number; signal_id: number; symbol: string }[];
     let openClosed = 0;

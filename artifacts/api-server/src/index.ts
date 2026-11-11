@@ -74,6 +74,7 @@ import { neutralizeIbWyckoffSignals } from "./lib/ib-wyckoff-neutral-close.js";
 import { neutralizeIbPrice24hRejects } from "./lib/ib-p24h-neutral-close.js";
 import { retireOldStealthSignals } from "./lib/stealth-retirement-neutral-close.js";
 import { closeOpenStealthLevelV1 } from "./lib/stealth-level-v1-neutral-close.js";
+import { restoreWrongStealthVsaClose } from "./lib/stealth-vsa-wrong-close-restore.js";
 import { neutralizePlmP24hSignals } from "./lib/plm-p24h-neutral-close.js";
 import { reclassifyPlmNegativeTrades } from "./lib/plm-negative-reclassification.js";
 import { neutralizeOpenPlmSignals } from "./lib/plm-retirement-neutral-close.js";
@@ -5894,6 +5895,13 @@ app.listen(port, async (err) => {
       logger.info(stealthV1, "Stealth level-v1 open positions closed neutrally");
     } catch (err) {
       logger.error({ err }, "Stealth level-v1 neutral close failed");
+    }
+    // Owner 2026-11-11: AGT / MAGMA (new Stealth) were closed by mistake by the level-v1 closer → restored, once.
+    try {
+      const stealthRestore = await restoreWrongStealthVsaClose();
+      logger.info(stealthRestore, "Stealth VSA wrong close restore reviewed");
+    } catch (err) {
+      logger.error({ err }, "Stealth VSA wrong close restore failed");
     }
     try {
       const novStops = await excludeAbneonNovemberStops();
