@@ -18,6 +18,7 @@
  */
 import { computeSupportZones, type SupportZone } from "./stealth-abneon-detectors.js";
 import { detectAutoRangePine, detectAutoRangePine1d, type AutoRangeCandle } from "./auto-range-pine.js";
+import { welkinColour } from "./abneon-volume-gate.js";
 
 export const NEON_LEVEL_4H_METHOD = "neon_level_4h_breakout" as const;
 export const NEON_LEVEL_1D_METHOD = "neon_level_1d_breakout" as const;
@@ -196,3 +197,54 @@ export function evaluateNeonRangeBreakout(
   const zone = b ? zoneUnderRangeTop(zones, b.upper) : null;
   return b && zone ? make("4h", last.time, last.open, last.close, prev.close, zone, b) : null;
 }
+
+// ── Owner 2026-11-11: Stealth = 4H close above an ABNeon zone top on bright aggregated volume ───────────
+// Her charts (Everlyn AI 02.11, BLESS 28.10) break out on purple / white VSA bars; the Auto Range
+// condition missed Everlyn and entered BLESS +27% late. The event: the closed 4H candle closes above the top
+// of an ABNeon zone (previous 4H close at/below it; the highest crossed zone is the level) AND its CoinGlass
+// aggregated futures volume is Welkin M or W (≥ average + 3σ of the last 20 4H candles). No aggregated
+// volume = no signal. 4H only. Stop −8% from the close; the standard Stealth exit.
+
+export const NEON_VSA_VERSION = "stealth-neon-vsa-v3" as const;
+const VSA_BRIGHT = new Set(["M", "W"]);
+
+/** Price-only: the 4H crossing of the candle that opened at `h4Start` (last bar of `h4`, closed), or null. */
+export function neonLevelCrossing4h(h4: readonly NlCandle[], h4Start: number): NeonLevelBreakout | null {
+  const last = h4.at(-1);
+  if (!last || last.time !== h4Start || h4.length < 60) return null;
+  const prev = h4.at(-2);
+  if (!prev || prev.time !== h4Start - H4_MS) return null;
+  const zones = computeSupportZones(h4);
+  if (!zones.length) return null;
+  const b = breakoutOf(zones, prev.close, last.close);
+  if (!b) return null;
+  return {
+    tf: "4h",
+    method: NEON_LEVEL_4H_METHOD,
+    candleTime: last.time,
+    open: last.open,
+    close: last.close,
+    prevClose: prev.close,
+    level: z(b.level),
+    crossed: b.crossed.map(z),
+    nextResistance: b.next ? z(b.next) : null,
+    zones: [...zones].sort((a, c) => a.bottom - c.bottom).map(z),
+    stopPrice: last.close * (1 - NEON_LEVEL_STOP_PCT / 100),
+  };
+}
+
+/** Welkin colour of the last 4H candle on aggregated futures volume (USD by candle open time), or null. */
+export function neonBreakoutColour(h4: readonly NlCandle[], agg4hUsdByTime: ReadonlyMap<number, number>): string | null {
+  const n = h4.length;
+  if (n < 20) return null;
+  const vol: number[] = [];
+  for (let q = n - 20; q < n; q++) {
+    if (q > n - 20 && h4[q]!.time - h4[q - 1]!.time !== H4_MS) return null;
+    const usd = agg4hUsdByTime.get(h4[q]!.time);
+    if (!(usd != null && usd > 0 && h4[q]!.close > 0)) return null;
+    vol.push(usd / h4[q]!.close);
+  }
+  return welkinColour(vol, vol.length - 1);
+}
+
+export const isNeonVsaBright = (colour: string | null): colour is string => colour !== null && VSA_BRIGHT.has(colour);

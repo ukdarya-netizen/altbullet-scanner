@@ -342,15 +342,18 @@ import {
   type Range4hDecision,
 } from "./stealth-range-4h.js";
 import {
-  evaluateNeonRangeBreakout,
+  isNeonVsaBright,
   mergeCandles,
-  NEON_RANGE_VERSION,
+  NEON_VSA_VERSION,
+  neonBreakoutColour,
+  neonLevelCrossing4h,
   neonLevelTfLabel,
   NEON_LEVEL_1D_METHOD,
   NEON_LEVEL_4H_METHOD,
   NEON_LEVEL_HISTORY_BARS,
   NEON_LEVEL_STOP_PCT,
   H4_MS as NL_H4_MS,
+  type NeonLevelBreakout,
   type NeonRangeBreakout,
   type NlCandle,
 } from "./stealth-neon-level-breakout.js";
@@ -587,7 +590,14 @@ const STEALTH_FH_EVENT_TTL_MS = 30 * 60_000;
 // ── Stealth = ABNeon resistance breakout on closed 4H / 1D (owner 2026-11-06) ──────────────────────
 // Own timer, own candle cache: the main scan cycle is not touched and does not get longer.
 const STEALTH_NEON_LEVEL_LIVE = true as boolean;
-type NeonLevelEvent = NeonRangeBreakout & { symbol: string; detectedAt: number; quoteVolume24h: number | null };
+// Owner 2026-11-11: the live event is the 4H ABNeon-zone breakout on M/W aggregated volume (no Auto Range).
+type NeonLevelEvent = NeonLevelBreakout & {
+  range?: NeonRangeBreakout["range"];
+  volumeColour?: string;
+  symbol: string;
+  detectedAt: number;
+  quoteVolume24h: number | null;
+};
 /** Closed UTC days per symbol for the daily Auto Range (owner 2026-11-07), refreshed once a day at the day close. */
 const neonLevelDaily = new Map<string, NlCandle[]>();
 const stealthNeonLevelQueue = new Map<string, NeonLevelEvent>();
@@ -741,11 +751,17 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
             } else neonLevelCandidates.delete(symbol);
           }
           if (!fire) continue;
-          // Owner 2026-11-07: Stealth = Auto Range breakout with the range top on an ABNeon zone (4H / 1D).
-          const dayClose = (h4Start + NL_H4_MS) % (24 * 60 * 60_000) === 0;
-          const daily = dayClose ? await neonLevelDailyCandles(symbol, h4Start + NL_H4_MS).catch(() => undefined) : undefined;
-          const ev = evaluateNeonRangeBreakout(candles, h4Start, daily);
-          if (!ev) continue;
+          // Owner 2026-11-11: Stealth = the closed 4H candle closes above an ABNeon zone top on M/W
+          // aggregated futures volume. Aggregated volume is requested only for a price crossing.
+          const cross = neonLevelCrossing4h(candles, h4Start);
+          if (!cross) continue;
+          const agg4h = await getAggFuturesVolumeByInterval(symbol, "4h", 60).catch(() => null);
+          const colour = agg4h ? neonBreakoutColour(candles, agg4h) : null;
+          if (!isNeonVsaBright(colour)) {
+            stats.notBright = (stats.notBright ?? 0) + 1;
+            continue;
+          }
+          const ev: NeonLevelBreakout & { volumeColour: string } = { ...cross, volumeColour: colour };
           neonLevelRecentBreakouts.set(symbol, {
             tf: ev.tf,
             at: Date.now(),
@@ -15009,7 +15025,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         sentiment: {
           key: "stealth_breakout",
           label: "Stealth Breakout",
-          traderAction: `LONG (пробой Auto Range на закрытой свече ${tfLabel}, верх ренджа ${p(ev.range.upper)} на уровне ABNeon ${p(ev.level.bottom)}–${p(ev.level.top)}; закрытие ${p(ev.close)}; следующее сопротивление ${ev.nextResistance ? `${p(ev.nextResistance.bottom)}–${p(ev.nextResistance.top)}` : "нет"}; стоп ${p(ev.stopPrice)} (−${NEON_LEVEL_STOP_PCT}%))`,
+          traderAction: `LONG (пробой зоны ABNeon ${p(ev.level.bottom)}–${p(ev.level.top)} на закрытой свече ${tfLabel}, объём ${ev.volumeColour === "W" ? "белый" : "фиолетовый"} по VSA; закрытие ${p(ev.close)}; следующее сопротивление ${ev.nextResistance ? `${p(ev.nextResistance.bottom)}–${p(ev.nextResistance.top)}` : "нет"}; стоп ${p(ev.stopPrice)} (−${NEON_LEVEL_STOP_PCT}%))`,
           oiFalling: false,
         },
         coinglassOI: _nlOi ?? {
@@ -15038,11 +15054,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         futVol24hUsd: ev.quoteVolume24h ?? 0,
         decisionMetrics: {
           stealthNeonLevel: {
-            version: NEON_RANGE_VERSION,
-            rangeUpper: ev.range.upper,
-            rangeLower: ev.range.lower,
-            rangeAnchorAt: new Date(ev.range.anchorAt).toISOString(),
-            rangeHeightPct: ev.range.heightPct,
+            version: NEON_VSA_VERSION,
+            volumeColour: ev.volumeColour ?? null,
             tf: ev.tf,
             candleOpenAt: new Date(ev.candleTime).toISOString(),
             candleOpen: ev.open,
