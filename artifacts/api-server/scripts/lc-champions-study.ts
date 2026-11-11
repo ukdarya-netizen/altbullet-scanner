@@ -12,12 +12,23 @@
  * Out: summary.txt (per reason: episodes, champions, average LC-exit result, ranges; fired LC the same way;
  *      the champions by name), episodes.csv, fired.csv.
  *
- * Run (from artifacts/api-server; production DB read only; BingX candles via the study cache):
- *   pnpm dlx tsx scripts/lc-champions-study.ts --from 2026-11-01 --out ../../reports/lc-champions
+ * The script does not connect to any database: the agent exports the production rows with its read-only
+ * production SQL tool into JSON files (arrays of row objects), the script reads them:
+ *   --patterns  SELECT pattern, count(*)::text AS n FROM scan_reject_log WHERE cycle_at >= '2026-11-01' GROUP BY pattern ORDER BY 2 DESC
+ *   --range     SELECT min(cycle_at) AS first, max(cycle_at) AS last FROM scan_reject_log
+ *   --rejects   SELECT symbol, reason, date_trunc('hour', cycle_at) AS hour, min(cycle_at) AS first_at,
+ *                      (array_agg(oi30m ORDER BY cycle_at))[1] AS oi30m, (array_agg(vol_mult ORDER BY cycle_at))[1] AS vol_mult,
+ *                      (array_agg(price24h ORDER BY cycle_at))[1] AS price24h, count(*)::text AS n
+ *                 FROM scan_reject_log WHERE cycle_at >= '2026-11-01' AND (pattern ILIKE '%liq%' OR pattern ILIKE '%cascade%' OR pattern ILIKE 'lc%')
+ *                GROUP BY symbol, reason, date_trunc('hour', cycle_at) ORDER BY symbol, first_at
+ *   --fired     SELECT id, symbol, detected_at, status::text AS status, pnl_percent FROM tracked_signals
+ *                WHERE sentiment_key = 'liquidation_cascade' AND detected_at >= '2026-11-01' ORDER BY detected_at
+ * Run (from artifacts/api-server; BingX candles via the study cache):
+ *   pnpm dlx tsx scripts/lc-champions-study.ts --from 2026-11-01 --patterns <f> --range <f> --rejects <f> --fired <f> --out ../../reports/lc-champions
  */
 import { join } from "node:path";
 import { writeFileSync } from "node:fs";
-import { pool } from "@workspace/db";
+import { readFileSync } from "node:fs";
 import { type C, type Row, D1, H1, M15, ensureDir, idxAtOrBefore, klines, parseArgs, writeCsv } from "./study-v2/lib.js";
 
 const args = parseArgs();
@@ -26,6 +37,11 @@ const CACHE = args.get("cache") ?? "../../reports/.cache";
 const FROM = Date.parse(args.get("from") ?? "2026-11-01T00:00:00Z");
 const HORIZON = 4 * D1;
 const EPISODE_GAP = 4 * H1;
+const load = <T,>(key: string): { rows: T[] } => {
+  const f = args.get(key);
+  if (!f) throw new Error(`--${key} <json file> is required`);
+  return { rows: JSON.parse(readFileSync(f, "utf8")) as T[] };
+};
 
 const fmtT = (t: number) => {
   const d = new Date(t + 4 * H1), p = (n: number) => String(n).padStart(2, "0");
@@ -70,21 +86,12 @@ function stats(rows: Row[]): string {
 async function main() {
   ensureDir(OUT); ensureDir(CACHE);
   const now = Date.now();
-  const patterns = await pool.query<{ pattern: string; n: string }>(
-    `SELECT pattern, count(*)::text AS n FROM scan_reject_log WHERE cycle_at >= to_timestamp($1 / 1000.0) GROUP BY pattern ORDER BY 2 DESC`, [FROM]);
+  const patterns = load<{ pattern: string; n: string }>("patterns");
   const lcPatterns = patterns.rows.map((r) => r.pattern).filter((p) => /liq|cascade|^lc/i.test(p));
-  const range = await pool.query<{ first: Date | null; last: Date | null }>(`SELECT min(cycle_at) AS first, max(cycle_at) AS last FROM scan_reject_log`);
-  const rej = await pool.query<{ symbol: string; reason: string; hour: Date; first_at: Date; oi30m: number | null; vol_mult: number | null; price24h: number | null; n: string }>(
-    `SELECT symbol, reason, date_trunc('hour', cycle_at) AS hour, min(cycle_at) AS first_at,
-            (array_agg(oi30m ORDER BY cycle_at))[1] AS oi30m, (array_agg(vol_mult ORDER BY cycle_at))[1] AS vol_mult,
-            (array_agg(price24h ORDER BY cycle_at))[1] AS price24h, count(*)::text AS n
-       FROM scan_reject_log
-      WHERE cycle_at >= to_timestamp($1 / 1000.0) AND pattern = ANY($2::text[])
-      GROUP BY symbol, reason, date_trunc('hour', cycle_at)
-      ORDER BY symbol, first_at`, [FROM, lcPatterns]);
-  const fired = await pool.query<{ id: number; symbol: string; detected_at: Date; status: string; pnl_percent: number | null }>(
-    `SELECT id, symbol, detected_at, status::text AS status, pnl_percent FROM tracked_signals
-      WHERE sentiment_key = 'liquidation_cascade' AND detected_at >= to_timestamp($1 / 1000.0) ORDER BY detected_at`, [FROM]);
+  const rangeRow = load<{ first: string | null; last: string | null }>("range").rows[0];
+  const range = { rows: [{ first: rangeRow?.first ? new Date(rangeRow.first) : null, last: rangeRow?.last ? new Date(rangeRow.last) : null }] };
+  const rej = load<{ symbol: string; reason: string; hour: string; first_at: string; oi30m: number | null; vol_mult: number | null; price24h: number | null; n: string }>("rejects");
+  const fired = load<{ id: number; symbol: string; detected_at: string; status: string; pnl_percent: number | null }>("fired");
 
   type Ep = { symbol: string; start: number; last: number; reasons: Map<string, number>; first: string; oi30m: number | null; vol: number | null; p24: number | null };
   const eps: Ep[] = [];
@@ -159,7 +166,6 @@ async function main() {
   ];
   writeFileSync(join(OUT, "summary.txt"), out.join("\n") + "\n");
   console.log(out.slice(0, 7).join("\n"));
-  await pool.end();
 }
 
 main().then(() => process.exit(0)).catch((err) => { console.error(err); process.exit(1); });

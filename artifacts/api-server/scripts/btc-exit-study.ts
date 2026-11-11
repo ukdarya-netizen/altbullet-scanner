@@ -13,12 +13,16 @@
  *      ranges), and every trade: pattern, time, peak and low within 4 days, result now and in the best
  *      variants; trades.csv; variants.csv.
  *
- * Run (from artifacts/api-server; production DB read only):
- *   pnpm dlx tsx scripts/btc-exit-study.ts --out ../../reports/btc-exit
+ * The script does not connect to any database: the agent exports the rows with its read-only production SQL
+ * tool into a JSON file (array of row objects):
+ *   SELECT id, sentiment_key, detected_at, entry_price, status::text AS status, pnl_percent, stop_loss_pct, is_short
+ *     FROM tracked_signals WHERE symbol IN ('BTC-USDT', 'BTCUSDT') AND status::text <> 'reclassified' AND entry_price > 0
+ *    ORDER BY detected_at
+ * Run (from artifacts/api-server):
+ *   pnpm dlx tsx scripts/btc-exit-study.ts --signals <json file> --out ../../reports/btc-exit
  */
 import { join } from "node:path";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { pool } from "@workspace/db";
 import { type Row, ensureDir, parseArgs, writeCsv } from "./study-v2/lib.js";
 
 const args = parseArgs();
@@ -88,13 +92,11 @@ function sim(cs: C[], i0: number, at: number, entry: number, v: V, now: number):
 async function main() {
   ensureDir(OUT); ensureDir(CACHE);
   const now = Date.now();
-  const sig = await pool.query<{ id: number; sentiment_key: string; detected_at: Date; entry_price: number; status: string; pnl_percent: number | null; stop_loss_pct: number | null; is_short: boolean | null }>(
-    `SELECT id, sentiment_key, detected_at, entry_price, status::text AS status, pnl_percent, stop_loss_pct, is_short
-       FROM tracked_signals
-      WHERE symbol IN ('BTC-USDT', 'BTCUSDT') AND status::text <> 'reclassified' AND entry_price > 0
-      ORDER BY detected_at`);
+  const f = args.get("signals");
+  if (!f) throw new Error("--signals <json file> is required");
+  const sig = { rows: (JSON.parse(readFileSync(f, "utf8")) as { id: number; sentiment_key: string; detected_at: string; entry_price: number; status: string; pnl_percent: number | null; stop_loss_pct: number | null; is_short: boolean | null }[]).map((r) => ({ ...r, detected_at: new Date(r.detected_at) })) };
   const rows = sig.rows.filter((r) => r.is_short !== true);
-  if (!rows.length) { writeFileSync(join(OUT, "summary.txt"), "BTC-сигналов CAB в базе нет\n"); await pool.end(); return; }
+  if (!rows.length) { writeFileSync(join(OUT, "summary.txt"), "BTC-сигналов CAB в базе нет\n"); return; }
   const cs = await klines5m(new Date(rows[0]!.detected_at).getTime() - D1, now);
   const per: Row[] = [];
   const res = new Map<string, number[]>();
@@ -138,7 +140,6 @@ async function main() {
   ];
   writeFileSync(join(OUT, "summary.txt"), out.join("\n") + "\n");
   console.log(out.slice(0, 8).join("\n"));
-  await pool.end();
 }
 
 main().then(() => process.exit(0)).catch((err) => { console.error(err); process.exit(1); });
