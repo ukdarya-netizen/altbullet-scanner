@@ -88,11 +88,12 @@ import { applyNeonNoWaitRecalc } from "./lib/neon-no-wait-recalc.js";
 import { neutralizeNonAggregatedOpenPositions } from "./lib/non-aggregated-data-neutral-close.js";
 import { neutralizeReviewedStealthVolumeGateSignals } from "./lib/stealth-volume-gate-neutral-close.js";
 import { neutralizeNeonVolumeGateSignals } from "./lib/neon-volume-gate-neutral-close.js";
-import { runAbneonGateNeutralClose } from "./lib/abneon-gate-neutral-close.js";
-import { runAbneonLowBounceNeutralClose } from "./lib/abneon-low-bounce-neutral-close.js";
 import { excludeAbneonNovemberStops } from "./lib/abneon-nov-stops-neutral.js";
+import { runAbneonLowBounceNeutralClose } from "./lib/abneon-low-bounce-neutral-close.js";
+import { reclassifyClosedAbneonNovemberStats } from "./lib/abneon-november-neutral-reclassification.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
 import { neutralizeStealthOnPublish } from "./lib/stealth-publish-neutral-close.js";
+import { neutralizeStealthNovemberPositions } from "./lib/stealth-month-neutral-close.js";
 import { neutralizeNeonFlowGateSignals } from "./lib/neon-flow-gate-neutral-close.js";
 import { quarantineExpiredMilestoneRecipients } from "./lib/milestone-delivery-db.js";
 import { ensureAltBulletSnapshotRetrySchema } from "./lib/altbullet-snapshot-schema.js";
@@ -5899,13 +5900,12 @@ app.listen(port, async (err) => {
       // Non-fatal: the transaction rolled back, rows stay unchanged.
       logger.error({ err }, "ABNeon November stop exclusion failed");
     }
-    // Owner 2026-11-07: open ABNeon positions the pre-touch volume gate would reject → neutral close.
-    // Needs BingX + CoinGlass, so it runs in the background and never delays the start.
-    setTimeout(() => {
-      runAbneonGateNeutralClose()
-        .then((r) => logger.info(r, "ABNeon pre-touch volume gate neutral close reviewed"))
-        .catch((err) => logger.error({ err }, "ABNeon pre-touch volume gate neutral close failed"));
-    }, 60_000);
+    try {
+      const abneonStats = await reclassifyClosedAbneonNovemberStats();
+      logger.info(abneonStats, "ABNeon November closed outcomes neutralized");
+    } catch (err) {
+      logger.error({ err }, "ABNeon November neutralization failed");
+    }
     // Owner 2026-11-11: low-bounce ABNeon fired by the first rule (no bright volume on the low) → neutral close.
     try {
       const lowClose = await runAbneonLowBounceNeutralClose();
@@ -5936,6 +5936,18 @@ app.listen(port, async (err) => {
       );
     } catch (err) {
       logger.error({ err }, "Open Stealth publish neutral close failed");
+    }
+    try {
+      const stealthMonthClose = await neutralizeStealthNovemberPositions();
+      logger.info(
+        { stealthMonthClose },
+        "Stealth November positions neutralized in tracker",
+      );
+    } catch (err) {
+      logger.error(
+        { err },
+        "Stealth November tracker neutralization failed",
+      );
     }
     try {
       const neonFlowGateClose = await neutralizeNeonFlowGateSignals();
