@@ -1,0 +1,14 @@
+{
+ "OLAXBT-USDT": "Error: code 109425 OLAXBT-USDT not exist, please verify it in api: /openApi/swap/v2/quote/contracts",
+ "EVERLYN-USDT": "Error: code 109425 EVERLYN-USDT not exist, please verify it in api: /openApi/swap/v2/quote/contracts",
+ "HOT-USDT": "short_history",
+ "FLOAT-USDT": "short_history",
+ "KNTQ-USDT": "short_history",
+ "KOR-USDT": "short_history",
+ "GATO-USDT": "short_history",
+ "GMBSC-USDT": "short_history",
+ "CHOO-USDT": "short_history",
+ "NIUBI-USDT": "short_history",
+ "PUSSY-USDT": "short_history",
+ "MIHAO-USDT": "short_history"
+}
