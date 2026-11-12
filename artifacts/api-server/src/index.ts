@@ -95,6 +95,7 @@ import { runStealthVsaPublishNeutralClose } from "./lib/stealth-vsa-publish-neut
 import { runBtcCrowdNeutralClose } from "./lib/btc-crowd-neutral-close.js";
 import { runLcMonthNeutralClose } from "./lib/lc-month-neutral-close.js";
 import { runAbneonMonthVolumeOneTime } from "./lib/abneon-month-volume-neutral-close.js";
+import { runLevelTakeTracking } from "./lib/level-takes-tracking.js";
 import { reclassifyClosedAbneonNovemberStats } from "./lib/abneon-november-neutral-reclassification.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
 import { neutralizeStealthOnPublish } from "./lib/stealth-publish-neutral-close.js";
@@ -6416,6 +6417,17 @@ app.listen(port, async (err) => {
       );
     setTimeout(runLcRapidRebound, 90_000);
     setInterval(runLcRapidRebound, 5 * 60 * 1000);
+
+    // Owner 2026-11-12, research only: ABNeon / Stealth take levels (ABNeon 4H levels from +10%) and when the
+    // price reached them (level-takes-tracking.ts). Never changes a trade.
+    const runLevelTakes = () =>
+      runOptionalDbJob(
+        "level-take-tracking",
+        getScannerDbAdmissionBlocker() !== null,
+        () => runWhenMarketCycleIdle(isMarketCycleLeaseBusy, async () => { await runLevelTakeTracking(); }),
+      ).catch((err) => logger.warn({ err }, "level take tracking failed"));
+    setTimeout(runLevelTakes, 150_000);
+    setInterval(runLevelTakes, 10 * 60 * 1000);
 
     // Fills historical OI/CVD/taker at the crossing time of Stealth arms
     // (separate field, never mixed with live captures).
