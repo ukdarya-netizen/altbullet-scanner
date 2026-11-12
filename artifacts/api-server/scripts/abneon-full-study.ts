@@ -9,6 +9,7 @@
  *   volume (CoinGlass aggregated FUTURES and aggregated SPOT, separately): Welkin / VSA of the touch, the
  *         deepest and the reaction 1H candles and of the 4H signal candle, the 12 / 24 bars before, the bars
  *         between touch and entry, taker delta before / in / at / after, spot CVD, spot ÷ futures volume;
+ *         the last 24h vs the coin's own 30-day average and 60-day busiest day, the touch 4H bar vs 60 bars;
  *   open interest (aggregated): change 4h / 24h / 72h before the entry and from the touch to the entry;
  *   trend: change 24h / 7d / 30d, vs EMA50 / EMA200 4H, drop from the 30-day high, ATR 4H %;
  *   BTC: change 24h / 7d, vs EMA50 4H;
@@ -146,6 +147,26 @@ function readings(e: Entry, h4: C[], h1: C[], aggF: Map<number, VBar> | null, ag
     for (const [k, v] of Object.entries(vr)) if (!k.startsWith(`${p}_post_`)) r[k] = typeof v === "number" ? r2(v * 100) / 100 : v;
     r[`${p}_sig4h_welkin`] = welkin(h4v, i4);
     r[`${p}_prev4h_welkin`] = i4 > 0 ? welkin(h4v, i4 - 1) : null;
+  }
+  // Long-range volume context (owner 2026-11-12, CFX: tiny volume vs its own history, yet blue on 20 bars):
+  // the last 24h and the touch 4H bar against the coin's own 30-day / 60-day history.
+  for (const [p, vb] of [["fut", aggF], ["spot", aggS]] as const) {
+    if (!vb) continue;
+    const at = h1[trig]!.time;
+    const sum = (a: number, b: number) => { let s = 0, n = 0; for (let t = a; t <= b; t += H1) { const x = vb.get(t); if (x) { s += x.buy + x.sell; n++; } } return n ? s : null; };
+    const last24 = sum(at - 23 * H1, at);
+    const days: number[] = [];
+    for (let d = 1; d <= 60; d++) { const v = sum(at - (24 * d + 23) * H1, at - 24 * d * H1); if (v !== null) days.push(v); }
+    const d30 = days.slice(0, 30);
+    if (last24 !== null && d30.length >= 20) {
+      r[`${p}_vol24h_vs_30d_avg`] = r2(last24 / (d30.reduce((a, b) => a + b, 0) / d30.length));
+      r[`${p}_vol24h_vs_60d_max_day`] = days.length >= 40 ? r2(last24 / Math.max(...days)) : null;
+    }
+    const touch4 = Math.floor(h1[first]!.time / H4) * H4;
+    const bar4 = sum(touch4, touch4 + 3 * H1);
+    const prev4: number[] = [];
+    for (let k = 1; k <= 60; k++) { const v = sum(touch4 - k * H4, touch4 - k * H4 + 3 * H1); if (v !== null) prev4.push(v); }
+    if (bar4 !== null && prev4.length >= 40) r[`${p}_touch4h_vs_60bar_avg`] = r2(bar4 / (prev4.reduce((a, b) => a + b, 0) / prev4.length));
   }
   if (aggF && aggS) {
     let f = 0, s = 0;
