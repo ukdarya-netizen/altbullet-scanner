@@ -95,6 +95,7 @@ import { runStealthVsaPublishNeutralClose } from "./lib/stealth-vsa-publish-neut
 import { runBtcCrowdNeutralClose } from "./lib/btc-crowd-neutral-close.js";
 import { runLcMonthNeutralClose } from "./lib/lc-month-neutral-close.js";
 import { restoreGrvtZestAfterMonthVolumeClose } from "./lib/abneon-month-volume-restore.js";
+import { runAbneonLucyLevelNeutralClose } from "./lib/abneon-lucy-level-neutral-close.js";
 import { runLevelTakeTracking } from "./lib/level-takes-tracking.js";
 import { reclassifyClosedAbneonNovemberStats } from "./lib/abneon-november-neutral-reclassification.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
@@ -5992,6 +5993,11 @@ app.listen(port, async (err) => {
     void restoreGrvtZestAfterMonthVolumeClose()
       .then((r) => logger.info(r, "ABNeon GRVT/ZEST restore after the month-volume close"))
       .catch((err) => logger.error({ err }, "ABNeon GRVT/ZEST restore failed"));
+    // Owner 2026-11-12, one-time: open ABNeon positions that Lucy's VSA rule or the entry-at-the-level rule would not
+    // have let through are closed neutrally (GRVT and ZEST excluded). Marker + a hard detected_at cut-off.
+    void runAbneonLucyLevelNeutralClose()
+      .then((r) => logger.info(r, "ABNeon Lucy/level one-time close reviewed"))
+      .catch((err) => logger.error({ err }, "ABNeon Lucy/level one-time close failed"));
     try {
       const neonFlowGateClose = await neutralizeNeonFlowGateSignals();
       logger.info(
