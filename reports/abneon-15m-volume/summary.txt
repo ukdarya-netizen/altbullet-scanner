@@ -1,0 +1,215 @@
+ABNeon: зоны 4H, объём 15m (агрегированный CoinGlass) · 2026-09-29 … 2026-11-12 · монет 560, касаний зоны 58039
+Окно входа 48 ч после касания; касание отменяется, если 4H закрылась под зоной до входа. Выход как живой ABNeon (стоп под зоной −1%, Б.У. +10, трейл +20/20, отмена 4H под уровнем, 4 дня, комиссия 0.1%).
+
+LIVE: сделок 7685 (174.7 в день) · закрыто 7445 · ср -1.5% · сумма -11143% · в плюсе 15% · пик≥10 15% · ожидание 1…24 ч
+   по месяцам: 2026-09 n453 -1% · 2026-10 n5448 -1.35% · 2026-11 n1544 -2.16%
+F15: сделок 5401 (122.8 в день) · закрыто 5234 · ср -1.97% · сумма -10292% · в плюсе 15% · пик≥10 14% · ожидание 0.25…48 ч
+   по месяцам: 2026-09 n346 -1.02% · 2026-10 n3796 -1.85% · 2026-11 n1092 -2.69%
+S15: сделок 5168 (117.5 в день) · закрыто 5008 · ср -1.84% · сумма -9227% · в плюсе 15% · пик≥10 14% · ожидание 0.25…48 ч
+   по месяцам: 2026-09 n324 -0.85% · 2026-10 n3673 -1.75% · 2026-11 n1011 -2.5%
+FS15: сделок 3999 (90.9 в день) · закрыто 3864 · ср -2.21% · сумма -8539% · в плюсе 15% · пик≥10 15% · ожидание 0.25…48 ч
+   по месяцам: 2026-09 n255 -1.24% · 2026-10 n2830 -2.09% · 2026-11 n779 -2.95%
+F15_LUCY: сделок 5311 (120.7 в день) · закрыто 5144 · ср -1.99% · сумма -10238% · в плюсе 15% · пик≥10 14% · ожидание 0.25…48 ч
+   по месяцам: 2026-09 n341 -0.96% · 2026-10 n3724 -1.87% · 2026-11 n1079 -2.72%
+F15_IN_ZONE: сделок 3959 (90.0 в день) · закрыто 3851 · ср -1.68% · сумма -6455% · в плюсе 11% · пик≥10 12% · ожидание 0.25…48 ч
+   по месяцам: 2026-09 n230 -1.45% · 2026-10 n2816 -1.54% · 2026-11 n805 -2.22%
+F15_RECLAIM: сделок 4333 (98.5 в день) · закрыто 4176 · ср -2.43% · сумма -10144% · в плюсе 15% · пик≥10 16% · ожидание 0.25…48 ч
+   по месяцам: 2026-09 n297 -1.23% · 2026-10 n3050 -2.29% · 2026-11 n829 -3.36%
+F15_SECOND: сделок 4296 (97.6 в день) · закрыто 4149 · ср -2.26% · сумма -9395% · в плюсе 15% · пик≥10 15% · ожидание 0.5…48 ч
+   по месяцам: 2026-09 n280 -1.4% · 2026-10 n3032 -2.09% · 2026-11 n837 -3.18%
+F15_ANY_LOW: сделок 3879 (88.2 в день) · закрыто 3714 · ср -1.67% · сумма -6184% · в плюсе 15% · пик≥10 13% · ожидание 0.5…48 ч
+   по месяцам: 2026-09 n158 -1.31% · 2026-10 n2797 -1.58% · 2026-11 n759 -2.05%
+
+Твои монеты с 28.10 04:00 (Дубай): каждое касание и что сделал каждый вход (итог %, — = входа не было):
+  CFX        касание 28.10 20:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -3.1 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  CFX        касание 30.10 04:00 · LIVE 0.68 · F15 -1.62 · S15 1.22 · FS15 -0.01 · F15_LUCY -1.62 · F15_IN_ZONE 0.91 · F15_RECLAIM -1.62 · F15_SECOND 0.91 · F15_ANY_LOW 0.39
+  CFX        касание 03.11 16:00 · LIVE -1.57 · F15 — · S15 -3.1 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  CFX        касание 04.11 00:00 · LIVE — · F15 -3.1 · S15 — · FS15 -5.88 · F15_LUCY -3.1 · F15_IN_ZONE -3.1 · F15_RECLAIM -5.88 · F15_SECOND -3.94 · F15_ANY_LOW —
+  CFX        касание 04.11 08:00 · LIVE -0.84 · F15 — · S15 -0.23 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  CFX        касание 04.11 09:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -1.46
+  CFX        касание 06.11 06:00 · LIVE — · F15 -2.61 · S15 -2.61 · FS15 -2.61 · F15_LUCY -2.61 · F15_IN_ZONE — · F15_RECLAIM -2.61 · F15_SECOND — · F15_ANY_LOW —
+  CFX        касание 06.11 12:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -1.14
+  CFX        касание 06.11 20:00 · LIVE -3 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  CFX        касание 08.11 08:00 · LIVE — · F15 -3.31 · S15 -3.31 · FS15 -3.31 · F15_LUCY -3.31 · F15_IN_ZONE — · F15_RECLAIM -3.31 · F15_SECOND -3.1 · F15_ANY_LOW -3.54
+  CFX        касание 09.11 00:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  CFX        касание 09.11 05:00 · LIVE -2.6 · F15 — · S15 -0.3 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  CFX        касание 09.11 13:00 · LIVE -1.44 · F15 -2.18 · S15 -1.72 · FS15 -2.18 · F15_LUCY -3.15 · F15_IN_ZONE -1.82 · F15_RECLAIM -2.18 · F15_SECOND -1.87 · F15_ANY_LOW -3.43
+  CFX        касание 11.11 00:00 · LIVE -0.59 · F15 -1 · S15 -0.47 · FS15 -1 · F15_LUCY -1 · F15_IN_ZONE -1 · F15_RECLAIM -3.1 · F15_SECOND -1.08 · F15_ANY_LOW —
+  CFX        касание 11.11 04:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -3.1
+  EDGEX      касание 03.11 00:00 · LIVE — · F15 -0.1 · S15 — · FS15 — · F15_LUCY -0.1 · F15_IN_ZONE — · F15_RECLAIM -0.1 · F15_SECOND -0.1 · F15_ANY_LOW -0.1
+  EDGEX      касание 03.11 16:00 · LIVE -5.03 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  EDGEX      касание 05.11 20:00 · LIVE — · F15 -0.1 · S15 — · FS15 — · F15_LUCY -0.1 · F15_IN_ZONE — · F15_RECLAIM -0.1 · F15_SECOND 26.92 · F15_ANY_LOW —
+  EDGEX      касание 07.11 20:00 · LIVE 19.63 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW 16.12
+  EDGEX      касание 09.11 20:00 · LIVE — · F15 -7.83 · S15 — · FS15 — · F15_LUCY -7.83 · F15_IN_ZONE — · F15_RECLAIM -7.83 · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 28.10 08:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -3.1
+  ELSA       касание 28.10 16:00 · LIVE -5.31 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 29.10 16:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 30.10 08:00 · LIVE -1.33 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 30.10 20:00 · LIVE — · F15 -9.02 · S15 -9.02 · FS15 -9.02 · F15_LUCY -9.02 · F15_IN_ZONE — · F15_RECLAIM -9.02 · F15_SECOND -8.39 · F15_ANY_LOW —
+  ELSA       касание 31.10 00:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -3.1 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 31.10 04:00 · LIVE -7.01 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 02.11 03:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE 55.32 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW 55.92
+  ELSA       касание 02.11 08:00 · LIVE 55.56 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 03.11 04:00 · LIVE — · F15 55.73 · S15 55.73 · FS15 55.73 · F15_LUCY 55.73 · F15_IN_ZONE — · F15_RECLAIM 41.67 · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 04.11 08:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND 38.42 · F15_ANY_LOW —
+  ELSA       касание 05.11 12:00 · LIVE -6.23 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 07.11 12:00 · LIVE — · F15 -8.44 · S15 -0.1 · FS15 -0.1 · F15_LUCY -8.44 · F15_IN_ZONE -0.1 · F15_RECLAIM -8.44 · F15_SECOND -0.1 · F15_ANY_LOW -7.18
+  ELSA       касание 07.11 16:00 · LIVE -4.07 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 09.11 00:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ELSA       касание 09.11 23:00 · LIVE идёт · F15 идёт · S15 идёт · FS15 идёт · F15_LUCY идёт · F15_IN_ZONE идёт · F15_RECLAIM идёт · F15_SECOND идёт · F15_ANY_LOW —
+  ELSA       касание 11.11 16:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW идёт
+  ERA        касание 29.10 00:00 · LIVE -9.49 · F15 -6.96 · S15 -10.35 · FS15 -6.77 · F15_LUCY -6.96 · F15_IN_ZONE -6.96 · F15_RECLAIM -8.76 · F15_SECOND -6.77 · F15_ANY_LOW -7.58
+  ERA        касание 29.10 16:00 · LIVE — · F15 — · S15 -5.78 · FS15 -5.78 · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND -1.07 · F15_ANY_LOW —
+  ERA        касание 30.10 08:00 · LIVE -4.46 · F15 -3.95 · S15 — · FS15 — · F15_LUCY -0.38 · F15_IN_ZONE -3.95 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -0.38
+  ERA        касание 31.10 20:00 · LIVE — · F15 -5.14 · S15 -5.14 · FS15 -5.14 · F15_LUCY -4.47 · F15_IN_ZONE -5.14 · F15_RECLAIM — · F15_SECOND -4.47 · F15_ANY_LOW -3.1
+  ERA        касание 01.11 08:00 · LIVE -9.02 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -3.85 · F15_RECLAIM -9.63 · F15_SECOND — · F15_ANY_LOW —
+  ERA        касание 02.11 04:00 · LIVE — · F15 14.41 · S15 14.41 · FS15 14.41 · F15_LUCY 14.41 · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND 11.53 · F15_ANY_LOW 11.32
+  ERA        касание 03.11 06:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -4.48 · F15_RECLAIM -5.81 · F15_SECOND — · F15_ANY_LOW —
+  ERA        касание 03.11 16:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ERA        касание 03.11 20:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE 16 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ERA        касание 04.11 04:00 · LIVE 17.08 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ERA        касание 04.11 09:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM 12.26 · F15_SECOND — · F15_ANY_LOW —
+  ERA        касание 08.11 12:00 · LIVE -3.1 · F15 -3.38 · S15 — · FS15 — · F15_LUCY -3.38 · F15_IN_ZONE -3.38 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ERA        касание 08.11 17:00 · LIVE -3.1 · F15 -3.25 · S15 -3.25 · FS15 -3.25 · F15_LUCY -3.25 · F15_IN_ZONE -3.25 · F15_RECLAIM -3.25 · F15_SECOND — · F15_ANY_LOW —
+  ERA        касание 08.11 20:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND -3.1 · F15_ANY_LOW -3.73
+  ERA        касание 09.11 08:00 · LIVE — · F15 -3.29 · S15 — · FS15 — · F15_LUCY -3.29 · F15_IN_ZONE -3.29 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  ERA        касание 10.11 20:00 · LIVE идёт · F15 идёт · S15 -0.1 · FS15 -0.1 · F15_LUCY идёт · F15_IN_ZONE идёт · F15_RECLAIM -0.1 · F15_SECOND -0.1 · F15_ANY_LOW —
+  ERA        касание 11.11 04:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -0.1
+  ERA        касание 11.11 08:00 · LIVE — · F15 — · S15 идёт · FS15 идёт · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM идёт · F15_SECOND идёт · F15_ANY_LOW —
+  GANG       касание 03.11 00:00 · LIVE 31.58 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  GANG       касание 06.11 16:00 · LIVE -15.1 · F15 -0.1 · S15 — · FS15 — · F15_LUCY -0.1 · F15_IN_ZONE — · F15_RECLAIM -0.1 · F15_SECOND 0.76 · F15_ANY_LOW -15.1
+  GANG       касание 07.11 04:00 · LIVE 9.14 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  GANG       касание 09.11 16:00 · LIVE 0.7 · F15 0.7 · S15 — · FS15 — · F15_LUCY 0.7 · F15_IN_ZONE 0.7 · F15_RECLAIM 0.7 · F15_SECOND -0.1 · F15_ANY_LOW —
+  GANG       касание 10.11 02:00 · LIVE -3.85 · F15 -0.1 · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -0.1 · F15_RECLAIM -11.4 · F15_SECOND -0.1 · F15_ANY_LOW -7.67
+  GANG       касание 10.11 08:00 · LIVE — · F15 -11.4 · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  GANG       касание 10.11 12:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  GANG       касание 11.11 01:00 · LIVE — · F15 -4.78 · S15 — · FS15 — · F15_LUCY -4.78 · F15_IN_ZONE -4.78 · F15_RECLAIM -8.18 · F15_SECOND -8.18 · F15_ANY_LOW —
+  GANG       касание 11.11 04:00 · LIVE -8.74 · F15 -9.74 · S15 — · FS15 — · F15_LUCY -9.74 · F15_IN_ZONE -9.74 · F15_RECLAIM -9.74 · F15_SECOND -3.1 · F15_ANY_LOW —
+  GANG       касание 11.11 12:00 · LIVE — · F15 -3.1 · S15 — · FS15 — · F15_LUCY -3.1 · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 28.10 20:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 29.10 00:00 · LIVE — · F15 -3.1 · S15 -3.1 · FS15 -3.1 · F15_LUCY -3.1 · F15_IN_ZONE — · F15_RECLAIM -3.1 · F15_SECOND -3.96 · F15_ANY_LOW -1.4
+  HBAR       касание 29.10 04:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 30.10 20:00 · LIVE — · F15 -4.56 · S15 -4.56 · FS15 -4.56 · F15_LUCY -3.45 · F15_IN_ZONE — · F15_RECLAIM -4.56 · F15_SECOND -4.05 · F15_ANY_LOW —
+  HBAR       касание 01.11 12:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -3.1 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -3.46
+  HBAR       касание 02.11 04:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 02.11 12:00 · LIVE -1.53 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -1.81 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW 0.05
+  HBAR       касание 03.11 01:00 · LIVE — · F15 -1.81 · S15 -3.1 · FS15 -3.22 · F15_LUCY -1.81 · F15_IN_ZONE — · F15_RECLAIM -1.81 · F15_SECOND -3.22 · F15_ANY_LOW —
+  HBAR       касание 04.11 00:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 04.11 08:00 · LIVE — · F15 -7.96 · S15 -6.64 · FS15 -7.96 · F15_LUCY -7.96 · F15_IN_ZONE — · F15_RECLAIM -7.96 · F15_SECOND -8.43 · F15_ANY_LOW -4.67
+  HBAR       касание 06.11 04:00 · LIVE -2.88 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -2.1 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 09.11 00:00 · LIVE -1.6 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 09.11 08:00 · LIVE -1.6 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 09.11 12:00 · LIVE — · F15 -3.1 · S15 -3.82 · FS15 -3.82 · F15_LUCY -3.1 · F15_IN_ZONE -1.26 · F15_RECLAIM -3.1 · F15_SECOND -3.82 · F15_ANY_LOW —
+  HBAR       касание 09.11 15:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -1.52
+  HBAR       касание 10.11 20:00 · LIVE -0.72 · F15 — · S15 -1.07 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 11.11 04:00 · LIVE — · F15 — · S15 -1.6 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 11.11 16:00 · LIVE — · F15 -1.41 · S15 -1.2 · FS15 -3.1 · F15_LUCY -1.41 · F15_IN_ZONE -1.41 · F15_RECLAIM -3.1 · F15_SECOND -3.1 · F15_ANY_LOW —
+  HBAR       касание 11.11 19:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  HBAR       касание 11.11 20:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW идёт
+  HBAR       касание 12.11 04:00 · LIVE идёт · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  INIT       касание 28.10 08:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW 19.53
+  INIT       касание 31.10 00:00 · LIVE — · F15 -0.1 · S15 -0.1 · FS15 -0.1 · F15_LUCY -0.1 · F15_IN_ZONE — · F15_RECLAIM -0.1 · F15_SECOND -0.1 · F15_ANY_LOW -0.1
+  INIT       касание 02.11 15:00 · LIVE -13.14 · F15 -9.89 · S15 -9.89 · FS15 -9.89 · F15_LUCY -9.89 · F15_IN_ZONE -9.89 · F15_RECLAIM — · F15_SECOND -13.41 · F15_ANY_LOW -12.9
+  INIT       касание 03.11 08:00 · LIVE -3.1 · F15 -4.41 · S15 -4.41 · FS15 -4.41 · F15_LUCY -4.41 · F15_IN_ZONE -4.41 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -4.41
+  INIT       касание 03.11 12:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  INIT       касание 04.11 04:00 · LIVE -0.1 · F15 2.91 · S15 2.91 · FS15 2.91 · F15_LUCY 2.91 · F15_IN_ZONE 2.91 · F15_RECLAIM 2.91 · F15_SECOND 0.16 · F15_ANY_LOW —
+  INIT       касание 04.11 14:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -0.1
+  INIT       касание 05.11 12:00 · LIVE -8.49 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -2.91 · F15_RECLAIM — · F15_SECOND -0.9 · F15_ANY_LOW -3.1
+  INIT       касание 06.11 04:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -0.9
+  INIT       касание 06.11 12:00 · LIVE -0.9 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  INIT       касание 06.11 20:00 · LIVE — · F15 -2.7 · S15 -2.7 · FS15 -2.7 · F15_LUCY -2.7 · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  INIT       касание 08.11 00:00 · LIVE — · F15 51.19 · S15 51.19 · FS15 51.19 · F15_LUCY 51.19 · F15_IN_ZONE -0.1 · F15_RECLAIM -0.1 · F15_SECOND -0.1 · F15_ANY_LOW —
+  INIT       касание 08.11 07:00 · LIVE 51.65 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  INIT       касание 08.11 10:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW 50.23
+  INIT       касание 09.11 16:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM 29.51 · F15_SECOND 25.93 · F15_ANY_LOW —
+  INIT       касание 11.11 00:00 · LIVE -0.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  INIT       касание 11.11 08:00 · LIVE -10.64 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  INIT       касание 12.11 00:00 · LIVE -0.1 · F15 идёт · S15 идёт · FS15 идёт · F15_LUCY идёт · F15_IN_ZONE идёт · F15_RECLAIM — · F15_SECOND -0.1 · F15_ANY_LOW —
+  INIT       касание 12.11 08:00 · LIVE -0.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM идёт · F15_SECOND идёт · F15_ANY_LOW —
+  INIT       касание 12.11 09:00 · LIVE идёт · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  JASMY      касание 03.11 08:00 · LIVE — · F15 0.39 · S15 -1.61 · FS15 -4.33 · F15_LUCY 0.39 · F15_IN_ZONE — · F15_RECLAIM 0.39 · F15_SECOND -4.33 · F15_ANY_LOW —
+  JASMY      касание 03.11 12:00 · LIVE -1.87 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  JASMY      касание 05.11 20:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -3.84
+  JASMY      касание 06.11 12:00 · LIVE — · F15 -4.41 · S15 -5.16 · FS15 — · F15_LUCY -4.41 · F15_IN_ZONE — · F15_RECLAIM -4.41 · F15_SECOND — · F15_ANY_LOW —
+  JASMY      касание 07.11 04:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -3.1 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  JASMY      касание 07.11 16:00 · LIVE -4.83 · F15 — · S15 — · FS15 -3.1 · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND -3.1 · F15_ANY_LOW —
+  JASMY      касание 09.11 00:00 · LIVE идёт · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  JASMY      касание 09.11 04:00 · LIVE — · F15 идёт · S15 идёт · FS15 идёт · F15_LUCY идёт · F15_IN_ZONE — · F15_RECLAIM идёт · F15_SECOND идёт · F15_ANY_LOW —
+  JASMY      касание 09.11 16:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW идёт
+  KNOTS      касание 30.10 04:00 · LIVE -0.1 · F15 -9.05 · S15 — · FS15 — · F15_LUCY -9.05 · F15_IN_ZONE — · F15_RECLAIM -9.05 · F15_SECOND — · F15_ANY_LOW —
+  KNOTS      касание 30.10 08:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -10.23
+  KNOTS      касание 02.11 04:00 · LIVE -6.3 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  KNOTS      касание 06.11 04:00 · LIVE -0.1 · F15 -14.37 · S15 — · FS15 — · F15_LUCY -14.37 · F15_IN_ZONE — · F15_RECLAIM -14.37 · F15_SECOND — · F15_ANY_LOW —
+  KNOTS      касание 06.11 20:00 · LIVE -15.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -15.1
+  KNOTS      касание 08.11 04:00 · LIVE -11.95 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  PIEVERSE   касание 29.10 08:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND 0.21 · F15_ANY_LOW -1.34
+  PIEVERSE   касание 29.10 13:00 · LIVE -3.16 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  PIEVERSE   касание 29.10 20:00 · LIVE — · F15 0.21 · S15 0.21 · FS15 0.21 · F15_LUCY 0.21 · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  PIEVERSE   касание 30.10 00:00 · LIVE 18.76 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  PIEVERSE   касание 30.10 12:00 · LIVE — · F15 17.39 · S15 17.39 · FS15 17.39 · F15_LUCY 17.39 · F15_IN_ZONE 16.13 · F15_RECLAIM 15.92 · F15_SECOND 16.13 · F15_ANY_LOW 16.13
+  PIEVERSE   касание 06.11 12:00 · LIVE 38.32 · F15 -0.1 · S15 -0.1 · FS15 -0.1 · F15_LUCY -0.1 · F15_IN_ZONE — · F15_RECLAIM -0.1 · F15_SECOND -0.1 · F15_ANY_LOW —
+  PIEVERSE   касание 07.11 08:00 · LIVE — · F15 41.02 · S15 41.02 · FS15 41.02 · F15_LUCY 41.02 · F15_IN_ZONE — · F15_RECLAIM 41.02 · F15_SECOND 38.94 · F15_ANY_LOW —
+  PIEVERSE   касание 09.11 16:00 · LIVE — · F15 -10.03 · S15 -0.1 · FS15 -10.03 · F15_LUCY -10.03 · F15_IN_ZONE — · F15_RECLAIM -10.03 · F15_SECOND -12.55 · F15_ANY_LOW -10.03
+  PIEVERSE   касание 09.11 20:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -3.1 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  PIEVERSE   касание 10.11 00:00 · LIVE -3.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -5.01 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  PIEVERSE   касание 10.11 08:00 · LIVE -3.38 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  PIEVERSE   касание 10.11 12:00 · LIVE -3.65 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  PIEVERSE   касание 11.11 08:00 · LIVE -8.47 · F15 -3.25 · S15 0.2 · FS15 0.2 · F15_LUCY -3.25 · F15_IN_ZONE -3.25 · F15_RECLAIM — · F15_SECOND 0.2 · F15_ANY_LOW —
+  PIEVERSE   касание 11.11 20:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -4.44
+  POL        касание 29.10 04:00 · LIVE — · F15 -3.84 · S15 -3.1 · FS15 -3.84 · F15_LUCY -3.84 · F15_IN_ZONE — · F15_RECLAIM -3.84 · F15_SECOND -3.77 · F15_ANY_LOW —
+  POL        касание 30.10 12:00 · LIVE -2.84 · F15 -2.6 · S15 -2.6 · FS15 -2.6 · F15_LUCY -2.6 · F15_IN_ZONE -2.6 · F15_RECLAIM -2.6 · F15_SECOND -2.91 · F15_ANY_LOW —
+  POL        касание 31.10 04:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -1.51
+  POL        касание 01.11 16:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE 4.78 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  POL        касание 02.11 04:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND 4.78 · F15_ANY_LOW —
+  POL        касание 02.11 12:00 · LIVE — · F15 -0.09 · S15 -0.09 · FS15 -0.09 · F15_LUCY -0.09 · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  POL        касание 03.11 07:00 · LIVE — · F15 — · S15 0.03 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  POL        касание 03.11 08:00 · LIVE — · F15 0.5 · S15 — · FS15 — · F15_LUCY 0.5 · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW 0.4
+  POL        касание 06.11 00:00 · LIVE — · F15 -5.52 · S15 -6.49 · FS15 -6.49 · F15_LUCY -5.52 · F15_IN_ZONE — · F15_RECLAIM -5.52 · F15_SECOND -6.49 · F15_ANY_LOW -4.72
+  POL        касание 06.11 19:00 · LIVE -3.78 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -3.49 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  POL        касание 07.11 00:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -6.29 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  POL        касание 09.11 08:00 · LIVE -3.45 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  POL        касание 10.11 08:00 · LIVE — · F15 идёт · S15 — · FS15 — · F15_LUCY идёт · F15_IN_ZONE — · F15_RECLAIM идёт · F15_SECOND идёт · F15_ANY_LOW —
+  POL        касание 10.11 16:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE идёт · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  POL        касание 10.11 20:00 · LIVE идёт · F15 — · S15 идёт · FS15 идёт · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  POL        касание 10.11 22:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW идёт
+  SI         касание 29.10 12:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -13.04
+  SI         касание 30.10 04:00 · LIVE -0.1 · F15 0.22 · S15 0.78 · FS15 -15.1 · F15_LUCY -0.1 · F15_IN_ZONE — · F15_RECLAIM 0.22 · F15_SECOND -0.1 · F15_ANY_LOW —
+  SI         касание 31.10 19:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -0.1 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -0.1
+  SI         касание 31.10 20:00 · LIVE -0.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  SI         касание 01.11 01:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -14.24 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  SI         касание 03.11 04:00 · LIVE -12.87 · F15 -0.1 · S15 -0.1 · FS15 -0.1 · F15_LUCY -0.1 · F15_IN_ZONE -6.52 · F15_RECLAIM -10.39 · F15_SECOND -10.39 · F15_ANY_LOW -3.1
+  SI         касание 03.11 14:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW 13.34
+  SI         касание 03.11 16:00 · LIVE -11.16 · F15 — · S15 -3.1 · FS15 14.07 · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND 14.07 · F15_ANY_LOW —
+  SI         касание 04.11 04:00 · LIVE 9.96 · F15 0.44 · S15 — · FS15 — · F15_LUCY 0.44 · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  SI         касание 04.11 09:00 · LIVE — · F15 4.82 · S15 2.71 · FS15 — · F15_LUCY 4.82 · F15_IN_ZONE — · F15_RECLAIM 4.82 · F15_SECOND — · F15_ANY_LOW —
+  SI         касание 04.11 16:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND -10.14 · F15_ANY_LOW —
+  SI         касание 04.11 20:00 · LIVE — · F15 -10.36 · S15 -9.83 · FS15 -12.26 · F15_LUCY -10.36 · F15_IN_ZONE — · F15_RECLAIM -10.36 · F15_SECOND — · F15_ANY_LOW —
+  SI         касание 06.11 08:00 · LIVE -3.1 · F15 -5.34 · S15 -5.34 · FS15 -5.34 · F15_LUCY -5.34 · F15_IN_ZONE -5.34 · F15_RECLAIM -5.34 · F15_SECOND -7.52 · F15_ANY_LOW —
+  SI         касание 06.11 10:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -6.96
+  SI         касание 07.11 00:00 · LIVE — · F15 — · S15 -0.49 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  SI         касание 07.11 08:00 · LIVE -0.88 · F15 1.5 · S15 1.36 · FS15 — · F15_LUCY 1.5 · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  SI         касание 07.11 16:00 · LIVE — · F15 — · S15 0.3 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  USELESS    касание 29.10 08:00 · LIVE -5.13 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  USELESS    касание 29.10 20:00 · LIVE — · F15 — · S15 -3.1 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  USELESS    касание 31.10 03:00 · LIVE — · F15 — · S15 -3.44 · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  USELESS    касание 31.10 19:00 · LIVE 14.57 · F15 7.14 · S15 7.14 · FS15 7.14 · F15_LUCY 7.14 · F15_IN_ZONE 7.14 · F15_RECLAIM 7.61 · F15_SECOND 7.61 · F15_ANY_LOW -0.1
+  USELESS    касание 09.11 02:00 · LIVE идёт · F15 -0.1 · S15 -0.1 · FS15 -0.1 · F15_LUCY -0.1 · F15_IN_ZONE — · F15_RECLAIM -0.1 · F15_SECOND -0.1 · F15_ANY_LOW —
+  USELESS    касание 10.11 20:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW идёт
+  USELESS    касание 11.11 00:00 · LIVE — · F15 — · S15 идёт · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  XTZ        касание 28.10 16:00 · LIVE -1.8 · F15 -1.98 · S15 -0.87 · FS15 -0.87 · F15_LUCY -1.98 · F15_IN_ZONE -1.98 · F15_RECLAIM -3.24 · F15_SECOND -3.24 · F15_ANY_LOW —
+  XTZ        касание 28.10 22:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -3.24
+  XTZ        касание 29.10 14:00 · LIVE -3.1 · F15 -3.1 · S15 -3.1 · FS15 -3.1 · F15_LUCY -3.1 · F15_IN_ZONE -3.1 · F15_RECLAIM -3.1 · F15_SECOND -4.91 · F15_ANY_LOW —
+  XTZ        касание 02.11 00:00 · LIVE — · F15 -3.95 · S15 -3.95 · FS15 -3.95 · F15_LUCY -3.95 · F15_IN_ZONE — · F15_RECLAIM -3.95 · F15_SECOND -4.52 · F15_ANY_LOW -1.67
+  XTZ        касание 02.11 04:00 · LIVE -4.1 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  XTZ        касание 02.11 16:00 · LIVE -0.67 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  XTZ        касание 03.11 04:00 · LIVE — · F15 7.09 · S15 7.09 · FS15 7.09 · F15_LUCY 7.09 · F15_IN_ZONE — · F15_RECLAIM 7.09 · F15_SECOND 5.74 · F15_ANY_LOW 7.09
+  XTZ        касание 03.11 12:00 · LIVE 5.18 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  XTZ        касание 04.11 08:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -0.1
+  XTZ        касание 05.11 20:00 · LIVE -0.1 · F15 -0.1 · S15 -0.1 · FS15 -0.1 · F15_LUCY -13.66 · F15_IN_ZONE — · F15_RECLAIM -0.1 · F15_SECOND -0.1 · F15_ANY_LOW —
+  XTZ        касание 06.11 16:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -2.72 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  XTZ        касание 09.11 02:00 · LIVE — · F15 -5.27 · S15 -4.77 · FS15 -5.27 · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM -5.27 · F15_SECOND — · F15_ANY_LOW —
+  XTZ        касание 09.11 04:00 · LIVE -5.2 · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  XTZ        касание 09.11 08:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND -4.35 · F15_ANY_LOW —
+  XTZ        касание 09.11 12:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE -3.1 · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
+  XTZ        касание 09.11 16:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY — · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW -6.29
+  XTZ        касание 10.11 20:00 · LIVE — · F15 — · S15 — · FS15 — · F15_LUCY -4.56 · F15_IN_ZONE — · F15_RECLAIM — · F15_SECOND — · F15_ANY_LOW —
