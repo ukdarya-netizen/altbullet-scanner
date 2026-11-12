@@ -208,3 +208,16 @@ export function monthVolumeGate(input: {
   if (fut < min || spot < min) return { ok: false, reason: "month_volume_low", fut: r(fut), spot: r(spot), min };
   return { ok: true, fut: r(fut)!, spot: r(spot)!, min };
 }
+
+/**
+ * ABNeon entry at the level (owner 2026-11-12: "входы происходят не на уровне, а хуй знает где" — USELESS, SPX,
+ * ICP, ASTER, CAP came a day after the touch, 4–15% above the zone). A zone bounce is taken only when the close of
+ * the 1H bounce candle (the entry) is not above the zone top — the entry is inside the zone.
+ * History (abneon-full, 11 001 zone bounces, 09.09–12.11): entry inside the zone −0.34% a trade (5 486), 0–1% above
+ * the top −0.86%, 1–2% −0.87%, 2–3% −0.88%, 3–4% −1.36%, above 4% −0.98%.
+ * Not for the bounce from a fresh low (no zone; its distance from the low did not separate results).
+ */
+export const ABNEON_MAX_ENTRY_ABOVE_TOP_PCT = 0;
+export function entryAboveZoneTopPct(entry: number, zoneTop: number): number | null {
+  return entry > 0 && zoneTop > 0 ? ((entry - zoneTop) / zoneTop) * 100 : null;
+}

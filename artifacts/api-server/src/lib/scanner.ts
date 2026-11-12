@@ -1,4 +1,4 @@
-import { ABNEON_PRE_TOUCH_BLUE_MIN, LUCY_LONG_BARS, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
+import { ABNEON_MAX_ENTRY_ABOVE_TOP_PCT, ABNEON_PRE_TOUCH_BLUE_MIN, LUCY_LONG_BARS, entryAboveZoneTopPct, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
 import { abneonStop, findLowBounce, lowBouncePriceCandidate } from "./abneon-low-bounce.js";
 import {
   getStealthOi4hAtBreakout,
@@ -6836,7 +6836,19 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             evidence,
           };
         } else {
-          support = { ...support, evidence };
+          // Owner 2026-11-12: entry at the level — the close of the 1H bounce candle not above the zone top.
+          const trig = closed1h.find((c) => c.time === support.triggerCandleTime);
+          const aboveTop = trig ? entryAboveZoneTopPct(trig.close, support.frozenLevel) : null;
+          const atLevel = { entryAboveTopPct: aboveTop === null ? null : Math.round(aboveTop * 100) / 100, maxPct: ABNEON_MAX_ENTRY_ABOVE_TOP_PCT };
+          support =
+            aboveTop !== null && aboveTop <= ABNEON_MAX_ENTRY_ABOVE_TOP_PCT
+              ? { ...support, evidence: { ...evidence, entryAtLevel: atLevel } }
+              : {
+                  ...support,
+                  status: "terminal",
+                  reason: aboveTop === null ? "entry_at_level_no_trigger_candle" : `entry_above_zone_top_${atLevel.entryAboveTopPct}pct`,
+                  evidence: { ...evidence, entryAtLevel: atLevel },
+                };
         }
       }
       // Owner 2026-11-11 (KNOTS, SI, GANG): a bounce from a fresh low has no ABNeon zone yet (a pivot is
