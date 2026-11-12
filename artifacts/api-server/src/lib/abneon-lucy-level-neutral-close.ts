@@ -12,7 +12,7 @@ import { getAggSpotVolumeByInterval } from "./coinglass_spot_taker.js";
  *   zone bounce: the touch 4H candle or one of the next two not grey by Lucy's VSA rule (futures + spot), and the
  *                1H bounce close not above the zone top;
  *   bounce from a fresh low: findLowBounce with Lucy's VSA rule finds the same trigger.
- * GRVT and ZEST are never touched (the owner keeps them). A row without its detector event is kept open.
+ * GRVT, ZEST and OKB are never touched (the owner keeps them). A row without its detector event is kept open.
  * A row whose market data could not be loaded is retried on the next start; after 3 starts it is kept open.
  * Every open row gets a verdict in abneon_lucy_level_review.
  *
@@ -22,7 +22,7 @@ import { getAggSpotVolumeByInterval } from "./coinglass_spot_taker.js";
 export const ABNEON_LUCY_LEVEL_CLOSE_REASON = "abneon_lucy_vsa_entry_level_neutral_close";
 const MARKER = "abneon_lucy_level_close_20261112";
 export const ABNEON_LUCY_LEVEL_CUTOFF_UTC = "2026-11-13 00:00:00+00";
-const KEEP_SYMBOLS = ["GRVT-USDT", "GRVTUSDT", "ZEST-USDT", "ZESTUSDT"];
+const KEEP_SYMBOLS = ["GRVT-USDT", "GRVTUSDT", "ZEST-USDT", "ZESTUSDT", "OKB-USDT", "OKBUSDT"];
 const H1 = 3_600_000;
 const H4 = 4 * H1;
 const MAX_ATTEMPTS = 3;

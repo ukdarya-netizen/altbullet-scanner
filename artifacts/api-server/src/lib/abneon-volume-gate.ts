@@ -217,7 +217,9 @@ export function monthVolumeGate(input: {
  * the top −0.86%, 1–2% −0.87%, 2–3% −0.88%, 3–4% −1.36%, above 4% −0.98%.
  * Not for the bounce from a fresh low (no zone; its distance from the low did not separate results).
  */
-export const ABNEON_MAX_ENTRY_ABOVE_TOP_PCT = 0;
+// Owner 2026-11-12 (OKB 0.36% above the top — "идеальнейший кандидат на отскок"; ELSA +55.6% entered 0.45% above):
+// up to 1% above the zone top still counts as at the level.
+export const ABNEON_MAX_ENTRY_ABOVE_TOP_PCT = 1;
 export function entryAboveZoneTopPct(entry: number, zoneTop: number): number | null {
   return entry > 0 && zoneTop > 0 ? ((entry - zoneTop) / zoneTop) * 100 : null;
 }
