@@ -10,6 +10,8 @@
  *         deepest and the reaction 1H candles and of the 4H signal candle, the 12 / 24 bars before, the bars
  *         between touch and entry, taker delta before / in / at / after, spot CVD, spot ÷ futures volume;
  *         the last 24h vs the coin's own 30-day average and 60-day busiest day, the touch 4H bar vs 60 bars;
+ *         Welkin of the touch 4H / 1H bars on 50 and 120 bars and by Lucy's VSA rule (20 bars, grey under the
+ *         120-bar average);
  *   open interest (aggregated): change 4h / 24h / 72h before the entry and from the touch to the entry;
  *   trend: change 24h / 7d / 30d, vs EMA50 / EMA200 4H, drop from the 30-day high, ATR 4H %;
  *   BTC: change 24h / 7d, vs EMA50 4H;
@@ -60,6 +62,31 @@ function agg4hMap(agg: Map<number, VBar> | null): Map<number, number> {
   for (const [t, b] of agg) { const k = Math.floor(t / H4) * H4; const s = sums.get(k) ?? { usd: 0, n: 0 }; s.usd += b.buy + b.sell; s.n++; sums.set(k, s); }
   for (const [k, s] of sums) if (s.n === 4) out.set(k, s.usd);
   return out;
+}
+
+/**
+ * Welkin on a longer window (owner 2026-11-12: "not these 20 candles — a longer period", as in Lucy's VSA).
+ * n bars including the bar, population σ; with longN > 0 a bar below the longN-bar average is N whatever its
+ * colour (the indicator's long-average rule). null when the window is not fully covered.
+ */
+function welkinWin(cs: C[], i: number, n: number, longN = 0): string | null {
+  if (i < 0 || i - Math.max(n, longN) + 1 < 0) return null;
+  const vs: number[] = [];
+  for (let k = i - n + 1; k <= i; k++) { const v = cs[k]!.volume; if (!Number.isFinite(v)) return null; vs.push(v); }
+  const avg = vs.reduce((a, b) => a + b, 0) / n;
+  const sd = Math.sqrt(vs.reduce((a, v) => a + (v - avg) ** 2, 0) / n);
+  const v = vs[n - 1]!, prev = vs[n - 2]!;
+  if (longN > 0) {
+    let s = 0;
+    for (let k = i - longN + 1; k <= i; k++) { const x = cs[k]!.volume; if (!Number.isFinite(x)) return null; s += x; }
+    if (v < s / longN) return "N";
+  }
+  if (v > avg + 4 * sd) return "W";
+  if (v > avg + 3 * sd) return "M";
+  if (v > avg + 2 * sd) return "O";
+  if (v > avg) return "A";
+  if (prev > 0 && v / prev >= 1.25) return "Y";
+  return "N";
 }
 
 type Entry = { kind: "zone" | "low"; at: number; entry: number; level: number; top: number; count: number; colour: string; armTime: number; trigTime: number };
@@ -146,6 +173,15 @@ function readings(e: Entry, h4: C[], h1: C[], aggF: Map<number, VBar> | null, ag
     // only what is known at the entry: the "after the entry" readings are dropped
     for (const [k, v] of Object.entries(vr)) if (!k.startsWith(`${p}_post_`)) r[k] = typeof v === "number" ? r2(v * 100) / 100 : v;
     r[`${p}_sig4h_welkin`] = welkin(h4v, i4);
+    // Longer Welkin windows on the touch bars: 50 / 120 bars, and Lucy's VSA rule (20 bars, grey under the
+    // 120-bar average). 4H: 120 bars = 20 days; 1H: 120 bars = 5 days.
+    const t4 = idxAtOrBefore(h4v, Math.floor(h1[first]!.time / H4) * H4);
+    for (const [tf, cs, i] of [["4h", h4v, t4], ["1h", h1v, first]] as const) {
+      r[`${p}_touch${tf}_welkin50`] = welkinWin(cs, i, 50);
+      r[`${p}_touch${tf}_welkin120`] = welkinWin(cs, i, 120);
+      r[`${p}_touch${tf}_lucy`] = welkinWin(cs, i, 20, 120);
+    }
+    r[`${p}_sig4h_lucy`] = welkinWin(h4v, i4, 20, 120);
     r[`${p}_prev4h_welkin`] = i4 > 0 ? welkin(h4v, i4 - 1) : null;
   }
   // Long-range volume context (owner 2026-11-12, CFX: tiny volume vs its own history, yet blue on 20 bars):
