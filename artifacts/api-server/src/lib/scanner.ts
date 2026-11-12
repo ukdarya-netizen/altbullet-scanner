@@ -1,4 +1,4 @@
-import { ABNEON_MONTH_VOLUME_BARS, ABNEON_PRE_TOUCH_BLUE_MIN, monthVolumeGate, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
+import { ABNEON_PRE_TOUCH_BLUE_MIN, LUCY_LONG_BARS, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
 import { abneonStop, findLowBounce, lowBouncePriceCandidate } from "./abneon-low-bounce.js";
 import {
   getStealthOi4hAtBreakout,
@@ -111,7 +111,7 @@ import {
   MIN_SPOT_VOL_MCAP_FRACTION,
   triggerRefresh,
 } from "./spotPool.js";
-import { getAggSpotVolume1h, getSpotTakerFlow } from "./coinglass_spot_taker.js";
+import { getAggSpotVolumeByInterval, getSpotTakerFlow } from "./coinglass_spot_taker.js";
 import {
   fetchLiqCoinList,
   fetchLiqOrders,
@@ -6802,12 +6802,17 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         // Owner 2026-11-10: the pre-touch count is recorded only (it gave nothing on history and cut 2189
         // bounces in 3 days). The blocking rule is the volume ON the touch: the touch 4H candle or one of
         // the next two closed 4H candles not grey on Welkin VSA (CoinGlass aggregated futures volume).
-        const agg4h = await getAggFuturesVolumeByInterval(symbol, "4h", 60).catch(() => null);
+        // Owner 2026-11-12: Lucy's VSA rule — 120+ bars of futures + spot aggregated volume.
+        const [agg4h, spot4h] = await Promise.all([
+          getAggFuturesVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
+          getAggSpotVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
+        ]);
         const touchVol = agg4h
           ? touchVolumeNotGrey({
               candles1h: closed1h,
               candles4h: closed4h,
               agg4hUsdByTime: agg4h,
+              spot4hUsdByTime: spot4h,
               armCandleTime: support.armCandleTime,
               triggerCandleTime: support.triggerCandleTime,
               zoneTop: support.frozenLevel,
@@ -6846,8 +6851,11 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         support.status !== "armed" &&
         lowBouncePriceCandidate(closed4h)
       ) {
-        const agg4hLow = await getAggFuturesVolumeByInterval(symbol, "4h", 60).catch(() => null);
-        const lb = agg4hLow ? findLowBounce({ candles4h: closed4h, agg4hUsdByTime: agg4hLow }) : null;
+        const [agg4hLow, spot4hLow] = await Promise.all([
+          getAggFuturesVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
+          getAggSpotVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
+        ]);
+        const lb = agg4hLow ? findLowBounce({ candles4h: closed4h, agg4hUsdByTime: agg4hLow, spot4hUsdByTime: spot4hLow }) : null;
         if (lb) {
           lowBounce = true;
           support = {
@@ -6861,28 +6869,6 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             evidence: { lowBounce: lb },
           };
         }
-      }
-      // Owner 2026-11-12: no ABNeon on a dead coin — the last 24h of aggregated futures AND spot volume each at
-      // least 80% of the coin's own average day of the previous 30 days (abneon-volume-gate.ts). Both the zone
-      // bounce and the bounce from a fresh low. No aggregated data → no signal.
-      if (support.status === "qualified") {
-        const [futMonth, spotMonth] = await Promise.all([
-          getAggFuturesVolumeByInterval(symbol, "1h", ABNEON_MONTH_VOLUME_BARS).catch(() => null),
-          getAggSpotVolume1h(symbol, ABNEON_MONTH_VOLUME_BARS).catch(() => null),
-        ]);
-        const lastHourOpen = Math.floor(Date.now() / 3_600_000) * 3_600_000 - 3_600_000;
-        const monthVolume = monthVolumeGate({ futUsdByHour: futMonth, spotUsdByHour: spotMonth, lastHourOpen });
-        const evidence = { ...(support.evidence ?? {}), monthVolume };
-        support = monthVolume.ok
-          ? { ...support, evidence }
-          : {
-              ...support,
-              status: "terminal",
-              reason: monthVolume.reason === "month_volume_low"
-                ? `month_volume_low_f${monthVolume.fut}_s${monthVolume.spot}`
-                : "month_volume_no_aggregated_volume",
-              evidence,
-            };
       }
       const persistedSupport = await persistStealthAbneonShadow({
         symbol,

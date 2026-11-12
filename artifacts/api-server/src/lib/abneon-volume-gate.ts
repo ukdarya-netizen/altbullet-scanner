@@ -63,6 +63,7 @@ export function preTouchBlueCount(input: {
 }
 
 /**
+ * Owner 2026-11-12: colours by Lucy's VSA rule (lucyColour) on futures + spot — see below.
  * ABNeon touch volume (owner 2026-11-10, replaces the pre-touch gate as the blocking rule): the 4H candle
  * of the first touch of the zone or one of the next two 4H candles — only those already closed — is not
  * grey on Welkin VSA (volume above its 20-bar average, or ≥ 1.25× the previous bar), on CoinGlass
@@ -102,11 +103,36 @@ export function welkinColour(vol: readonly number[], j: number): string {
   return "N";
 }
 
+/**
+ * Lucy's VSA rule (owner 2026-11-12, as the TradingView indicator "Lucy's VSA" made with the owner): the Welkin
+ * colour over 20 bars, but a bar whose volume is below the average of the last 120 bars (the bar included) is grey
+ * (N) whatever its colour — a bar that only looks blue against 20 dead bars is grey. Volume = aggregated futures +
+ * aggregated spot (the indicator's total); spot missing at CoinGlass counts as 0 (the indicator shows what exists).
+ */
+export const LUCY_LONG_BARS = 120;
+export function lucyColour(vol: readonly number[], j: number): string {
+  if (j - (LUCY_LONG_BARS - 1) >= 0) {
+    let s = 0;
+    for (let q = j - (LUCY_LONG_BARS - 1); q <= j; q++) s += vol[q]!;
+    if (vol[j]! < s / LUCY_LONG_BARS) return "N";
+  }
+  return welkinColour(vol, j);
+}
+/** Futures USD (required) + spot USD (0 when missing) for a candle open time; null when futures are missing. */
+export function totalUsd(fut: ReadonlyMap<number, number>, spot: ReadonlyMap<number, number> | null | undefined, time: number): number | null {
+  const f = fut.get(time);
+  if (!(f != null && f > 0)) return null;
+  const s = spot?.get(time);
+  return f + (s != null && s > 0 ? s : 0);
+}
+
 export function touchVolumeNotGrey(input: {
   candles1h: readonly Bar[];
   candles4h: readonly Bar[];
   /** CoinGlass aggregated futures volume, USD, by 4H candle open time. */
   agg4hUsdByTime: ReadonlyMap<number, number>;
+  /** CoinGlass aggregated spot volume, USD, by 4H candle open time (Lucy's VSA total = futures + spot). */
+  spot4hUsdByTime?: ReadonlyMap<number, number> | null;
   armCandleTime: number;
   triggerCandleTime: number;
   zoneTop: number;
@@ -118,7 +144,8 @@ export function touchVolumeNotGrey(input: {
   let j0 = -1;
   for (let j = 0; j < cs.length; j++) if (cs[j]!.time <= touch) j0 = j;
   if (j0 < 0) return { ok: false, reason: "short_history", colours: [] };
-  const from = j0 - (AVG_BARS - 1);
+  // Owner 2026-11-12: Lucy's VSA rule — 120 bars of history before the touch (was 20).
+  const from = j0 - (LUCY_LONG_BARS - 1);
   if (from < 0) return { ok: false, reason: "short_history", colours: [] };
   const vol: number[] = [];
   const colours: string[] = [];
@@ -126,10 +153,10 @@ export function touchVolumeNotGrey(input: {
     const c = cs[j]!;
     if (c.time + H4 > input.nowMs) break; // only closed 4H candles
     if (j > from && c.time - cs[j - 1]!.time !== H4) return { ok: false, reason: "short_history", colours };
-    const usd = input.agg4hUsdByTime.get(c.time);
-    if (!(usd != null && usd > 0 && c.close > 0)) return { ok: false, reason: "no_aggregated_volume", colours };
+    const usd = totalUsd(input.agg4hUsdByTime, input.spot4hUsdByTime, c.time);
+    if (!(usd != null && c.close > 0)) return { ok: false, reason: "no_aggregated_volume", colours };
     vol.push(usd / c.close);
-    if (j >= j0) colours.push(welkinColour(vol, vol.length - 1));
+    if (j >= j0) colours.push(lucyColour(vol, vol.length - 1));
   }
   if (!colours.length) return { ok: false, reason: "touch_bar_not_closed", colours };
   return colours.some((c) => c !== "N") ? { ok: true, colours, firstTouchTime: touch } : { ok: false, reason: "touch_volume_grey", colours };

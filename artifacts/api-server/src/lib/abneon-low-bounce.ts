@@ -8,8 +8,8 @@
  *      (10 days; a coin with less history — of all its candles, at least 30).
  *   2. The trigger: within the low candle and the next 6 closed 4H candles (no lower low in between),
  *      the first 4H candle that closes green (close > open), above the low candle's close (the low candle
- *      itself counts when it closes green), with not-grey Welkin volume on CoinGlass aggregated futures
- *      volume (A / Y / O / M / W — the same volume rule as the touch of a zone).
+ *      itself counts when it closes green), with not-grey volume by Lucy's VSA rule (owner 2026-11-12: 20-bar
+ *      Welkin, grey under the 120-bar average; CoinGlass aggregated futures + spot) — the touch-of-a-zone rule.
  *   3. The entry is not more than 25% above the low.
  *   4. Owner 2026-11-11 (7 of the first 10 live signals were low bounces on falling coins with grey / blue
  *      volume at the low; KNOTS and SI had orange): the low candle itself has bright aggregated volume —
@@ -17,14 +17,13 @@
  * The low is the level: stop under it (−1%, 3…15% from entry), cancel on a 4H close under it.
  * No aggregated volume for the bars = no signal (aggregated data only).
  */
-import { welkinColour } from "./abneon-volume-gate.js";
+import { LUCY_LONG_BARS, lucyColour, totalUsd } from "./abneon-volume-gate.js";
 
 const H4 = 4 * 3_600_000;
 export const LOW_BOUNCE_LOOKBACK = 60;
 export const LOW_BOUNCE_MIN_HISTORY = 30;
 export const LOW_BOUNCE_WINDOW = 6;
 export const LOW_BOUNCE_MAX_ABOVE_LOW = 0.25;
-const AVG_BARS = 20;
 const NOT_GREY = new Set(["A", "Y", "O", "M", "W"]);
 const BRIGHT = new Set(["O", "M", "W"]);
 
@@ -77,21 +76,24 @@ export function lowBouncePriceCandidate(candles4h: readonly Bar[]): boolean {
 export function findLowBounce(input: {
   candles4h: readonly Bar[];
   agg4hUsdByTime: ReadonlyMap<number, number>;
+  /** Aggregated spot volume, USD, by 4H open time (owner 2026-11-12: Lucy's VSA total = futures + spot). */
+  spot4hUsdByTime?: ReadonlyMap<number, number> | null;
 }): LowBounce | null {
   const cs = input.candles4h;
   const t = cs.length - 1;
   if (!lowBouncePriceCandidate(cs)) return null;
   const li = lowCandleFor(cs, t);
+  // Owner 2026-11-12: Lucy's VSA rule (20-bar Welkin, grey under the 120-bar average) on futures + spot.
   const colourAt = (k: number): string | null => {
-    if (k - (AVG_BARS - 1) < 0) return null;
+    if (k - (LUCY_LONG_BARS - 1) < 0) return null;
     const vol: number[] = [];
-    for (let q = k - (AVG_BARS - 1); q <= k; q++) {
-      if (q > k - (AVG_BARS - 1) && cs[q]!.time - cs[q - 1]!.time !== H4) return null;
-      const usd = input.agg4hUsdByTime.get(cs[q]!.time);
-      if (!(usd != null && usd > 0 && cs[q]!.close > 0)) return null;
+    for (let q = k - (LUCY_LONG_BARS - 1); q <= k; q++) {
+      if (q > k - (LUCY_LONG_BARS - 1) && cs[q]!.time - cs[q - 1]!.time !== H4) return null;
+      const usd = totalUsd(input.agg4hUsdByTime, input.spot4hUsdByTime, cs[q]!.time);
+      if (!(usd != null && cs[q]!.close > 0)) return null;
       vol.push(usd / cs[q]!.close);
     }
-    return welkinColour(vol, vol.length - 1);
+    return lucyColour(vol, vol.length - 1);
   };
   const lowColour = colourAt(li);
   if (lowColour === null || !BRIGHT.has(lowColour)) return null;

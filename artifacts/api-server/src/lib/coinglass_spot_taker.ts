@@ -68,7 +68,7 @@ async function fetchAggSpotTaker(
   bingxSymbol: string,
   apiKey: string,
   limit: number = 4,
-  interval: "15m" | "1h" = "15m",
+  interval: "15m" | "1h" | "4h" = "15m",
   timeoutMs = 6000,
 ): Promise<SpotCandle[] | null> {
   const base = bingxSymbol.replace(/-?USDT$/i, "").toUpperCase();
@@ -243,10 +243,19 @@ export async function getAggSpotVolume1h(
   bingxSymbol: string,
   limit: number,
 ): Promise<Map<number, number> | null> {
+  return getAggSpotVolumeByInterval(bingxSymbol, "1h", limit);
+}
+
+/** Aggregated spot taker volume (buy + sell, USD) of every spot exchange by candle open time (ms); null = no data. */
+export async function getAggSpotVolumeByInterval(
+  bingxSymbol: string,
+  interval: "1h" | "4h",
+  limit: number,
+): Promise<Map<number, number> | null> {
   const apiKey = getNextCgKey();
   if (!apiKey) return null;
   const base = applyCgAlias(bingxSymbol.replace(/-?USDT$/i, "").toUpperCase());
-  const rows = await fetchAggSpotTaker(base, apiKey, Math.min(4500, Math.max(1, Math.round(limit))), "1h", 15_000);
+  const rows = await fetchAggSpotTaker(base, apiKey, Math.min(4500, Math.max(1, Math.round(limit))), interval, 15_000);
   if (!rows) return null;
   return new Map(rows.map((r) => [
     r.time < 1e12 ? r.time * 1000 : r.time,

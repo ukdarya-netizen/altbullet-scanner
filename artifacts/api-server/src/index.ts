@@ -94,7 +94,7 @@ import { runAbneonLowBounceNeutralClose } from "./lib/abneon-low-bounce-neutral-
 import { runStealthVsaPublishNeutralClose } from "./lib/stealth-vsa-publish-neutral-close.js";
 import { runBtcCrowdNeutralClose } from "./lib/btc-crowd-neutral-close.js";
 import { runLcMonthNeutralClose } from "./lib/lc-month-neutral-close.js";
-import { runAbneonMonthVolumeOneTime } from "./lib/abneon-month-volume-neutral-close.js";
+import { restoreGrvtZestAfterMonthVolumeClose } from "./lib/abneon-month-volume-restore.js";
 import { runLevelTakeTracking } from "./lib/level-takes-tracking.js";
 import { reclassifyClosedAbneonNovemberStats } from "./lib/abneon-november-neutral-reclassification.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
@@ -5987,12 +5987,11 @@ app.listen(port, async (err) => {
     } catch (err) {
       logger.error({ err }, "LC November neutral close failed");
     }
-    // Owner 2026-11-12, one-time: open ABNeon positions the month-volume gate would not have passed are closed
-    // neutrally, and the ABNeon stop losses of November leave the statistics. Markers + a hard detected_at cut-off.
-    // In the background: it asks CoinGlass per open position.
-    void runAbneonMonthVolumeOneTime()
-      .then((r) => logger.info(r, "ABNeon month-volume one-time close reviewed"))
-      .catch((err) => logger.error({ err }, "ABNeon month-volume one-time close failed"));
+    // Owner 2026-11-12: the month-volume filter is withdrawn (Lucy's VSA rule instead); its one-time close is not run
+    // again (it would retry rows without data). GRVT and ZEST, closed by it by mistake, are restored once.
+    void restoreGrvtZestAfterMonthVolumeClose()
+      .then((r) => logger.info(r, "ABNeon GRVT/ZEST restore after the month-volume close"))
+      .catch((err) => logger.error({ err }, "ABNeon GRVT/ZEST restore failed"));
     try {
       const neonFlowGateClose = await neutralizeNeonFlowGateSignals();
       logger.info(
