@@ -464,6 +464,29 @@ export async function getCoinglassOi15mChange(
   return null;
 }
 
+/**
+ * Aggregated OI 30m history (oldest → newest), close in USD. Owner 2026-11-12: ABNeon entry readings (OI change
+ * 4 / 24 / 72 h and from the touch) for sorting the signals later. null when CoinGlass has none.
+ */
+export async function getCoinglassOiHistory30m(
+  symbol: string,
+  limit: number,
+): Promise<{ time: number; close: number }[] | null> {
+  const apiKey = getNextCgKey();
+  if (!apiKey) return null;
+  for (const cgSym of cgSymbolCandidates(toBaseSymbol(symbol))) {
+    const attempt = await runWithoutMemo(() =>
+      fetchOiOhlcHistory(cgSym, apiKey, undefined, "normal", "30m", limit),
+    ).catch((): FetchOiHistoryResult => ({ candles: null, timedOut: false, retryable: false, reason: "transport" }));
+    if (!attempt.candles) continue;
+    return [...attempt.candles]
+      .map((c) => ({ time: Number(c.time) < 1e12 ? Number(c.time) * 1000 : Number(c.time), close: typeof c.close === "string" ? parseFloat(c.close) : c.close }))
+      .filter((c) => Number.isFinite(c.time) && Number.isFinite(c.close) && c.close > 0)
+      .sort((a, b) => a.time - b.time);
+  }
+  return null;
+}
+
 export async function getCoinglassOI(
   symbol: string,
   priceUsd?: number | null,

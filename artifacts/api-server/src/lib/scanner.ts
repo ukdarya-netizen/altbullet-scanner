@@ -1,4 +1,5 @@
-import { ABNEON_MAX_ENTRY_ABOVE_TOP_PCT, ABNEON_PRE_TOUCH_BLUE_MIN, LUCY_LONG_BARS, entryAboveZoneTopPct, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
+import { LUCY_LONG_BARS, touchVolumeNotGrey } from "./abneon-volume-gate.js";
+import { ABNEON_LOW_BOUNCE_LIVE, ABNEON_RULE_VERSION, entryReadings, resistancesAbove, ruleEntryOnArm } from "./abneon-rule-entry.js";
 import { abneonStop, findLowBounce, lowBouncePriceCandidate } from "./abneon-low-bounce.js";
 import {
   getStealthOi4hAtBreakout,
@@ -60,6 +61,7 @@ import {
   drainCgOiBreakerTrips,
   drainCgOiSourceCounts,
   CG_SYMBOL_ALIAS,
+  getCoinglassOiHistory30m,
   type CoinglassOIResult,
 } from "./coinglass_oi.js";
 import { isBingxExclusive, isBinanceSpotListed } from "./coinglass_listings.js";
@@ -111,7 +113,7 @@ import {
   MIN_SPOT_VOL_MCAP_FRACTION,
   triggerRefresh,
 } from "./spotPool.js";
-import { getAggSpotVolumeByInterval, getSpotTakerFlow } from "./coinglass_spot_taker.js";
+import { getAggSpotTakerHistory, getAggSpotVolumeByInterval, getSpotTakerFlow } from "./coinglass_spot_taker.js";
 import {
   fetchLiqCoinList,
   fetchLiqOrders,
@@ -1669,6 +1671,12 @@ const _symRejLog: Array<{
   zoneBottom: number | null;
   zoneTop: number | null;
 }> = [];
+
+/**
+ * Owner 2026-11-12 (R8): the entry rule's evidence and readings (takers, delta, OI) by symbol and trigger candle,
+ * kept from the qualifying scan until the signal is written (decision_metrics.neonLevel.ruleEntry).
+ */
+const _neonRuleEntryEvidence = new Map<string, Record<string, unknown>>();
 
 /**
  * Support zone (bottom/top) matching a persisted Neon event level, plus the
@@ -5612,6 +5620,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       lowBounce?: boolean;
       /** Owner 2026-11-11: bottom of the level (zone bottom, or the low of a low bounce) — stop and cancel. */
       levelBottom?: number | null;
+      /** Owner 2026-11-12 (R8, exit B): bottoms of the ABNeon zones above the zone — the take is the nearest above the entry. */
+      resistances?: number[];
     };
     isScalpOnly: boolean; // MTF Spot CVD: старшие ТФ (1h/4h) не подтверждают
     futVolMult: number; // оригинальный фьюч BingX volMult (до замены на спот)
@@ -6759,96 +6769,133 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           support = runSupport(volumed1h);
         }
       }
-      // Owner 2026-11-06: ABNeon pre-touch volume gate — of the 12 closed 1H candles before the first
-      // touch of the zone, at least 11 above their 20-bar average on CoinGlass aggregated futures
-      // volume. Fails closed without aggregated data. A failed bounce ends the arm (terminal).
-      if (
-        support.status === "qualified" &&
-        support.triggerCandleTime != null &&
-        support.armCandleTime != null &&
-        support.frozenLevel != null
-      ) {
-        const aggVol100 = await getAggFuturesVolumeByInterval(
-          symbol,
-          "1h",
-          100,
-        ).catch(() => null);
-        const gate = aggVol100
-          ? preTouchBlueCount({
-              candles1h: closed1h,
-              aggUsdByTime: aggVol100,
-              armCandleTime: support.armCandleTime,
-              triggerCandleTime: support.triggerCandleTime,
-              zoneTop: support.frozenLevel,
-            })
-          : ({
-              ok: false,
-              reason: "no_aggregated_volume",
-              blue: null,
-            } as const);
-        const preTouchGate = {
-          ok: gate.ok && gate.blue >= ABNEON_PRE_TOUCH_BLUE_MIN,
-          reason: !gate.ok
-            ? gate.reason
-            : gate.blue < ABNEON_PRE_TOUCH_BLUE_MIN
-              ? "below_minimum_blue_count"
-              : "passed",
-          blue: gate.blue,
-          requiredBlue: ABNEON_PRE_TOUCH_BLUE_MIN,
-          bars: 12,
-          aggregatedVolumeAvailable: aggVol100 != null,
-          firstTouchTime: gate.ok ? gate.firstTouchTime : null,
+      // Owner 2026-11-12: ABNeon entry by the trading rules of a bounce (R8, lib/abneon-rule-entry.ts) — replaces the
+      // detector's own trigger, the 1%-above-the-zone limit and the pre-touch count. On an armed zone: the test
+      // (1H low to the zone top +2%), the entry on the first green 1H close at or above the zone bottom within 8 h of
+      // the test low, Lucy's VSA on the touch (futures + spot); void on a 4H close under the zone or 48 h after the
+      // arm. A signal only on the 1H candle that just closed (no late entries).
+      const detectorSupport = support;
+      const r8Arm =
+        arm != null
+          ? { level: arm.level, armedAt: arm.armedAt }
+          : (support.status === "armed" || support.status === "qualified") &&
+              support.frozenLevel != null &&
+              support.armCandleTime != null
+            ? { level: support.frozenLevel, armedAt: support.armCandleTime }
+            : null;
+      if (r8Arm) {
+        const r8Zone = resolveFrozenZone(closed4h, r8Arm.armedAt, r8Arm.level);
+        let lucyVol: Promise<[Map<number, number> | null, Map<number, number> | null]> | null = null;
+        const rule = await ruleEntryOnArm({
+          candles1h: closed1h,
+          candles4h: closed4h,
+          zone: { bottom: r8Zone.bottom, top: r8Zone.top },
+          armTime: r8Arm.armedAt,
+          nowMs: Date.now(),
+          lucy: async (triggerCandleTime, closeAt) => {
+            lucyVol ??= Promise.all([
+              getAggFuturesVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
+              getAggSpotVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
+            ]);
+            const [agg4h, spot4h] = await lucyVol;
+            return agg4h
+              ? touchVolumeNotGrey({
+                  candles1h: closed1h,
+                  candles4h: closed4h,
+                  agg4hUsdByTime: agg4h,
+                  spot4hUsdByTime: spot4h,
+                  armCandleTime: r8Arm.armedAt,
+                  triggerCandleTime,
+                  zoneTop: r8Arm.level,
+                  nowMs: closeAt,
+                })
+              : { ok: false, reason: "no_aggregated_volume", colours: [] };
+          },
+        });
+        const ruleBase = {
+          version: ABNEON_RULE_VERSION,
+          zone: { bottom: r8Zone.bottom, top: r8Zone.top },
+          detectorStatus: detectorSupport.status,
+          detectorReason: detectorSupport.reason,
         };
-        // Owner 2026-11-10: the pre-touch count is recorded only (it gave nothing on history and cut 2189
-        // bounces in 3 days). The blocking rule is the volume ON the touch: the touch 4H candle or one of
-        // the next two closed 4H candles not grey on Welkin VSA (CoinGlass aggregated futures volume).
-        // Owner 2026-11-12: Lucy's VSA rule — 120+ bars of futures + spot aggregated volume.
-        const [agg4h, spot4h] = await Promise.all([
-          getAggFuturesVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
-          getAggSpotVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
-        ]);
-        const touchVol = agg4h
-          ? touchVolumeNotGrey({
-              candles1h: closed1h,
-              candles4h: closed4h,
-              agg4hUsdByTime: agg4h,
-              spot4hUsdByTime: spot4h,
-              armCandleTime: support.armCandleTime,
-              triggerCandleTime: support.triggerCandleTime,
-              zoneTop: support.frozenLevel,
-              nowMs: Date.now(),
-            })
-          : ({ ok: false, reason: "no_aggregated_volume", colours: [] } as const);
-        const evidence = {
-          ...(support.evidence ?? {}),
-          preTouchBlue12: gate.blue,
-          preTouchGate: { ...preTouchGate, blocking: false },
-          touchVolume: touchVol,
-        };
-        if (!touchVol.ok && touchVol.reason === "touch_bar_not_closed") {
-          // The touch 4H candle is still open: wait for its close (the arm stays).
-          support = { ...support, status: "armed", reason: "awaiting_touch_4h_close", evidence };
-        } else if (!touchVol.ok) {
+        const lastClosed1h = closed1h[closed1h.length - 1]?.time ?? null;
+        if (rule.status === "entry" && rule.candleTime === lastClosed1h) {
+          // Readings for sorting later by takers, delta and open interest (owner): recorded only.
+          const [futTk, spotTk, oiHist] = await Promise.all([
+            getAggFuturesTakerHistory(symbol, 320).catch(() => null),
+            getAggSpotTakerHistory(symbol, 320).catch(() => null),
+            getCoinglassOiHistory30m(symbol, 170).catch(() => null),
+          ]);
+          const readings = entryReadings({
+            firstTouchTime: rule.testTime,
+            triggerCandleTime: rule.candleTime,
+            entryAt: rule.closeAt,
+            futTakers: futTk,
+            spotTakers: spotTk,
+            oi: oiHist,
+          });
+          if (_neonRuleEntryEvidence.size > 500) _neonRuleEntryEvidence.clear();
+          _neonRuleEntryEvidence.set(`${symbol}:${rule.candleTime}`, {
+            ...ruleBase,
+            entryClose: rule.entry,
+            entryAboveTopPct: Math.round(((rule.entry / r8Zone.top - 1) * 100) * 100) / 100,
+            testTime: rule.testTime,
+            testLow: rule.testLow,
+            hoursFromTestLow: (rule.closeAt - rule.testLowAt) / 3_600_000,
+            touchColours: rule.touch.colours.join(""),
+            readings,
+          });
+          support = {
+            ...support,
+            method: "abneon_support_bounce",
+            status: "qualified",
+            reason: "rule_entry_r8",
+            frozenLevel: r8Arm.level,
+            armCandleTime: r8Arm.armedAt,
+            triggerCandleTime: rule.candleTime,
+            evidence: {
+              ...(support.evidence ?? {}),
+              touchVolume: rule.touch,
+              ruleEntry: {
+                ...ruleBase,
+                entryClose: rule.entry,
+                entryAboveTopPct: Math.round(((rule.entry / r8Zone.top - 1) * 100) * 100) / 100,
+                testTime: rule.testTime,
+                testLow: rule.testLow,
+                testLowAt: rule.testLowAt,
+                hoursFromTestLow: (rule.closeAt - rule.testLowAt) / 3_600_000,
+                readings,
+              },
+            },
+          };
+        } else if (rule.status === "entry") {
           support = {
             ...support,
             status: "terminal",
-            reason: touchVol.reason === "touch_volume_grey" ? `touch_volume_grey_${touchVol.colours.join("")}` : `touch_volume_${touchVol.reason}`,
-            evidence,
+            reason: "rule_entry_passed",
+            frozenLevel: r8Arm.level,
+            armCandleTime: r8Arm.armedAt,
+            evidence: { ...(support.evidence ?? {}), ruleEntry: { ...ruleBase, passedEntryCandle: rule.candleTime } },
+          };
+        } else if (rule.status === "void") {
+          support = {
+            ...support,
+            status: "terminal",
+            reason: `rule_${rule.reason}`,
+            frozenLevel: r8Arm.level,
+            armCandleTime: r8Arm.armedAt,
+            evidence: { ...(support.evidence ?? {}), ruleEntry: { ...ruleBase, void: rule.reason, colours: rule.colours ?? null } },
           };
         } else {
-          // Owner 2026-11-12: entry at the level — the close of the 1H bounce candle not above the zone top.
-          const trig = closed1h.find((c) => c.time === support.triggerCandleTime);
-          const aboveTop = trig ? entryAboveZoneTopPct(trig.close, support.frozenLevel) : null;
-          const atLevel = { entryAboveTopPct: aboveTop === null ? null : Math.round(aboveTop * 100) / 100, maxPct: ABNEON_MAX_ENTRY_ABOVE_TOP_PCT };
-          support =
-            aboveTop !== null && aboveTop <= ABNEON_MAX_ENTRY_ABOVE_TOP_PCT
-              ? { ...support, evidence: { ...evidence, entryAtLevel: atLevel } }
-              : {
-                  ...support,
-                  status: "terminal",
-                  reason: aboveTop === null ? "entry_at_level_no_trigger_candle" : `entry_above_zone_top_${atLevel.entryAboveTopPct}pct`,
-                  evidence: { ...evidence, entryAtLevel: atLevel },
-                };
+          support = {
+            ...support,
+            status: "armed",
+            reason: `rule_waiting_${rule.reason}`,
+            frozenLevel: r8Arm.level,
+            armCandleTime: r8Arm.armedAt,
+            triggerCandleTime: null,
+            evidence: { ...(support.evidence ?? {}), ruleEntry: { ...ruleBase, waiting: rule.reason } },
+          };
         }
       }
       // Owner 2026-11-11 (KNOTS, SI, GANG): a bounce from a fresh low has no ABNeon zone yet (a pivot is
@@ -6858,6 +6905,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       // when the price pattern is there.
       let lowBounce = false;
       if (
+        ABNEON_LOW_BOUNCE_LIVE &&
         arm == null &&
         support.status !== "qualified" &&
         support.status !== "armed" &&
@@ -6916,7 +6964,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       const neonSnapshotKey = `${symbol}:${support.armCandleTime}:${support.frozenLevel}`;
       const neonSnapshotDue =
         // Owner 2026-11-05: every level breakout (not a bounce) is recorded for analysis.
-        support.reason === ABNEON_LEVEL_BREAKOUT_REASON ||
+        detectorSupport.reason === ABNEON_LEVEL_BREAKOUT_REASON ||
         neonNearZone ||
         Date.now() - (neonSnapshotLastAt.get(neonSnapshotKey) ?? 0) >=
           3_600_000;
@@ -13397,6 +13445,14 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 _neonSupportBounceEvent?.frozenLevel ??
                 null,
             };
+            // Owner 2026-11-12 (R8, exit B): the resistances for the take — bottoms of the ABNeon zones above the zone.
+            const _neonResistances =
+              _neonSupportBounceEvent !== null && _neonZoneMetrics.zoneTop != null
+                ? resistancesAbove(
+                    computeSupportZones(normalizeClosedBreakoutCandles(klines4hPrefetch.get(symbol) ?? [])),
+                    _neonZoneMetrics.zoneTop,
+                  )
+                : [];
             // Owner 2026-10-15: a price below the 0.5% support band at fire time
             // means the level is broken, not bounced. Hold the qualified event;
             // it may fire later only if price is back at or above the band.
@@ -14715,7 +14771,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 : {}),
               neonSupportBounceEvent:
                 det!.sentiment.key === "neon_support_bounce" && _neonSupportBounceEvent
-                  ? { ..._neonSupportBounceEvent, levelBottom: _neonLevelBottom }
+                  ? { ..._neonSupportBounceEvent, levelBottom: _neonLevelBottom, resistances: _neonResistances }
                   : undefined,
               isScalpOnly,
               futVolMult: volMult, // фьюч BingX klines (Phase 2)
@@ -14740,6 +14796,11 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                           bottom: _neonLevelBottom,
                           top: _neonZoneMetrics.zoneTop,
                           lowBounce: _neonSupportBounceEvent.lowBounce === true,
+                          // Owner 2026-11-12 (R8, exit B): take at the nearest of these above the entry.
+                          resistances: _neonResistances,
+                          rule: ABNEON_RULE_VERSION,
+                          ruleEntry:
+                            _neonRuleEntryEvidence.get(`${symbol}:${_neonSupportBounceEvent.triggerCandleTime}`) ?? null,
                         },
                       }
                     : undefined,

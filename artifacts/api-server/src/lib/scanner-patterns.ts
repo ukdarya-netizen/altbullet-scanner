@@ -256,6 +256,8 @@ export interface AlphaResult {
     lowBounce?: boolean;
     /** Owner 2026-11-11: bottom of the level (zone bottom, or the low of a low bounce) — stop and cancel. */
     levelBottom?: number | null;
+    /** Owner 2026-11-12 (R8, exit B): bottoms of the ABNeon zones above the zone — the take is the nearest above the entry. */
+    resistances?: number[];
   };
   /** Фандинг рейт в процентах (напр. -0.04 = -0.04% за 8ч; источник: CoinGlass aggregate) */
   fundingRate?: number | null;

@@ -1,3 +1,4 @@
+import { abneonTake } from "./abneon-rule-entry.js";
 import { logger } from "./logger.js";
 import { withPrimarySignalTiming } from "./telegram-signal-timing.js";
 import type { CgAskBidsResult } from "./coinglass_orderbook.js";
@@ -125,6 +126,8 @@ export function buildSignalManagementLine(
   freshHigh?: {
     stealthDetectionMethod?: string | null;
     stopPct?: number | null;
+    /** Owner 2026-11-12 (ABNeon R8, exit B): the take at the nearest resistance, or null (no zone above). */
+    neonTake?: { price: number; pct: number } | null;
   },
 ): string {
   const isBitcoin = symbol === "BTC-USDT" || symbol === "BTCUSDT";
@@ -157,8 +160,13 @@ export function buildSignalManagementLine(
 
   // Owner 2026-11-11: ABNeon — B.U. at +10%, trailing from +20% at 20 p.p., cancel on a 4H close under the level.
   // Owner 2026-11-12: the partial take at +10% is written in the signal.
+  // Owner 2026-11-12 (R8, exit B): take at the nearest resistance (bottom of the next ABNeon zone above the entry).
   if (sentimentKey === "neon_support_bounce") {
-    return `🛡 <b>Сопровождение:</b> БУ с +${beActivation}% · на +${beActivation}% вручную зафиксируй 20–25% · трейлинг с +${exitProfile.trailingActivation}% на ${exitProfile.trailingGap} п.п. ниже пика · отмена, если 4H закроется под уровнем`;
+    const take = freshHigh?.neonTake ?? null;
+    const p = (x: number) => (x < 1 ? x.toPrecision(4) : x < 100 ? x.toFixed(4) : x.toFixed(2));
+    return take
+      ? `🎯 <b>Цель:</b> $${p(take.price)} (+${take.pct.toFixed(1)}%) — ближайшее сопротивление, закрытие всей позиции\n🛡 <b>Сопровождение:</b>${take.pct > beActivation ? ` БУ с +${beActivation}% ·` : ""} отмена, если 4H закроется под уровнем`
+      : `🛡 <b>Сопровождение:</b> сопротивления выше нет · БУ с +${beActivation}% · трейлинг с +${exitProfile.trailingActivation}% на ${exitProfile.trailingGap} п.п. ниже пика · отмена, если 4H закроется под уровнем`;
   }
   const protectionPlan = hasNoProfitStopPromotion(sentimentKey)
     ? `БУ с +${beActivation}%`
@@ -1056,7 +1064,7 @@ export interface AlphaResult {
   stealthEntryPath?: string | null;
   stealthVolumeUnconfirmed?: boolean;
   stealthNoSpotMarket?: boolean;
-  neonSupportBounceEvent?: { confluence?: string | null; lowBounce?: boolean };
+  neonSupportBounceEvent?: { confluence?: string | null; lowBounce?: boolean; resistances?: number[] };
   stealthRangeConfirmingVenues?: string[] | null;
   stealthBingxOnly?: boolean;
   /** Фандинг рейт в процентах (напр. -0.04 = -0.04% за 8ч; источник: CoinGlass aggregate) */
@@ -1496,6 +1504,7 @@ export function formatAlphaSignal(
   const managementLine = buildSignalManagementLine(s.sentimentKey, s.symbol, {
     stealthDetectionMethod: s.stealthDetectionMethod,
     stopPct: hasPersistedStop ? policy.stopLossPct : null,
+    neonTake: abneonTake(policy?.entryPrice ?? s.price, s.neonSupportBounceEvent?.resistances),
   });
   const impulseRunnerLine = fmtImpulseRunnerPolicyLine({
     sentimentKey: s.sentimentKey,
@@ -1707,6 +1716,7 @@ export function formatCompactAlphaSignal(
   const managementLine = buildSignalManagementLine(s.sentimentKey, s.symbol, {
     stealthDetectionMethod: s.stealthDetectionMethod,
     stopPct,
+    neonTake: abneonTake(policy?.entryPrice ?? s.price, s.neonSupportBounceEvent?.resistances),
   });
   const impulseRunnerLine = fmtImpulseRunnerPolicyLine({
     sentimentKey: s.sentimentKey,
