@@ -33,15 +33,15 @@ test("treats Price Led Momentum as a finalized pattern", () => {
 test("treats Neon Support Bounce as a full pattern with its standalone name", () => {
   assert.equal(
     NEON_SUPPORT_BOUNCE_TELEGRAM_NAME,
-    "🩷 Neon Support — Отскок от поддержки",
+    "🩷 Neon Support 🧪 эксперимент — Отскок от поддержки",
   );
   assert.equal(
     getPatternTgLabel("neon_support_bounce"),
-    "🩷 Neon Support — Отскок от поддержки",
+    "🩷 Neon Support 🧪 эксперимент — Отскок от поддержки",
   );
   assert.equal(
     getPatternLabel("neon_support_bounce"),
-    "🩷 Neon Support — Отскок от поддержки #neon_support_bounce",
+    "🩷 Neon Support 🧪 эксперимент — Отскок от поддержки #neon_support_bounce",
   );
 });
 

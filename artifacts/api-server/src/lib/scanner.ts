@@ -1,5 +1,5 @@
 import { ABNEON_MONTH_VOLUME_BARS, ABNEON_PRE_TOUCH_BLUE_MIN, monthVolumeGate, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
-import { findLowBounce, lowBouncePriceCandidate, stopUnderLevel } from "./abneon-low-bounce.js";
+import { abneonStop, findLowBounce, lowBouncePriceCandidate } from "./abneon-low-bounce.js";
 import {
   getStealthOi4hAtBreakout,
   stealthOi4hPasses,
@@ -8202,15 +8202,11 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   stealthNeonLevel?: { stopPrice?: unknown };
                 }
               | undefined;
-            // Owner 2026-11-11: ABNeon stop under the level (zone bottom, or the low of a low bounce)
-            // −1%, 3…15% from entry; without a level the pattern stop (−8%) stays.
+            // Owner 2026-11-12: ABNeon stop −6% from entry (room for a liquidity sweep of the level),
+            // zone bounce and low bounce alike.
             const _neonStopRaw =
-              res.sentimentKey === "neon_support_bounce" &&
-              res.neonSupportBounceEvent?.levelBottom != null
-                ? stopUnderLevel(
-                    canonicalFire.entryPrice,
-                    res.neonSupportBounceEvent.levelBottom,
-                  )
+              res.sentimentKey === "neon_support_bounce"
+                ? abneonStop(canonicalFire.entryPrice)
                 : null;
             const _fhStopRaw = _isRStealth
               ? Number(

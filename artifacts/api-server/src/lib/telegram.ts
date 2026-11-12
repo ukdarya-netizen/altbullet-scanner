@@ -156,8 +156,9 @@ export function buildSignalManagementLine(
   }
 
   // Owner 2026-11-11: ABNeon — B.U. at +10%, trailing from +20% at 20 p.p., cancel on a 4H close under the level.
+  // Owner 2026-11-12: the partial take at +10% is written in the signal.
   if (sentimentKey === "neon_support_bounce") {
-    return `🛡 <b>Сопровождение:</b> БУ с +${beActivation}% · трейлинг с +${exitProfile.trailingActivation}% на ${exitProfile.trailingGap} п.п. ниже пика · отмена, если 4H закроется под уровнем`;
+    return `🛡 <b>Сопровождение:</b> БУ с +${beActivation}% · на +${beActivation}% вручную зафиксируй 20–25% · трейлинг с +${exitProfile.trailingActivation}% на ${exitProfile.trailingGap} п.п. ниже пика · отмена, если 4H закроется под уровнем`;
   }
   const protectionPlan = hasNoProfitStopPromotion(sentimentKey)
     ? `БУ с +${beActivation}%`

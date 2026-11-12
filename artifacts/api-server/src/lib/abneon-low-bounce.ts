@@ -114,6 +114,15 @@ export function findLowBounce(input: {
   };
 }
 
+/**
+ * ABNeon stop (owner 2026-11-12): −6% from the entry, with room for a sweep of the level (liquidity grab).
+ * Replaces the stop under the level (stopUnderLevel, kept for the studies of 2026-11-11/12) for new signals.
+ */
+export const ABNEON_STOP_PCT = 6;
+export function abneonStop(entryPrice: number): number | null {
+  return entryPrice > 0 ? entryPrice * (1 - ABNEON_STOP_PCT / 100) : null;
+}
+
 /** Stop under a level: level −1%, at least 3% and at most 15% from the entry (owner 2026-11-11). */
 export function stopUnderLevel(entryPrice: number, levelBottom: number): number | null {
   if (!(entryPrice > 0) || !(levelBottom > 0)) return null;

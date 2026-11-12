@@ -82,7 +82,7 @@ export const PATTERN_LABELS: Record<string, string> = {
   balanced_grind: "🟡 Умеренный широкий рост · Balanced Grind #balanced_grind",
   stealth_breakout: "🔵 Stealth Breakout 🧪 эксперимент — Пробой узкого ренджа #stealth_breakout",
   neon_support_bounce:
-    "🩷 Neon Support — Отскок от поддержки #neon_support_bounce",
+    "🩷 Neon Support 🧪 эксперимент — Отскок от поддержки #neon_support_bounce",
   price_led_momentum:
     "💫 Цена лидирует без OI · Price Led Momentum #price_led_momentum",
   impulse_buy: "⚡ Импульсная покупка · Impulse Buy #impulse_buy",
