@@ -93,6 +93,7 @@ import { excludeAbneonNovemberStops } from "./lib/abneon-nov-stops-neutral.js";
 import { runAbneonLowBounceNeutralClose } from "./lib/abneon-low-bounce-neutral-close.js";
 import { runStealthVsaPublishNeutralClose } from "./lib/stealth-vsa-publish-neutral-close.js";
 import { runBtcCrowdNeutralClose } from "./lib/btc-crowd-neutral-close.js";
+import { runLcMonthNeutralClose } from "./lib/lc-month-neutral-close.js";
 import { reclassifyClosedAbneonNovemberStats } from "./lib/abneon-november-neutral-reclassification.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
 import { neutralizeStealthOnPublish } from "./lib/stealth-publish-neutral-close.js";
@@ -5975,6 +5976,14 @@ app.listen(port, async (err) => {
       logger.info(btcCrowd, "BTC crowd filter neutral close reviewed");
     } catch (err) {
       logger.error({ err }, "BTC crowd filter neutral close failed");
+    }
+    // Owner 2026-11-12, one-time: LC (except BTC) of November out of the statistics, open LC closed neutrally.
+    // Marker + a hard detected_at cut-off: it can never touch a later signal.
+    try {
+      const lcMonth = await runLcMonthNeutralClose();
+      logger.info(lcMonth, "LC November neutral close reviewed");
+    } catch (err) {
+      logger.error({ err }, "LC November neutral close failed");
     }
     try {
       const neonFlowGateClose = await neutralizeNeonFlowGateSignals();
