@@ -104,6 +104,32 @@ export async function cgHistoryTf(cacheDir: string, symbol: string, src: Source,
   return items ? new Map(items.map((b) => [b.time, b])) : null;
 }
 
+/** Aggregated open interest (all exchanges, USD), 1H closes for [start, now); cached like cgHistory. */
+export async function cgOiAgg(cacheDir: string, symbol: string, start: number, now: number): Promise<Map<number, number> | null> {
+  const file = join(cacheDir, `${symbol}_cg_oiagg.json`);
+  if (existsSync(file)) {
+    try {
+      const c = JSON.parse(readFileSync(file, "utf8")) as { from: number; to: number; items: [number, number][] | null };
+      if (c.from <= start && (OFFLINE || now - c.to < Number(process.env.STUDY_CG_MAXAGE_H ?? 6) * H1)) return c.items ? new Map(c.items) : null;
+    } catch { /* refetch */ }
+  }
+  if (OFFLINE) return null;
+  const base = applyCgAlias(symbol.replace(/-?USDT$/i, "").toUpperCase());
+  let rows: any[] | null = [];
+  for (let a = start; a < now && rows !== null; a += 4400 * H1) {
+    const b = Math.min(now, a + 4400 * H1);
+    const part = await cgGet("/api/futures/open-interest/aggregated-history", {
+      symbol: base, interval: "1h", start_time: String(a), end_time: String(b), limit: String(Math.min(4500, Math.ceil((b - a) / H1) + 4)),
+    });
+    rows = part === null ? null : rows.concat(part);
+  }
+  const toMs = (t: number) => (t < 1e12 ? t * 1000 : t);
+  const items: [number, number][] | null = rows === null ? null
+    : rows.map((r) => [toMs(Number(r.time)), Number(r.close)] as [number, number]).filter(([, v]) => Number.isFinite(v) && v > 0);
+  if (rows !== null) writeFileSync(file, JSON.stringify({ from: start, to: now, items }));
+  return items ? new Map(items) : null;
+}
+
 /** BingX OHLC with the volume of a source (USD / close → base units, ratios unchanged); NaN where missing. */
 export function withVolume(cs: C[], vb: Map<number, VBar> | null, step: number): C[] {
   if (!vb) return cs.map((c) => ({ ...c, volume: NaN }));
