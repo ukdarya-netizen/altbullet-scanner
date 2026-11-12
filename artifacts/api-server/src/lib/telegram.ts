@@ -322,6 +322,7 @@ export async function sendMessageResult(
     allowAbneonTrackedLifecycleWhileMuted = false,
     allowStealthPrimaryWhileMuted = false,
     allowStealthTrackedLifecycleWhileMuted = false,
+    allowLiquidationCascadePrimaryWhileMuted = false,
   }: {
     appendChartLinks?: boolean;
     parseMode?: "HTML" | null;
@@ -334,6 +335,7 @@ export async function sendMessageResult(
     allowAbneonTrackedLifecycleWhileMuted?: boolean;
     allowStealthPrimaryWhileMuted?: boolean;
     allowStealthTrackedLifecycleWhileMuted?: boolean;
+    allowLiquidationCascadePrimaryWhileMuted?: boolean;
   } = {},
 ): Promise<TelegramApiCallResult> {
   assertMarketCycleLeaseOwnership("Telegram message delivery");
@@ -380,6 +382,7 @@ export async function sendMessageResult(
     allowAbneonTrackedLifecycleWhileMuted,
     allowStealthPrimaryWhileMuted,
     allowStealthTrackedLifecycleWhileMuted,
+    allowLiquidationCascadePrimaryWhileMuted,
   });
   if (!result.ok && result.status === 403) {
     await markSubscriberBotBlocked(chatId, result.description);
@@ -675,6 +678,7 @@ export async function sendPhotoCaptionResult(
     allowAbneonTrackedLifecycleWhileMuted = false,
     allowStealthPrimaryWhileMuted = false,
     allowStealthTrackedLifecycleWhileMuted = false,
+    allowLiquidationCascadePrimaryWhileMuted = false,
   }: {
     appendChartLinks?: boolean;
     requireActiveSubscription?: boolean;
@@ -686,6 +690,7 @@ export async function sendPhotoCaptionResult(
     allowAbneonTrackedLifecycleWhileMuted?: boolean;
     allowStealthPrimaryWhileMuted?: boolean;
     allowStealthTrackedLifecycleWhileMuted?: boolean;
+    allowLiquidationCascadePrimaryWhileMuted?: boolean;
   } = {},
 ): Promise<TelegramApiCallResult<TelegramPhotoMessage>> {
   assertMarketCycleLeaseOwnership("Telegram photo delivery");
@@ -698,6 +703,7 @@ export async function sendPhotoCaptionResult(
       allowAbneonTrackedLifecycleWhileMuted,
       allowStealthPrimaryWhileMuted,
       allowStealthTrackedLifecycleWhileMuted,
+      allowLiquidationCascadePrimaryWhileMuted,
     )
   ) {
     return {
@@ -905,6 +911,7 @@ export async function sendPhotoByFileIdResult(
     allowAbneonTrackedLifecycleWhileMuted = false,
     allowStealthPrimaryWhileMuted = false,
     allowStealthTrackedLifecycleWhileMuted = false,
+    allowLiquidationCascadePrimaryWhileMuted = false,
   }: {
     requireActiveSubscription?: boolean;
     auditSource?: string;
@@ -915,6 +922,7 @@ export async function sendPhotoByFileIdResult(
     allowAbneonTrackedLifecycleWhileMuted?: boolean;
     allowStealthPrimaryWhileMuted?: boolean;
     allowStealthTrackedLifecycleWhileMuted?: boolean;
+    allowLiquidationCascadePrimaryWhileMuted?: boolean;
   } = {},
 ): Promise<TelegramApiCallResult> {
   assertMarketCycleLeaseOwnership("Telegram cached-photo delivery");
@@ -961,6 +969,7 @@ export async function sendPhotoByFileIdResult(
     allowAbneonTrackedLifecycleWhileMuted,
     allowStealthPrimaryWhileMuted,
     allowStealthTrackedLifecycleWhileMuted,
+    allowLiquidationCascadePrimaryWhileMuted,
   });
   if (!result.ok && result.status === 403) {
     await markSubscriberBotBlocked(chatId, result.description);
@@ -1225,7 +1234,10 @@ function isBulletScoreHidden(sentimentKey: string): boolean {
 function telegramNeonConfluence(s: AlphaResult): string {
   if (s.sentimentKey !== "neon_support_bounce") return "";
   // Owner 2026-11-11: a bounce from a fresh low (no zone yet) is named in the signal.
-  const low = s.neonSupportBounceEvent?.lowBounce === true ? " · 📉 отскок от нового минимума" : "";
+  const low =
+    s.neonSupportBounceEvent?.lowBounce === true
+      ? " · 📉 отскок от нового минимума"
+      : "";
   return s.neonSupportBounceEvent?.confluence
     ? `${low} · 🧲 совпадение ${s.neonSupportBounceEvent.confluence}`
     : low;
