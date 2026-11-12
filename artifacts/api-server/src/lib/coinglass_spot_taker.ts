@@ -17,6 +17,7 @@
  */
 
 import { getAllSpotExchanges } from "./coinglass-exchanges.js";
+import { applyCgAlias } from "./cg-symbol-alias.js";
 import { logger } from "./logger.js";
 import { reportApiSuccess, reportApiFailure } from "./apiHealth.js";
 import { getNextCgKey, logCg429 } from "./coinglass_keys.js";
@@ -67,6 +68,8 @@ async function fetchAggSpotTaker(
   bingxSymbol: string,
   apiKey: string,
   limit: number = 4,
+  interval: "15m" | "1h" = "15m",
+  timeoutMs = 6000,
 ): Promise<SpotCandle[] | null> {
   const base = bingxSymbol.replace(/-?USDT$/i, "").toUpperCase();
   const url = new URL(
@@ -74,13 +77,13 @@ async function fetchAggSpotTaker(
   );
   url.searchParams.set("symbol", base);
   url.searchParams.set("exchange_list", getAllSpotExchanges());
-  url.searchParams.set("interval", "15m");
+  url.searchParams.set("interval", interval);
   url.searchParams.set("limit", String(limit));
 
   try {
     const res = await cgTimedFetch(url.toString(), {
       headers: { "CG-API-KEY": apiKey, Accept: "application/json" },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (res.status === 429) {
@@ -230,4 +233,23 @@ export async function getAggSpotTakerHistory(
       sell: Number(r.taker_sell_volume_usd) || 0,
     })) ?? null
   );
+}
+
+/**
+ * Aggregated spot taker volume (buy + sell, USD) of every spot exchange by 1H candle open time (ms), the last
+ * `limit` bars. Owner 2026-11-12: ABNeon month-volume gate. null when CoinGlass has no data.
+ */
+export async function getAggSpotVolume1h(
+  bingxSymbol: string,
+  limit: number,
+): Promise<Map<number, number> | null> {
+  const apiKey = getNextCgKey();
+  if (!apiKey) return null;
+  const base = applyCgAlias(bingxSymbol.replace(/-?USDT$/i, "").toUpperCase());
+  const rows = await fetchAggSpotTaker(base, apiKey, Math.min(4500, Math.max(1, Math.round(limit))), "1h", 15_000);
+  if (!rows) return null;
+  return new Map(rows.map((r) => [
+    r.time < 1e12 ? r.time * 1000 : r.time,
+    (Number(r.taker_buy_volume_usd) || 0) + (Number(r.taker_sell_volume_usd) || 0),
+  ]));
 }

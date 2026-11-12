@@ -1,4 +1,4 @@
-import { ABNEON_PRE_TOUCH_BLUE_MIN, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
+import { ABNEON_MONTH_VOLUME_BARS, ABNEON_PRE_TOUCH_BLUE_MIN, monthVolumeGate, preTouchBlueCount, touchVolumeNotGrey } from "./abneon-volume-gate.js";
 import { findLowBounce, lowBouncePriceCandidate, stopUnderLevel } from "./abneon-low-bounce.js";
 import {
   getStealthOi4hAtBreakout,
@@ -111,7 +111,7 @@ import {
   MIN_SPOT_VOL_MCAP_FRACTION,
   triggerRefresh,
 } from "./spotPool.js";
-import { getSpotTakerFlow } from "./coinglass_spot_taker.js";
+import { getAggSpotVolume1h, getSpotTakerFlow } from "./coinglass_spot_taker.js";
 import {
   fetchLiqCoinList,
   fetchLiqOrders,
@@ -6861,6 +6861,28 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             evidence: { lowBounce: lb },
           };
         }
+      }
+      // Owner 2026-11-12: no ABNeon on a dead coin — the last 24h of aggregated futures AND spot volume each at
+      // least 80% of the coin's own average day of the previous 30 days (abneon-volume-gate.ts). Both the zone
+      // bounce and the bounce from a fresh low. No aggregated data → no signal.
+      if (support.status === "qualified") {
+        const [futMonth, spotMonth] = await Promise.all([
+          getAggFuturesVolumeByInterval(symbol, "1h", ABNEON_MONTH_VOLUME_BARS).catch(() => null),
+          getAggSpotVolume1h(symbol, ABNEON_MONTH_VOLUME_BARS).catch(() => null),
+        ]);
+        const lastHourOpen = Math.floor(Date.now() / 3_600_000) * 3_600_000 - 3_600_000;
+        const monthVolume = monthVolumeGate({ futUsdByHour: futMonth, spotUsdByHour: spotMonth, lastHourOpen });
+        const evidence = { ...(support.evidence ?? {}), monthVolume };
+        support = monthVolume.ok
+          ? { ...support, evidence }
+          : {
+              ...support,
+              status: "terminal",
+              reason: monthVolume.reason === "month_volume_low"
+                ? `month_volume_low_f${monthVolume.fut}_s${monthVolume.spot}`
+                : "month_volume_no_aggregated_volume",
+              evidence,
+            };
       }
       const persistedSupport = await persistStealthAbneonShadow({
         symbol,

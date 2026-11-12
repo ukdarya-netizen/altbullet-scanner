@@ -134,3 +134,50 @@ export function touchVolumeNotGrey(input: {
   if (!colours.length) return { ok: false, reason: "touch_bar_not_closed", colours };
   return colours.some((c) => c !== "N") ? { ok: true, colours, firstTouchTime: touch } : { ok: false, reason: "touch_volume_grey", colours };
 }
+
+/**
+ * ABNeon month-volume gate (owner 2026-11-12: "срезать убыток — не входить на ничтожных объёмах").
+ * The last 24 hours of aggregated volume (the hour of the decision and the 23 before it) against the coin's own
+ * average day of the previous 30 days, separately on futures (CoinGlass, all futures exchanges) and spot (all spot
+ * exchanges). A signal goes out only when BOTH are at least 80% of their 30-day norm.
+ * History (abneon-full, 11 519 trades, 560 coins, 09.09–12.11): all −0.71% a trade, 20% in profit
+ * (Sep +0.84 / Oct −1.33 / Nov −2.23); with the gate 4 170 trades, −0.18%, 24% in profit (Sep +0.68 / Oct −0.82 /
+ * Nov −1.43). No aggregated data, or fewer than 20 of the 30 days → no signal (aggregated data only).
+ * Same computation as the study: a day counts when any of its hours has data.
+ */
+export const ABNEON_MONTH_VOLUME_MIN = 0.8;
+export const ABNEON_MONTH_VOLUME_BARS = 760;
+
+/** Last 24h volume / average day of the previous 30 days, from 1H USD volume by candle open time; null if not enough data. */
+export function volumeVsMonth(usdByHour: ReadonlyMap<number, number>, lastHourOpen: number): number | null {
+  const sum = (a: number, b: number): number | null => {
+    let s = 0, n = 0;
+    for (let t = a; t <= b; t += H1) { const x = usdByHour.get(t); if (x != null && Number.isFinite(x)) { s += x; n++; } }
+    return n ? s : null;
+  };
+  const last24 = sum(lastHourOpen - 23 * H1, lastHourOpen);
+  const days: number[] = [];
+  for (let d = 1; d <= 30; d++) { const v = sum(lastHourOpen - (24 * d + 23) * H1, lastHourOpen - 24 * d * H1); if (v !== null) days.push(v); }
+  if (last24 === null || days.length < 20) return null;
+  const avg = days.reduce((a, b) => a + b, 0) / days.length;
+  return avg > 0 ? last24 / avg : null;
+}
+
+export type MonthVolume =
+  | { ok: true; fut: number; spot: number; min: number }
+  | { ok: false; reason: "no_aggregated_volume" | "month_volume_low"; fut: number | null; spot: number | null; min: number };
+
+export function monthVolumeGate(input: {
+  futUsdByHour: ReadonlyMap<number, number> | null;
+  spotUsdByHour: ReadonlyMap<number, number> | null;
+  /** Open time of the last closed 1H candle at the decision. */
+  lastHourOpen: number;
+}): MonthVolume {
+  const min = ABNEON_MONTH_VOLUME_MIN;
+  const fut = input.futUsdByHour ? volumeVsMonth(input.futUsdByHour, input.lastHourOpen) : null;
+  const spot = input.spotUsdByHour ? volumeVsMonth(input.spotUsdByHour, input.lastHourOpen) : null;
+  const r = (x: number | null) => (x === null ? null : Math.round(x * 100) / 100);
+  if (fut === null || spot === null) return { ok: false, reason: "no_aggregated_volume", fut: r(fut), spot: r(spot), min };
+  if (fut < min || spot < min) return { ok: false, reason: "month_volume_low", fut: r(fut), spot: r(spot), min };
+  return { ok: true, fut: r(fut)!, spot: r(spot)!, min };
+}
