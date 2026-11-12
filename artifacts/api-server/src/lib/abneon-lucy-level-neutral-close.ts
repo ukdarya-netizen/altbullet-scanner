@@ -1,5 +1,5 @@
 import { pool } from "@workspace/db";
-import { ABNEON_MAX_ENTRY_ABOVE_TOP_PCT, LUCY_LONG_BARS, entryAboveZoneTopPct, touchVolumeNotGrey } from "./abneon-volume-gate.js";
+import { ABNEON_MAX_ENTRY_ABOVE_TOP_PCT, LUCY_LONG_BARS, entryAboveZoneTopPct, firstTouchTime, touchVolumeNotGrey } from "./abneon-volume-gate.js";
 import { findLowBounce } from "./abneon-low-bounce.js";
 import { getKlinesRange } from "./bingx.js";
 import { getAggFuturesVolumeByInterval } from "./coinglass_taker.js";
@@ -71,18 +71,26 @@ async function verdictFor(symbol: string, detectedAt: Date): Promise<Verdict> {
   const k1 = await getKlinesRange(symbol, "1h", arm - 26 * H1, trig + 2 * H1);
   if (k1.length === 0) return { verdict: "no_data", detail: "no 1h candles", aboveTopPct: null, colours: "" };
   const c1 = toCandles(k1);
-  const tv = touchVolumeNotGrey({
-    candles1h: c1, candles4h: c4, agg4hUsdByTime: fut, spot4hUsdByTime: spot,
-    armCandleTime: arm, triggerCandleTime: trig, zoneTop: level, nowMs: det,
-  });
   const trigBar = c1.find((c) => c.time === trig);
   const above = trigBar ? entryAboveZoneTopPct(trigBar.close, level) : null;
   const aboveTopPct = above === null ? null : Math.round(above * 100) / 100;
+  if (above === null) return { verdict: "no_data", detail: "no trigger candle", aboveTopPct, colours: "" };
+  // The level rule alone decides when the entry is above the zone top (no volume needed).
+  if (above > ABNEON_MAX_ENTRY_ABOVE_TOP_PCT) return { verdict: "close", detail: "entry above the zone top", aboveTopPct, colours: "" };
+  // Lucy's rule on the touch 4H candle: as at the signal; if the touch 4H candle was still open then, as at its close
+  // (the first run found 7 such rows — the touch candle closes after the 1H bounce).
+  const gate = (nowMs: number) => touchVolumeNotGrey({
+    candles1h: c1, candles4h: c4, agg4hUsdByTime: fut, spot4hUsdByTime: spot,
+    armCandleTime: arm, triggerCandleTime: trig, zoneTop: level, nowMs,
+  });
+  let tv = gate(det);
+  if (!tv.ok && tv.reason === "touch_bar_not_closed") {
+    const touch = firstTouchTime(c1, arm, trig, level);
+    if (touch !== null) tv = gate(Math.max(det, Math.floor(touch / H4) * H4 + H4));
+  }
   const colours = tv.colours.join("");
-  if (!tv.ok && tv.reason === "touch_bar_not_closed") return { verdict: "no_data", detail: "touch bar not closed at the signal", aboveTopPct, colours };
+  if (!tv.ok && tv.reason === "touch_bar_not_closed") return { verdict: "no_data", detail: "touch bar not closed", aboveTopPct, colours };
   if (!tv.ok) return { verdict: "close", detail: `touch ${tv.reason}`, aboveTopPct, colours };
-  if (above === null) return { verdict: "no_data", detail: "no trigger candle", aboveTopPct, colours };
-  if (above > ABNEON_MAX_ENTRY_ABOVE_TOP_PCT) return { verdict: "close", detail: "entry above the zone top", aboveTopPct, colours };
   return { verdict: "pass", detail: "passes Lucy and the level", aboveTopPct, colours };
 }
 
