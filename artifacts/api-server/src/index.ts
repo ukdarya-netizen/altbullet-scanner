@@ -94,6 +94,7 @@ import { runAbneonLowBounceNeutralClose } from "./lib/abneon-low-bounce-neutral-
 import { runStealthVsaPublishNeutralClose } from "./lib/stealth-vsa-publish-neutral-close.js";
 import { runBtcCrowdNeutralClose } from "./lib/btc-crowd-neutral-close.js";
 import { runLcMonthNeutralClose } from "./lib/lc-month-neutral-close.js";
+import { runAbneonMonthVolumeOneTime } from "./lib/abneon-month-volume-neutral-close.js";
 import { reclassifyClosedAbneonNovemberStats } from "./lib/abneon-november-neutral-reclassification.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
 import { neutralizeStealthOnPublish } from "./lib/stealth-publish-neutral-close.js";
@@ -5985,6 +5986,12 @@ app.listen(port, async (err) => {
     } catch (err) {
       logger.error({ err }, "LC November neutral close failed");
     }
+    // Owner 2026-11-12, one-time: open ABNeon positions the month-volume gate would not have passed are closed
+    // neutrally, and the ABNeon stop losses of November leave the statistics. Markers + a hard detected_at cut-off.
+    // In the background: it asks CoinGlass per open position.
+    void runAbneonMonthVolumeOneTime()
+      .then((r) => logger.info(r, "ABNeon month-volume one-time close reviewed"))
+      .catch((err) => logger.error({ err }, "ABNeon month-volume one-time close failed"));
     try {
       const neonFlowGateClose = await neutralizeNeonFlowGateSignals();
       logger.info(
