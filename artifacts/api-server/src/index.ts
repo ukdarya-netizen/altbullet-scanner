@@ -95,7 +95,7 @@ import { runStealthVsaPublishNeutralClose } from "./lib/stealth-vsa-publish-neut
 import { runBtcCrowdNeutralClose } from "./lib/btc-crowd-neutral-close.js";
 import { runLcMonthNeutralClose } from "./lib/lc-month-neutral-close.js";
 import { restoreGrvtZestAfterMonthVolumeClose } from "./lib/abneon-month-volume-restore.js";
-import { runAbneonR8NeutralClose } from "./lib/abneon-r8-neutral-close.js";
+import { restoreAfterAbneonR8Close } from "./lib/abneon-r8-restore.js";
 import { runLevelTakeTracking } from "./lib/level-takes-tracking.js";
 import { reclassifyClosedAbneonNovemberStats } from "./lib/abneon-november-neutral-reclassification.js";
 import { neutralizeOpenStealthSignals } from "./lib/stealth-open-neutral-close.js";
@@ -5993,13 +5993,11 @@ app.listen(port, async (err) => {
     void restoreGrvtZestAfterMonthVolumeClose()
       .then((r) => logger.info(r, "ABNeon GRVT/ZEST restore after the month-volume close"))
       .catch((err) => logger.error({ err }, "ABNeon GRVT/ZEST restore failed"));
-    // Owner 2026-11-12, one-time (R8 — the entry by the trading rules of a bounce, take at the nearest resistance):
-    // open ABNeon positions that R8 would not have let through are closed neutrally, the passing ones get the new
-    // exit (no exceptions: GRVT, ZEST, OKB are decided by the rule too). Marker + a hard detected_at cut-off.
-    // Replaces the Lucy / 1%-level close.
-    void runAbneonR8NeutralClose()
-      .then((r) => logger.info(r, "ABNeon R8 one-time close reviewed"))
-      .catch((err) => logger.error({ err }, "ABNeon R8 one-time close failed"));
+    // Owner 2026-11-12 ("Верни"): the R8 one-time close shut every open ABNeon but SXT by faults of the check and of
+    // the rule, not of the bounces — its call is removed and every row it closed is restored, once (marker).
+    void restoreAfterAbneonR8Close()
+      .then((r) => logger.info(r, "ABNeon R8 close restore reviewed"))
+      .catch((err) => logger.error({ err }, "ABNeon R8 close restore failed"));
     try {
       const neonFlowGateClose = await neutralizeNeonFlowGateSignals();
       logger.info(
