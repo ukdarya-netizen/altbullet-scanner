@@ -12,6 +12,10 @@
  *   .candleClosedAt), else the last closed 30m candle before the signal. Same pack on 30m:
  *   candle shape, volume vs 20 bars, futures and spot taker net buy % (candle, previous hour),
  *   OI change 30m / 1h / 4h / 24h.
+ * Liquidation Cascade (owner 2026-11-12: "write all entry metrics as for the other patterns"): detection
+ *   candle = the last closed 15m candle before the signal (the candle the capitulation rule judges). Same pack
+ *   on 15m: candle shape, aggregated futures volume vs 20 bars and its Welkin colour, futures and spot taker
+ *   net buy % (candle, previous hour), OI change 15m / 1h / 4h / 24h.
  * Sources: BingX klines (price), CoinGlass aggregated history (volume, taker, OI).
  */
 import { pool } from "@workspace/db";
@@ -26,9 +30,10 @@ import { computeSupportZones } from "./stealth-abneon-detectors.js";
 import { detectAutoRangePine1h } from "./auto-range-pine.js";
 import { logger } from "./logger.js";
 
-export const EXTRAS_KEYS = ["impulse_buy", "stealth_breakout"] as const;
+export const EXTRAS_KEYS = ["impulse_buy", "stealth_breakout", "liquidation_cascade"] as const;
 const H1 = 3_600_000;
 const M30 = 30 * 60_000;
+const M15 = 15 * 60_000;
 const BACKFILL_DAYS = 60;
 const RANGE_BARS = 320;
 const RETRY_TEMP_MS = 30 * 60_000;
@@ -82,7 +87,7 @@ async function fetchCg(path: string, params: Record<string, string>, interval: s
 }
 
 export type Candle = { time: number; open: number; high: number; low: number; close: number };
-async function klines(symbol: string, interval: "1h" | "30m", from: number, to: number): Promise<Candle[]> {
+async function klines(symbol: string, interval: "1h" | "30m" | "15m", from: number, to: number): Promise<Candle[]> {
   const raw = await getKlinesRange(symbol, interval, from, to).catch(() => []);
   return raw
     .map((k) => ({ time: Number(k.time), open: Number(k.open), high: Number(k.high), low: Number(k.low), close: Number(k.close) }))
@@ -139,13 +144,42 @@ function oiChange(rows: Row[] | null, at: number, back: number, step: number): n
 }
 
 
+/** Owner's Welkin VSA colour of the bar on aggregated futures volume (20 bars, the bar included, population σ). */
+function welkinOf(rows: Row[] | null, at: number, step: number): string | null {
+  if (!rows) return null;
+  const vol = (t: number) => { const r = rows.find((x) => x.time === t); return r ? (num(r[BUY]) ?? 0) + (num(r[SELL]) ?? 0) : null; };
+  const vs: number[] = [];
+  for (let k = 19; k >= 0; k--) { const v = vol(at - k * step); if (v === null) return null; vs.push(v); }
+  const avg = vs.reduce((a, b) => a + b, 0) / 20;
+  const sd = Math.sqrt(vs.reduce((a, v) => a + (v - avg) ** 2, 0) / 20);
+  const v = vs[19]!, prev = vs[18]!;
+  if (v > avg + 4 * sd) return "W";
+  if (v > avg + 3 * sd) return "M";
+  if (v > avg + 2 * sd) return "O";
+  if (v > avg) return "A";
+  if (prev > 0 && v / prev >= 1.25) return "Y";
+  return "N";
+}
+
 /** Pure: the stored parameters from candles and CoinGlass rows (exported for tests). */
-export function buildExtras(a: { isIb: boolean; at: number; candles: Candle[]; fut: Row[] | null; spot: Row[] | null; oi: Row[] | null; reasons: string[]; fromScanner: boolean }) {
+export function buildExtras(a: { isIb: boolean; isLc?: boolean; at: number; candles: Candle[]; fut: Row[] | null; spot: Row[] | null; oi: Row[] | null; reasons: string[]; fromScanner: boolean }) {
   const { isIb, candles, fut, spot, oi } = a;
-  const step = isIb ? M30 : H1;
+  const isLc = a.isLc === true;
+  const step = isLc ? M15 : isIb ? M30 : H1;
   let at = a.at;
   const extra: Record<string, unknown> = {};
-  if (isIb) {
+  if (isLc) {
+    Object.assign(extra, {
+      candleFrom: "last_closed_15m",
+      welkin: welkinOf(fut, at, M15),
+      futTakerNetBuyPctPrev1h: netBuy(fut, at - 4 * M15, 4, M15),
+      spotTakerNetBuyPctPrev1h: netBuy(spot, at - 4 * M15, 4, M15),
+      oi15m: oiChange(oi, at, 1, M15),
+      oi1h: oiChange(oi, at, 4, M15),
+      oi4h: oiChange(oi, at, 16, M15),
+      oi24h: oiChange(oi, at, 96, M15),
+    });
+  } else if (isIb) {
     Object.assign(extra, {
       candleFrom: a.fromScanner ? "scanner_candle" : "last_closed_30m",
       futTakerNetBuyPctPrev1h: netBuy(fut, at - 2 * M30, 2, M30),
@@ -184,7 +218,7 @@ export function buildExtras(a: { isIb: boolean; at: number; candles: Candle[]; f
     });
   }
   return {
-    timeframe: isIb ? "30m" : "1h",
+    timeframe: isLc ? "15m" : isIb ? "30m" : "1h",
     candleTime: new Date(at).toISOString(),
     candle: shape(candles.filter((c) => c.time <= at), at),
     ...volRatio(fut, at, step),
@@ -208,15 +242,18 @@ export async function recordEntryExtras(t: SignalRef, priority: "high" | "low" =
   try {
     await ensureExtrasTable();
     const isIb = t.sentimentKey === "impulse_buy";
-    const step = isIb ? M30 : H1;
-    const interval = isIb ? "30m" : "1h";
+    const isLc = t.sentimentKey === "liquidation_cascade";
+    const step = isLc ? M15 : isIb ? M30 : H1;
+    const interval = isLc ? "15m" : isIb ? "30m" : "1h";
     const fromIdm = t.ibCandleClosedAt ? Date.parse(t.ibCandleClosedAt) - M30 : NaN;
-    const at = isIb
-      ? (Number.isFinite(fromIdm) ? fromIdm : Math.floor(t.detectedAt.getTime() / M30) * M30 - M30)
-      : Math.floor(t.detectedAt.getTime() / H1) * H1 - H1;
+    const at = isLc
+      ? Math.floor(t.detectedAt.getTime() / M15) * M15 - M15
+      : isIb
+        ? (Number.isFinite(fromIdm) ? fromIdm : Math.floor(t.detectedAt.getTime() / M30) * M30 - M30)
+        : Math.floor(t.detectedAt.getTime() / H1) * H1 - H1;
     const base = applyCgAlias(t.symbol.replace(/-?USDT$/i, "").toUpperCase());
-    const bars = Math.ceil((Date.now() - at) / step) + 60;
-    const candles = await klines(t.symbol, isIb ? "30m" : "1h", at - (isIb ? 60 : RANGE_BARS) * step, at + step);
+    const bars = Math.ceil((Date.now() - at) / step) + (isLc ? 120 : 60);
+    const candles = await klines(t.symbol, interval, at - (isIb || isLc ? 60 : RANGE_BARS) * step, at + step);
     const fut = await fetchCg("futures/aggregated-taker-buy-sell-volume/history", { symbol: base, exchange_list: getAggFuturesTakerExchanges() }, interval, bars, priority);
     const spot = await fetchCg("spot/aggregated-taker-buy-sell-volume/history", { symbol: base, exchange_list: getAllSpotExchanges() }, interval, bars, priority);
     const oi = await fetchCg("futures/open-interest/aggregated-history", { symbol: base }, interval, bars, priority);
@@ -233,7 +270,7 @@ export async function recordEntryExtras(t: SignalRef, priority: "high" | "low" =
       failures.set(t.id, { reason: reasons.join("; ") || "неизвестно", at: Date.now(), temporary: temporary || !candle });
       return "failed";
     }
-    const metrics = buildExtras({ isIb, at, candles, fut: fut.rows, spot: spot.rows, oi: oi.rows, reasons, fromScanner: Number.isFinite(fromIdm) });
+    const metrics = buildExtras({ isIb, isLc, at, candles, fut: fut.rows, spot: spot.rows, oi: oi.rows, reasons, fromScanner: Number.isFinite(fromIdm) });
     await pool.query(
       `INSERT INTO signal_entry_extras (tracked_signal_id, symbol, sentiment_key, metrics)
        VALUES ($1, $2, $3, $4::jsonb) ON CONFLICT (tracked_signal_id) DO UPDATE SET metrics = signal_entry_extras.metrics || EXCLUDED.metrics`,

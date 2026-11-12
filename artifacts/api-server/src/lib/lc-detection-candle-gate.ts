@@ -25,6 +25,9 @@ export const LC_MAX_DETECTION_CANDLE_BODY_PCT = -3.5;
 // stop -10%: bodies -3.5..-5.5% positive in every month (Jul +9, Aug +4,
 // Sep +64, Oct w/o 15.10 +145, 15.10 +381; 174 trades); deeper bodies negative
 // in Jul, Aug and Sep. Stable for cut-offs -5.0..-6.0 with take +10%.
+// Owner 2026-11-12: the −5.5% floor is removed (reports/lc-entry-variants: on the detection candle, no floor
+// = 224 trades +246% / +1.10% avg, every month ≥ 0, vs 94 trades +182% with it). Kept for the shadow
+// readings only; the gate no longer reads it.
 export const LC_MIN_DETECTION_CANDLE_BODY_PCT = -5.5;
 export const LC_DETECTION_ENTRY_WINDOW_MS = 15 * 60 * 1000;
 // Owner 2026-10-23: only the CLOSED detection candle is judged. While it is
@@ -93,8 +96,9 @@ export function evaluateLcDetectionCandleGate(
   const rangePct = ((c.high - c.low) / c.open) * 100;
   const lowerWickPct = ((Math.min(c.open, c.close) - c.low) / c.open) * 100;
   const bodyPct = ((c.close - c.open) / c.open) * 100;
-  // Owner 2026-11-02 (shadow mode): the minimum range no longer blocks.
-  if (false as boolean) {
+  // Owner 2026-11-12: the minimum range blocks again (range < 5.6% on the detection candle: ~200 watches,
+  // −2.62% avg at the entry; reports/lc-watch). Shadow mode of 2026-11-02 ended.
+  if (rangePct < LC_MIN_DETECTION_CANDLE_RANGE_PCT) {
     return {
       pass: false,
       reason: "detection_candle_too_small",
@@ -103,10 +107,7 @@ export function evaluateLcDetectionCandleGate(
       bodyPct,
     };
   }
-  if (
-    bodyPct > LC_MAX_DETECTION_CANDLE_BODY_PCT ||
-    bodyPct < LC_MIN_DETECTION_CANDLE_BODY_PCT
-  ) {
+  if (bodyPct > LC_MAX_DETECTION_CANDLE_BODY_PCT) {
     return {
       pass: false,
       reason: "detection_candle_not_capitulation",
