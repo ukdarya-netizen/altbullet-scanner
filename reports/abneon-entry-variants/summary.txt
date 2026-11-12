@@ -1,0 +1,236 @@
+ABNeon: какой вход работает · 2026-09-09 … 2026-11-12 · монет 560, касаний зоны 84198
+Окно входа 48 ч после касания; касание отменяется, если 4H закрылась под зоной до входа. Выход как живой ABNeon (стоп под зоной −1%, Б.У. +10, трейл +20/20, отмена 4H под уровнем, 4 дня, комиссия 0.1%).
+
+LIVE: сделок 11024 (172.3 в день) · закрыто 10786 · ср -0.67% · сумма -7275% · в плюсе 20% · пик≥10 19% · ожидание 1…24 ч
+   по месяцам: 2026-09 n3811 0.83% · 2026-10 n5432 -1.31% · 2026-11 n1543 -2.16%
+RECLAIM_1H: сделок 9545 (149.1 в день) · закрыто 9305 · ср -0.88% · сумма -8216% · в плюсе 23% · пик≥10 22% · ожидание 2…48 ч
+   по месяцам: 2026-09 n3287 1.16% · 2026-10 n4712 -1.76% · 2026-11 n1306 -2.88%
+RECLAIM_4H: сделок 9003 (140.7 в день) · закрыто 8772 · ср -0.96% · сумма -8435% · в плюсе 23% · пик≥10 22% · ожидание 1…48 ч
+   по месяцам: 2026-09 n3082 1.28% · 2026-10 n4459 -1.97% · 2026-11 n1231 -2.92%
+BOUNCE_3: сделок 8861 (138.5 в день) · закрыто 8661 · ср -0.75% · сумма -6496% · в плюсе 25% · пик≥10 24% · ожидание 1…48 ч
+   по месяцам: 2026-09 n3090 1.39% · 2026-10 n4438 -1.72% · 2026-11 n1133 -2.78%
+BOUNCE_5: сделок 6207 (97.0 в день) · закрыто 6050 · ср -0.98% · сумма -5902% · в плюсе 26% · пик≥10 29% · ожидание 1…48 ч
+   по месяцам: 2026-09 n2312 1.57% · 2026-10 n2976 -2.3% · 2026-11 n762 -3.53%
+BOS_1H: сделок 7643 (119.4 в день) · закрыто 7464 · ср -1.32% · сумма -9834% · в плюсе 21% · пик≥10 22% · ожидание 2…48 ч
+   по месяцам: 2026-09 n2615 1.35% · 2026-10 n3815 -2.54% · 2026-11 n1034 -3.53%
+HL_1H: сделок 9398 (146.8 в день) · закрыто 9189 · ср -0.87% · сумма -7952% · в плюсе 22% · пик≥10 21% · ожидание 3…48 ч
+   по месяцам: 2026-09 n3137 1.35% · 2026-10 n4753 -1.79% · 2026-11 n1299 -2.86%
+GREEN_4H: сделок 7641 (119.4 в день) · закрыто 7451 · ср -1.12% · сумма -8374% · в плюсе 22% · пик≥10 23% · ожидание 1…48 ч
+   по месяцам: 2026-09 n2570 1.64% · 2026-10 n3857 -2.34% · 2026-11 n1024 -3.48%
+BRIGHT_1H: сделок 5740 (89.7 в день) · закрыто 5561 · ср -0.93% · сумма -5179% · в плюсе 23% · пик≥10 24% · ожидание 1…48 ч
+   по месяцам: 2026-09 n2104 1.76% · 2026-10 n2652 -2.39% · 2026-11 n805 -3.18%
+LUCY_4H: сделок 3641 (56.9 в день) · закрыто 3558 · ср -0.61% · сумма -2181% · в плюсе 26% · пик≥10 29% · ожидание 1…48 ч
+   по месяцам: 2026-09 n1452 2.32% · 2026-10 n1733 -2.38% · 2026-11 n373 -3.83%
+SPOT_1H: сделок 6815 (106.5 в день) · закрыто 6630 · ср -0.87% · сумма -5782% · в плюсе 23% · пик≥10 22% · ожидание 1…48 ч
+   по месяцам: 2026-09 n2355 1.67% · 2026-10 n3231 -2.17% · 2026-11 n1044 -2.6%
+
+Твои монеты с 28.10 04:00 (Дубай): каждое касание и что сделал каждый вход (итог %, — = входа не было):
+  BIKETYSON  касание 30.10 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -7.79 · BOUNCE_5 -7.79 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  BIKETYSON  касание 01.11 16:00 · LIVE — · RECLAIM_1H -12 · RECLAIM_4H -10.71 · BOUNCE_3 -7.72 · BOUNCE_5 -7.72 · BOS_1H -7.72 · HL_1H -7.72 · GREEN_4H -8.28 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  BIKETYSON  касание 04.11 20:00 · LIVE — · RECLAIM_1H -14.33 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H -14.33 · HL_1H -14.67 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  BIKETYSON  касание 05.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -3.1 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  BIKETYSON  касание 10.11 20:00 · LIVE — · RECLAIM_1H -0.1 · RECLAIM_4H 41.87 · BOUNCE_3 61 · BOUNCE_5 61 · BOS_1H -0.1 · HL_1H -0.1 · GREEN_4H 41.87 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  CFX        касание 28.10 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 -6.16 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  CFX        касание 30.10 04:00 · LIVE 0.68 · RECLAIM_1H -1.93 · RECLAIM_4H -1.32 · BOUNCE_3 2.84 · BOUNCE_5 0.68 · BOS_1H — · HL_1H 0.01 · GREEN_4H -1.32 · BRIGHT_1H — · LUCY_4H — · SPOT_1H -1.13
+  CFX        касание 30.10 12:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -3.1 · HL_1H — · GREEN_4H — · BRIGHT_1H -3.95 · LUCY_4H — · SPOT_1H —
+  CFX        касание 03.11 16:00 · LIVE -1.57 · RECLAIM_1H -1.66 · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -1.66 · HL_1H -3.1 · GREEN_4H -1.55 · BRIGHT_1H -0.95 · LUCY_4H — · SPOT_1H —
+  CFX        касание 04.11 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H -5.62 · BOUNCE_3 -4.76 · BOUNCE_5 -6.77 · BOS_1H -4.76 · HL_1H — · GREEN_4H -5.62 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  CFX        касание 04.11 08:00 · LIVE -0.84 · RECLAIM_1H -1.71 · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -2.45 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  CFX        касание 04.11 09:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -2.86
+  CFX        касание 06.11 06:00 · LIVE — · RECLAIM_1H -1.48 · RECLAIM_4H -2.7 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -1.48 · HL_1H -1.21 · GREEN_4H -1.21 · BRIGHT_1H — · LUCY_4H — · SPOT_1H -1.09
+  CFX        касание 06.11 20:00 · LIVE -3 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  CFX        касание 08.11 08:00 · LIVE — · RECLAIM_1H -3.77 · RECLAIM_4H -4.03 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -3.1 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -3.1
+  CFX        касание 09.11 00:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -0.1
+  CFX        касание 09.11 05:00 · LIVE -2.6 · RECLAIM_1H -2.69 · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  CFX        касание 09.11 13:00 · LIVE -1.44 · RECLAIM_1H -1.89 · RECLAIM_4H -1.89 · BOUNCE_3 -5.47 · BOUNCE_5 — · BOS_1H -3.45 · HL_1H -3.45 · GREEN_4H -1.89 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  CFX        касание 11.11 00:00 · LIVE -0.59 · RECLAIM_1H -3.1 · RECLAIM_4H -3.1 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -0.91 · GREEN_4H -3.1 · BRIGHT_1H -3.1 · LUCY_4H — · SPOT_1H -1.12
+  CFX        касание 11.11 02:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -1.29 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  EDGEX      касание 03.11 00:00 · LIVE — · RECLAIM_1H -0.1 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H -0.1 · HL_1H -0.1 · GREEN_4H -0.1 · BRIGHT_1H -2.09 · LUCY_4H 0.19 · SPOT_1H —
+  EDGEX      касание 03.11 16:00 · LIVE -5.03 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  EDGEX      касание 05.11 20:00 · LIVE — · RECLAIM_1H 33.15 · RECLAIM_4H -0.1 · BOUNCE_3 27.67 · BOUNCE_5 27.37 · BOS_1H 27.67 · HL_1H -0.1 · GREEN_4H 22.56 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  EDGEX      касание 07.11 20:00 · LIVE 19.63 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  EDGEX      касание 09.11 20:00 · LIVE — · RECLAIM_1H -4.12 · RECLAIM_4H -4.12 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H -12.57 · LUCY_4H — · SPOT_1H —
+  EDGEX      касание 10.11 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -8.07 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  EDGEX      касание 10.11 08:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H -4.74 · BOUNCE_3 -4.5 · BOUNCE_5 -6.57 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  EDGEX      касание 10.11 16:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -4.95 · BOUNCE_5 — · BOS_1H — · HL_1H -4.74 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 28.10 08:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H -3.1 · LUCY_4H — · SPOT_1H -3.1
+  ELSA       касание 28.10 16:00 · LIVE -5.31 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 29.10 16:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 30.10 08:00 · LIVE -1.33 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 30.10 20:00 · LIVE — · RECLAIM_1H -3.93 · RECLAIM_4H -3.93 · BOUNCE_3 -5 · BOUNCE_5 -10.35 · BOS_1H — · HL_1H -5.16 · GREEN_4H -5.42 · BRIGHT_1H -5.42 · LUCY_4H — · SPOT_1H -5.42
+  ELSA       касание 31.10 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -9.96 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 31.10 04:00 · LIVE -7.01 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 02.11 03:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H 53.84 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 02.11 08:00 · LIVE 55.56 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H 50.22 · LUCY_4H — · SPOT_1H —
+  ELSA       касание 02.11 16:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H 32.05 · SPOT_1H —
+  ELSA       касание 03.11 00:00 · LIVE — · RECLAIM_1H 44.24 · RECLAIM_4H 43.98 · BOUNCE_3 50.22 · BOUNCE_5 50.22 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 03.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H 50.22
+  ELSA       касание 03.11 08:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -3.1 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 04.11 08:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H 44.24 · GREEN_4H 43.98 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 05.11 12:00 · LIVE -6.23 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -6.23 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 07.11 12:00 · LIVE — · RECLAIM_1H -8.07 · RECLAIM_4H -5.79 · BOUNCE_3 -6.17 · BOUNCE_5 -6.17 · BOS_1H -6.17 · HL_1H -7.66 · GREEN_4H -7.65 · BRIGHT_1H -8.28 · LUCY_4H — · SPOT_1H -6.17
+  ELSA       касание 07.11 16:00 · LIVE -4.07 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 08.11 16:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -3.1 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 09.11 00:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ELSA       касание 09.11 23:00 · LIVE идёт · RECLAIM_1H идёт · RECLAIM_4H идёт · BOUNCE_3 идёт · BOUNCE_5 идёт · BOS_1H идёт · HL_1H идёт · GREEN_4H идёт · BRIGHT_1H идёт · LUCY_4H — · SPOT_1H идёт
+  ERA        касание 29.10 00:00 · LIVE -9.49 · RECLAIM_1H -9.84 · RECLAIM_4H -9.89 · BOUNCE_3 -9.84 · BOUNCE_5 -9.84 · BOS_1H -9.84 · HL_1H -9.84 · GREEN_4H -10.83 · BRIGHT_1H -6.96 · LUCY_4H — · SPOT_1H -6.96
+  ERA        касание 29.10 16:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 2.27 · BOUNCE_5 -1.01 · BOS_1H — · HL_1H -1.01 · GREEN_4H — · BRIGHT_1H -2.19 · LUCY_4H — · SPOT_1H -5.14
+  ERA        касание 30.10 08:00 · LIVE -4.46 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -4.47 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ERA        касание 31.10 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -6.66 · BOUNCE_5 -9.65 · BOS_1H -5.12 · HL_1H -5.12 · GREEN_4H -9.65 · BRIGHT_1H -9.65 · LUCY_4H — · SPOT_1H -4.47
+  ERA        касание 01.11 08:00 · LIVE -9.02 · RECLAIM_1H -9.61 · RECLAIM_4H -8.99 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ERA        касание 02.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 12.55 · BOUNCE_5 9.64 · BOS_1H 9.64 · HL_1H 12.55 · GREEN_4H 7.62 · BRIGHT_1H 15.86 · LUCY_4H 7.62 · SPOT_1H 15.86
+  ERA        касание 03.11 16:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ERA        касание 03.11 20:00 · LIVE — · RECLAIM_1H 11.99 · RECLAIM_4H 11.71 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ERA        касание 04.11 04:00 · LIVE 17.08 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ERA        касание 08.11 12:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H -3.1 · LUCY_4H — · SPOT_1H -3.1
+  ERA        касание 08.11 17:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ERA        касание 08.11 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -5.96 · BOUNCE_5 — · BOS_1H — · HL_1H -5.96 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  ERA        касание 10.11 20:00 · LIVE идёт · RECLAIM_1H -0.1 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H идёт · HL_1H -0.1 · GREEN_4H идёт · BRIGHT_1H идёт · LUCY_4H идёт · SPOT_1H -0.1
+  ERA        касание 11.11 08:00 · LIVE — · RECLAIM_1H идёт · RECLAIM_4H идёт · BOUNCE_3 идёт · BOUNCE_5 идёт · BOS_1H — · HL_1H идёт · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  GANG       касание 03.11 00:00 · LIVE 31.58 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  GANG       касание 06.11 16:00 · LIVE -15.1 · RECLAIM_1H -0.1 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H -0.1 · HL_1H -15.1 · GREEN_4H -15.1 · BRIGHT_1H -15.1 · LUCY_4H — · SPOT_1H —
+  GANG       касание 07.11 04:00 · LIVE 9.14 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  GANG       касание 09.11 16:00 · LIVE 0.7 · RECLAIM_1H 0.7 · RECLAIM_4H -14.02 · BOUNCE_3 0.7 · BOUNCE_5 0.7 · BOS_1H -15.1 · HL_1H -15.1 · GREEN_4H -14.02 · BRIGHT_1H 0.7 · LUCY_4H — · SPOT_1H —
+  GANG       касание 10.11 02:00 · LIVE -3.85 · RECLAIM_1H -7.17 · RECLAIM_4H -7.17 · BOUNCE_3 -3.85 · BOUNCE_5 -7.17 · BOS_1H -10.85 · HL_1H — · GREEN_4H -10.85 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  GANG       касание 10.11 03:00 · LIVE — · RECLAIM_1H -10.82 · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 -0.1 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  GANG       касание 10.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H -10.82 · BOUNCE_3 -0.1 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  GANG       касание 10.11 12:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  GANG       касание 11.11 01:00 · LIVE — · RECLAIM_1H -8.79 · RECLAIM_4H — · BOUNCE_3 -5.99 · BOUNCE_5 -5.99 · BOS_1H — · HL_1H — · GREEN_4H -4.22 · BRIGHT_1H -8.79 · LUCY_4H — · SPOT_1H —
+  GANG       касание 11.11 04:00 · LIVE -8.74 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  GANG       касание 11.11 12:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -3.1 · BOUNCE_5 -3.1 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 28.10 20:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 29.10 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -4.42 · BOUNCE_5 -1.3 · BOS_1H — · HL_1H -3.1 · GREEN_4H -4.42 · BRIGHT_1H -3.1 · LUCY_4H -4.42 · SPOT_1H -3.1
+  HBAR       касание 29.10 04:00 · LIVE -3.1 · RECLAIM_1H -3.1 · RECLAIM_4H -3.1 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 29.10 13:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 0.21 · BOUNCE_5 — · BOS_1H -3.3 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 29.10 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -1.3
+  HBAR       касание 30.10 20:00 · LIVE — · RECLAIM_1H -3.1 · RECLAIM_4H -3.26 · BOUNCE_3 -5.12 · BOUNCE_5 — · BOS_1H -5.12 · HL_1H -3.73 · GREEN_4H -4.15 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 01.11 12:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H -3.36 · LUCY_4H — · SPOT_1H -3.36
+  HBAR       касание 02.11 04:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 02.11 12:00 · LIVE -1.53 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -3.1 · HL_1H -3.1 · GREEN_4H -3.1 · BRIGHT_1H — · LUCY_4H — · SPOT_1H -3.1
+  HBAR       касание 03.11 01:00 · LIVE — · RECLAIM_1H -3.1 · RECLAIM_4H -3.1 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 04.11 00:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 04.11 08:00 · LIVE — · RECLAIM_1H -4.63 · RECLAIM_4H -5.31 · BOUNCE_3 -5.31 · BOUNCE_5 -8.43 · BOS_1H -5.31 · HL_1H -4.81 · GREEN_4H -5.31 · BRIGHT_1H -8.43 · LUCY_4H -8.74 · SPOT_1H -8.43
+  HBAR       касание 06.11 04:00 · LIVE -2.88 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 07.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H 0.11
+  HBAR       касание 08.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -3.1 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 08.11 08:00 · LIVE — · RECLAIM_1H -3.1 · RECLAIM_4H -3.1 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 09.11 00:00 · LIVE -1.6 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 09.11 05:00 · LIVE — · RECLAIM_1H -2.41 · RECLAIM_4H -1.99 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -2.41 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 09.11 08:00 · LIVE -1.6 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 09.11 12:00 · LIVE — · RECLAIM_1H -1.6 · RECLAIM_4H -3.1 · BOUNCE_3 -5.06 · BOUNCE_5 — · BOS_1H -5.06 · HL_1H -3.1 · GREEN_4H -4.72 · BRIGHT_1H — · LUCY_4H -4.72 · SPOT_1H —
+  HBAR       касание 10.11 20:00 · LIVE -0.72 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 11.11 16:00 · LIVE — · RECLAIM_1H -3.1 · RECLAIM_4H -3.1 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -1.41 · HL_1H -1.41 · GREEN_4H -3.1 · BRIGHT_1H -1.41 · LUCY_4H -3.1 · SPOT_1H -3.1
+  HBAR       касание 11.11 19:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  HBAR       касание 11.11 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H идёт · LUCY_4H — · SPOT_1H идёт
+  HBAR       касание 12.11 04:00 · LIVE идёт · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 31.10 00:00 · LIVE — · RECLAIM_1H -0.1 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H -15.1 · HL_1H -0.1 · GREEN_4H -0.1 · BRIGHT_1H -0.1 · LUCY_4H — · SPOT_1H -0.1
+  INIT       касание 02.11 15:00 · LIVE -13.14 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -13.14 · BOUNCE_5 -13.14 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H -13.14 · LUCY_4H — · SPOT_1H -13.14
+  INIT       касание 03.11 08:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -4.62 · BOUNCE_5 -4.62 · BOS_1H — · HL_1H -3.92 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -4.62
+  INIT       касание 03.11 12:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 04.11 04:00 · LIVE -0.1 · RECLAIM_1H 0.64 · RECLAIM_4H -0.1 · BOUNCE_3 0.64 · BOUNCE_5 -0.1 · BOS_1H -0.1 · HL_1H -0.1 · GREEN_4H -0.1 · BRIGHT_1H -0.1 · LUCY_4H -15.1 · SPOT_1H —
+  INIT       касание 05.11 12:00 · LIVE -8.49 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 -8.49 · BOS_1H — · HL_1H -7.07 · GREEN_4H -5.53 · BRIGHT_1H -0.9 · LUCY_4H — · SPOT_1H -0.9
+  INIT       касание 06.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H -5.53 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -5.91 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 06.11 12:00 · LIVE -0.9 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 06.11 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -2.86 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 08.11 00:00 · LIVE — · RECLAIM_1H -5 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H -0.1 · HL_1H -0.1 · GREEN_4H -0.1 · BRIGHT_1H 50.63 · LUCY_4H 6.47 · SPOT_1H 50.63
+  INIT       касание 08.11 07:00 · LIVE 51.65 · RECLAIM_1H -0.1 · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 09.11 16:00 · LIVE — · RECLAIM_1H 42.71 · RECLAIM_4H 37.28 · BOUNCE_3 42.71 · BOUNCE_5 39.73 · BOS_1H 25.93 · HL_1H 39.73 · GREEN_4H 6.47 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 11.11 00:00 · LIVE -0.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -3.1 · BOUNCE_5 -3.1 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 11.11 08:00 · LIVE -10.64 · RECLAIM_1H -10.64 · RECLAIM_4H — · BOUNCE_3 -9.79 · BOUNCE_5 -0.1 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 11.11 12:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -7.84 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 12.11 00:00 · LIVE -0.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -15.1 · BOUNCE_5 -15.1 · BOS_1H — · HL_1H идёт · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 12.11 01:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 идёт · BOUNCE_5 -0.1 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 12.11 08:00 · LIVE -0.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 идёт · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  INIT       касание 12.11 09:00 · LIVE идёт · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  JASMY      касание 03.11 08:00 · LIVE — · RECLAIM_1H 1.19 · RECLAIM_4H 1.19 · BOUNCE_3 -2.59 · BOUNCE_5 -6.75 · BOS_1H -1.87 · HL_1H -0.83 · GREEN_4H -4.37 · BRIGHT_1H -3.97 · LUCY_4H -3.97 · SPOT_1H -2.59
+  JASMY      касание 03.11 12:00 · LIVE -1.87 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  JASMY      касание 06.11 12:00 · LIVE — · RECLAIM_1H -4.8 · RECLAIM_4H -4.41 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -4.85 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  JASMY      касание 07.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 0.67 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H -3.1 · LUCY_4H — · SPOT_1H —
+  JASMY      касание 07.11 16:00 · LIVE -4.83 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -3.1
+  JASMY      касание 09.11 00:00 · LIVE идёт · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  JASMY      касание 09.11 04:00 · LIVE — · RECLAIM_1H идёт · RECLAIM_4H идёт · BOUNCE_3 идёт · BOUNCE_5 идёт · BOS_1H идёт · HL_1H идёт · GREEN_4H идёт · BRIGHT_1H идёт · LUCY_4H — · SPOT_1H идёт
+  KNOTS      касание 29.10 00:00 · LIVE — · RECLAIM_1H -8.82 · RECLAIM_4H -8.82 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 30.10 04:00 · LIVE -0.1 · RECLAIM_1H -0.1 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H — · HL_1H -0.1 · GREEN_4H -15.1 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 30.10 08:00 · LIVE — · RECLAIM_1H -9.08 · RECLAIM_4H -8.61 · BOUNCE_3 -9.78 · BOUNCE_5 -9.78 · BOS_1H -15.1 · HL_1H -15.1 · GREEN_4H -14.37 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 01.11 00:00 · LIVE — · RECLAIM_1H -15.1 · RECLAIM_4H -14.19 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 02.11 04:00 · LIVE -6.3 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 02.11 13:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H -3.1 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 06.11 04:00 · LIVE -0.1 · RECLAIM_1H -0.1 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H -15.1 · HL_1H -0.1 · GREEN_4H -15.1 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 06.11 20:00 · LIVE -15.1 · RECLAIM_1H -15.1 · RECLAIM_4H — · BOUNCE_3 -15.1 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 07.11 08:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 -11.94 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 08.11 04:00 · LIVE -11.95 · RECLAIM_1H -11.95 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H — · HL_1H -11.95 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  KNOTS      касание 08.11 08:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -15.1 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 29.10 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -0.35
+  PIEVERSE   касание 29.10 13:00 · LIVE -3.16 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -0.35 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 30.10 00:00 · LIVE 18.76 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 30.10 12:00 · LIVE — · RECLAIM_1H 15.92 · RECLAIM_4H 15.92 · BOUNCE_3 15.56 · BOUNCE_5 12.5 · BOS_1H 15.56 · HL_1H 17.42 · GREEN_4H 15.92 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 30.10 16:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H 21.88 · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 30.10 19:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H 21.22
+  PIEVERSE   касание 31.10 08:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H 18.23 · SPOT_1H —
+  PIEVERSE   касание 06.11 12:00 · LIVE 38.32 · RECLAIM_1H -0.1 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 38.08 · BOS_1H 30.18 · HL_1H -0.1 · GREEN_4H 38.94 · BRIGHT_1H 30.18 · LUCY_4H 37.42 · SPOT_1H 38.94
+  PIEVERSE   касание 07.11 08:00 · LIVE — · RECLAIM_1H 40.04 · RECLAIM_4H 43.65 · BOUNCE_3 41.32 · BOUNCE_5 — · BOS_1H — · HL_1H 42.08 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 09.11 16:00 · LIVE — · RECLAIM_1H -8.17 · RECLAIM_4H -8.17 · BOUNCE_3 -10.03 · BOUNCE_5 -10.03 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 10.11 00:00 · LIVE -3.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 10.11 08:00 · LIVE -3.38 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -6.18 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 10.11 12:00 · LIVE -3.65 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 11.11 08:00 · LIVE -8.47 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -8.17 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 11.11 16:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -3.88 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PIEVERSE   касание 12.11 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -0.88 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  POL        касание 29.10 04:00 · LIVE — · RECLAIM_1H -3.1 · RECLAIM_4H -3.12 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -4.3 · HL_1H -3.1 · GREEN_4H -3.12 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  POL        касание 29.10 08:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H -4.3 · LUCY_4H — · SPOT_1H —
+  POL        касание 29.10 13:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -4.61
+  POL        касание 30.10 12:00 · LIVE -2.84 · RECLAIM_1H -2.58 · RECLAIM_4H -2.37 · BOUNCE_3 -2.58 · BOUNCE_5 -4.7 · BOS_1H -0.79 · HL_1H -2.58 · GREEN_4H -2.37 · BRIGHT_1H — · LUCY_4H -2.37 · SPOT_1H -4.7
+  POL        касание 30.10 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H -5.5 · LUCY_4H — · SPOT_1H —
+  POL        касание 02.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 1.63 · BOUNCE_5 -3.28 · BOS_1H 1.63 · HL_1H 4.16 · GREEN_4H -3.28 · BRIGHT_1H — · LUCY_4H -3.28 · SPOT_1H 2.91
+  POL        касание 06.11 00:00 · LIVE — · RECLAIM_1H -5.45 · RECLAIM_4H -3.86 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  POL        касание 06.11 19:00 · LIVE -3.78 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -3.78 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  POL        касание 07.11 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H -6.07 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  POL        касание 07.11 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -1.5 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  POL        касание 08.11 04:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -0.82 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  POL        касание 09.11 08:00 · LIVE -3.45 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -4.7 · BOUNCE_5 -6.96 · BOS_1H -4.7 · HL_1H -3.64 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -4.7
+  POL        касание 10.11 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H -4.3 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  POL        касание 10.11 08:00 · LIVE — · RECLAIM_1H идёт · RECLAIM_4H — · BOUNCE_3 идёт · BOUNCE_5 идёт · BOS_1H идёт · HL_1H идёт · GREEN_4H идёт · BRIGHT_1H идёт · LUCY_4H идёт · SPOT_1H идёт
+  POL        касание 10.11 16:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H идёт · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  POL        касание 10.11 20:00 · LIVE идёт · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PRIORS     касание 03.11 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -3.1 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PRIORS     касание 05.11 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -3.1 · BOUNCE_5 -3.1 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PRIORS     касание 08.11 12:00 · LIVE — · RECLAIM_1H -8.47 · RECLAIM_4H -11.19 · BOUNCE_3 -9.95 · BOUNCE_5 -3.1 · BOS_1H -0.1 · HL_1H -11.19 · GREEN_4H -11.19 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PRIORS     касание 08.11 16:00 · LIVE — · RECLAIM_1H 5.89 · RECLAIM_4H -0.1 · BOUNCE_3 -3.1 · BOUNCE_5 — · BOS_1H — · HL_1H 5.89 · GREEN_4H -0.1 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PRIORS     касание 08.11 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -3.1 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PRIORS     касание 08.11 23:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 19.05 · BOUNCE_5 19.05 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PRIORS     касание 09.11 16:00 · LIVE — · RECLAIM_1H -0.1 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H -15.1 · HL_1H -0.1 · GREEN_4H -9.8 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  PRIORS     касание 11.11 15:00 · LIVE — · RECLAIM_1H -15.1 · RECLAIM_4H -15.1 · BOUNCE_3 -0.1 · BOUNCE_5 идёт · BOS_1H идёт · HL_1H идёт · GREEN_4H -15.1 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 29.10 12:00 · LIVE — · RECLAIM_1H -13.04 · RECLAIM_4H -10.47 · BOUNCE_3 -13.04 · BOUNCE_5 -13.04 · BOS_1H — · HL_1H -12.29 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 30.10 04:00 · LIVE -0.1 · RECLAIM_1H 2.61 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H — · HL_1H 0.33 · GREEN_4H -0.1 · BRIGHT_1H -0.1 · LUCY_4H — · SPOT_1H -0.1
+  SI         касание 31.10 19:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H -11.55 · BOUNCE_3 -0.1 · BOUNCE_5 -7.69 · BOS_1H -7.69 · HL_1H — · GREEN_4H — · BRIGHT_1H -0.1 · LUCY_4H — · SPOT_1H -7.69
+  SI         касание 31.10 20:00 · LIVE -0.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H -0.1 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 01.11 01:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -15.1
+  SI         касание 01.11 07:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -6.54 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 03.11 04:00 · LIVE -12.87 · RECLAIM_1H -7.19 · RECLAIM_4H -8.59 · BOUNCE_3 -0.1 · BOUNCE_5 -4.16 · BOS_1H -0.1 · HL_1H -8.03 · GREEN_4H -9.94 · BRIGHT_1H -15.1 · LUCY_4H — · SPOT_1H 9.96
+  SI         касание 03.11 14:00 · LIVE — · RECLAIM_1H -7.92 · RECLAIM_4H -7.92 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 03.11 16:00 · LIVE -11.16 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 9.96 · BOS_1H — · HL_1H 8.61 · GREEN_4H 3.32 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 04.11 04:00 · LIVE 9.96 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 04.11 09:00 · LIVE — · RECLAIM_1H 4.07 · RECLAIM_4H 3.32 · BOUNCE_3 4.07 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 04.11 20:00 · LIVE — · RECLAIM_1H -9.2 · RECLAIM_4H -9.02 · BOUNCE_3 -9.2 · BOUNCE_5 -10.54 · BOS_1H — · HL_1H -10.54 · GREEN_4H -12.09 · BRIGHT_1H — · LUCY_4H — · SPOT_1H -12.09
+  SI         касание 06.11 08:00 · LIVE -3.1 · RECLAIM_1H -5.23 · RECLAIM_4H -6.5 · BOUNCE_3 -5.23 · BOUNCE_5 -5.23 · BOS_1H — · HL_1H -5.23 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 06.11 10:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -9.28 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  SI         касание 07.11 08:00 · LIVE -0.88 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -0.88 · BOUNCE_5 -3.82 · BOS_1H — · HL_1H -3.82 · GREEN_4H — · BRIGHT_1H -0.88 · LUCY_4H — · SPOT_1H -0.88
+  USELESS    касание 29.10 08:00 · LIVE -5.13 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  USELESS    касание 29.10 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H -3.1
+  USELESS    касание 31.10 03:00 · LIVE — · RECLAIM_1H -3.83 · RECLAIM_4H -4.31 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -3.1 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  USELESS    касание 31.10 19:00 · LIVE 14.57 · RECLAIM_1H 10.1 · RECLAIM_4H — · BOUNCE_3 13.67 · BOUNCE_5 6.85 · BOS_1H 8.79 · HL_1H 7.11 · GREEN_4H 7.81 · BRIGHT_1H -0.1 · LUCY_4H — · SPOT_1H 14.57
+  USELESS    касание 31.10 20:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H -0.1 · SPOT_1H —
+  USELESS    касание 09.11 02:00 · LIVE идёт · RECLAIM_1H идёт · RECLAIM_4H идёт · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H идёт · HL_1H -0.1 · GREEN_4H идёт · BRIGHT_1H идёт · LUCY_4H идёт · SPOT_1H идёт
+  USELESS    касание 11.11 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 идёт · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  XTZ        касание 28.10 16:00 · LIVE -1.8 · RECLAIM_1H -3.13 · RECLAIM_4H -4.26 · BOUNCE_3 -4.26 · BOUNCE_5 — · BOS_1H -4.26 · HL_1H -3.13 · GREEN_4H -4.26 · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  XTZ        касание 29.10 14:00 · LIVE -3.1 · RECLAIM_1H -3.1 · RECLAIM_4H -3.1 · BOUNCE_3 -4.23 · BOUNCE_5 — · BOS_1H -3.1 · HL_1H -3.1 · GREEN_4H -5.24 · BRIGHT_1H — · LUCY_4H — · SPOT_1H -3.1
+  XTZ        касание 02.11 00:00 · LIVE — · RECLAIM_1H -3.8 · RECLAIM_4H -4.03 · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H -4.03 · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  XTZ        касание 02.11 04:00 · LIVE -4.1 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  XTZ        касание 02.11 16:00 · LIVE -0.67 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  XTZ        касание 03.11 04:00 · LIVE — · RECLAIM_1H 6.78 · RECLAIM_4H 6.88 · BOUNCE_3 3.98 · BOUNCE_5 2.79 · BOS_1H 5.49 · HL_1H 6.52 · GREEN_4H 5.18 · BRIGHT_1H 7.51 · LUCY_4H 1.11 · SPOT_1H 3.93
+  XTZ        касание 03.11 12:00 · LIVE 5.18 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  XTZ        касание 05.11 20:00 · LIVE -0.1 · RECLAIM_1H -0.1 · RECLAIM_4H -0.1 · BOUNCE_3 -0.1 · BOUNCE_5 -0.1 · BOS_1H -4.11 · HL_1H -0.1 · GREEN_4H -0.1 · BRIGHT_1H -15.1 · LUCY_4H -8.21 · SPOT_1H -15.1
+  XTZ        касание 07.11 00:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 -3.86 · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  XTZ        касание 09.11 02:00 · LIVE — · RECLAIM_1H -4.7 · RECLAIM_4H -4.7 · BOUNCE_3 -5.57 · BOUNCE_5 -7.75 · BOS_1H — · HL_1H -5.2 · GREEN_4H -6.33 · BRIGHT_1H — · LUCY_4H — · SPOT_1H -4.08
+  XTZ        касание 09.11 04:00 · LIVE -5.2 · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H — · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
+  XTZ        касание 09.11 16:00 · LIVE — · RECLAIM_1H — · RECLAIM_4H — · BOUNCE_3 — · BOUNCE_5 — · BOS_1H -6.62 · HL_1H — · GREEN_4H — · BRIGHT_1H — · LUCY_4H — · SPOT_1H —
