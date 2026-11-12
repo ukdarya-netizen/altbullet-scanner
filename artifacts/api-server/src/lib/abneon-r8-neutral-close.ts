@@ -15,7 +15,8 @@ import { getAggSpotVolumeByInterval } from "./coinglass_spot_taker.js";
  *   - bounce from a fresh low: not part of the new rules → closed neutrally.
  * Neutral close = status 'reclassified', no exit, no PnL (backup in decision_metrics.beforeNeutralClose); the tracker
  * trigger sends cancel_entry to the trading bot.
- * GRVT, ZEST and OKB are never touched (the owner keeps them). A row without its detector event is kept open.
+ * No exceptions (owner 2026-11-12: GRVT, ZEST and OKB are decided by the rule like every other — if the rule cuts
+ * them, the rule is wrong). A row without its detector event is kept open.
  * A row whose market data could not be loaded is retried on the next start; after 3 starts it is kept open.
  * Every open row gets its verdict in decision_metrics.abneonR8Review (no new table: a runtime table would make the
  * publish propose DROP).
@@ -26,7 +27,6 @@ import { getAggSpotVolumeByInterval } from "./coinglass_spot_taker.js";
 export const ABNEON_R8_CLOSE_REASON = "abneon_r8_rules_neutral_close";
 const MARKER = "abneon_r8_close_20261112";
 export const ABNEON_R8_CUTOFF_UTC = "2026-11-14 00:00:00+00";
-const KEEP_SYMBOLS = ["GRVT-USDT", "GRVTUSDT", "ZEST-USDT", "ZESTUSDT", "OKB-USDT", "OKBUSDT"];
 const H1 = 3_600_000;
 const H4 = 4 * H1;
 const MAX_ATTEMPTS = 3;
@@ -125,9 +125,8 @@ async function closeNeutral(trackedId: number, signalId: number): Promise<boolea
           AND t.sentiment_key = 'neon_support_bounce'
           AND t.status::text IN ('active', 'in_run')
           AND t.detected_at < $3::timestamptz
-          AND NOT (t.symbol = ANY($4::text[]))
         RETURNING t.id`,
-      [trackedId, ABNEON_R8_CLOSE_REASON, ABNEON_R8_CUTOFF_UTC, KEEP_SYMBOLS],
+      [trackedId, ABNEON_R8_CLOSE_REASON, ABNEON_R8_CUTOFF_UTC],
     );
     if (updated.rows.length > 0) {
       await client.query(
@@ -197,10 +196,9 @@ export async function runAbneonR8NeutralClose(): Promise<{
         WHERE sentiment_key = 'neon_support_bounce'
           AND status::text IN ('active', 'in_run')
           AND detected_at < $1::timestamptz
-          AND NOT (symbol = ANY($2::text[]))
-          AND COALESCE(decision_metrics #>> '{neonLevel,rule}', '') <> $3
+          AND COALESCE(decision_metrics #>> '{neonLevel,rule}', '') <> $2
         ORDER BY id`,
-      [ABNEON_R8_CUTOFF_UTC, KEEP_SYMBOLS, ABNEON_RULE_VERSION],
+      [ABNEON_R8_CUTOFF_UTC, ABNEON_RULE_VERSION],
     )
   ).rows;
   const closed: string[] = [], passed: string[] = [], kept: string[] = [], retry: string[] = [];
