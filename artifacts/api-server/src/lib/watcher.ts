@@ -220,7 +220,8 @@ import { getCoinglassOI, getCoinglassOi15mChange } from "./coinglass_oi.js";
 import { SPOT_TAKER_SELL_DOMINANCE } from "./scanner-patterns.js";
 import { calcLcScore } from "./lc-score.js";
 import { getCgAskBids } from "./coinglass_orderbook.js";
-import { getCoinglassTakerFlow } from "./coinglass_taker.js";
+import { getAggFuturesTakerHistory, getCoinglassTakerFlow } from "./coinglass_taker.js";
+import { futuresCvdFromTakers, mergeWithLastGoodHealth } from "./milestone-health.js";
 import { missingAggregatedFireData } from "./aggregated-fire-gate.js";
 import { getSpotTakerFlow } from "./coinglass_spot_taker.js";
 import {
@@ -852,14 +853,22 @@ export async function broadcastPhotoWithText(
  * pacing/429 cooldowns can stall these lookups for minutes (STRK/SYN +5/+10
  * milestones stayed "sending" with no Telegram event on 2026-10-08).
  */
-const MILESTONE_HEALTH_TIMEOUT_MS = 4_000;
+// Owner 2026-11-13: the delta line (OI, CVD 15m / 30m / 1h) must be in every position update — the subscriber
+// decides on it whether to hold. Before: 4 s at the watcher's low CoinGlass priority, so behind a busy scanner
+// queue or a CoinGlass failure the update went out with «н/д». Now: critical priority, 10 s; a coin without
+// spot data (or a failed spot read) takes the delta from aggregated futures takers; when CoinGlass fails, the
+// last good reading of the coin (≤ 60 min) is shown with its age.
+const MILESTONE_HEALTH_TIMEOUT_MS = 10_000;
+const lastGoodHealth = new Map<string, { health: SpotHealth; at: number }>();
+
 async function fetchMilestoneHealth(
   symbol: string,
   price: number,
 ): Promise<SpotHealth | null> {
   let timer: NodeJS.Timeout | undefined;
+  let fresh: SpotHealth | null;
   try {
-    return await Promise.race([
+    fresh = await Promise.race([
       _fetchSignalHealth(symbol, price).catch(() => null),
       new Promise<null>((resolve) => {
         timer = setTimeout(() => resolve(null), MILESTONE_HEALTH_TIMEOUT_MS);
@@ -868,6 +877,7 @@ async function fetchMilestoneHealth(
   } finally {
     if (timer) clearTimeout(timer);
   }
+  return mergeWithLastGoodHealth(symbol, fresh, Date.now(), lastGoodHealth);
 }
 
 async function _fetchSignalHealth(
@@ -875,14 +885,25 @@ async function _fetchSignalHealth(
   price: number,
 ): Promise<SpotHealth> {
   const [oi, cvd] = await Promise.all([
-    getCoinglassOI(symbol, price).catch(() => null),
-    getSpotCvdMtf(symbol).catch(() => null),
+    getCoinglassOI(symbol, price, undefined, { priority: "critical" }).catch(() => null),
+    getSpotCvdMtf(symbol, { priority: "critical" }).catch(() => null),
   ]);
+  const spot = cvd?.available
+    ? { cvd15m: cvd.cvd15m ?? null, cvd30m: cvd.cvd30m ?? null, cvd1h: cvd.cvd1h ?? null }
+    : null;
+  const spotOk = spot != null && (spot.cvd15m != null || spot.cvd30m != null || spot.cvd1h != null);
+  const fut = spotOk
+    ? null
+    : futuresCvdFromTakers(
+        await getAggFuturesTakerHistory(symbol, 6, { priority: "critical", timeoutMs: 8_000 }).catch(() => null),
+      );
+  const use = spotOk ? spot : fut;
   return {
     oiPct: oi?.available ? (oi.oiChange30m ?? null) : null,
-    cvd15m: cvd?.available ? (cvd.cvd15m ?? null) : null,
-    cvd30m: cvd?.available ? (cvd.cvd30m ?? null) : null,
-    cvd1h: cvd?.available ? (cvd.cvd1h ?? null) : null,
+    cvd15m: use?.cvd15m ?? null,
+    cvd30m: use?.cvd30m ?? null,
+    cvd1h: use?.cvd1h ?? null,
+    ...(use ? { cvdSource: spotOk ? ("spot" as const) : ("futures" as const) } : {}),
   };
 }
 
@@ -1746,9 +1767,9 @@ async function sendMilestoneNotification(
       null,
       health,
     );
-    return image && (milestone === 15 || isBitcoinTrackedSignal(tracked))
-      ? broadcastMilestonePhoto(tracked, kind, milestone, image, text)
-      : broadcastMilestoneText(tracked, kind, milestone, text);
+    // Owner 2026-11-13: every trailing activation goes with its milestone picture (ABNeon activates at +20,
+    // whale_watch at +12) — before, only +15 and BTC had one and the rest went as plain text.
+    return broadcastMilestonePhoto(tracked, kind, milestone, image ?? POSITION_UPDATE_IMG, text);
   }
 
   const text = msgMilestone(
