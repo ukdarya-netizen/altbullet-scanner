@@ -2001,7 +2001,8 @@
   "объём на касании по правилу Lucy's VSA: 4H-свеча касания или одна из двух следующих не серая — цвет по 20 свечам, но объём ниже среднего за 120 свечей считается серым (спот + фьючерсы всех бирж); серое касание — сетап отменён": "volume on the touch by Lucy's VSA rule: the 4H touch candle or one of the next two is not grey — colour over 20 candles, but volume below the 120-candle average counts as grey (spot + futures of all exchanges); a grey touch voids the setup",
   "сетап отменяется, если 4H-свеча закрылась под зоной или за 48 часов после касания входа не было": "the setup is void if a 4H candle closes under the zone or there is no entry within 48 hours of the touch",
   "Сигнал приходит сразу после закрытия часовой свечи отскока. Если зона пробита вниз, сигнал не выходит и ждётся следующая зона.": "The signal arrives right after the hourly bounce candle closes. If the zone breaks downward, no signal is issued and the next zone is awaited.",
-  "На +5% стоп в безубыток": "At +5% the stop moves to break-even",
+  "На +5% — уведомление: по желанию можно зафиксировать часть, безубыток с +10%": "At +5% — a notice: you may take part of the position, break-even from +10%",
+ "На +10% стоп в безубыток": "At +10% the stop moves to break-even",
   "На +8% частичная фиксация 20–25%": "At +8% take 20–25% of the position",
-  "С +20% трейлинг: стоп идёт за ценой на 10 п.п. ниже пика": "From +20% trailing: the stop follows the price 10 pp below the peak"
+  "С +20% трейлинг: стоп идёт за ценой на 20 п.п. ниже пика": "From +20% trailing: the stop follows the price 20 pp below the peak"
 }

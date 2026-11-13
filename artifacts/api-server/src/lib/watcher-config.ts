@@ -104,12 +104,13 @@ const WHALE_WATCH_EXIT_PROFILE: ExitProfile = {
 
 // BTC is managed in one-point steps: +1% earns BE; +2% arms the trailing
 // boundary at +1%, and each further point of peak PnL raises it by one point.
-// Owner 2026-11-13: ABNeon — B.U. at +5%, partial take at +8%, trailing from +20% (her backtest) at 10 p.p. under
-// the peak; no take at the nearest resistance.
+// Owner 2026-11-13: ABNeon — at +5% a notice (optional partial take, B.U. from +10%), at +8% the partial take
+// (20–25%), B.U. at +10%, trailing from +20% at 20 p.p. under the peak (the 2026-11-11 run on her November coins:
+// ELSA, INIT, PIEVERSE +181% vs +111% on +8 / +15 / 10); no take at the nearest resistance.
 const NEON_SUPPORT_EXIT_PROFILE: ExitProfile = {
-  firstTarget: 8,
+  firstTarget: 10,
   trailingActivation: 20,
-  trailingGap: TRAILING_FIXED_PCT,
+  trailingGap: 20,
 };
 
 const BITCOIN_EXIT_PROFILE: ExitProfile = {
@@ -235,7 +236,10 @@ export function getBuStopMilestone(
   // Owner decision 2026-10-28: Liquidation Cascade B.U. at +8%, then the
   // ordinary trailing from +15% at 10 pp, no +10% → +5% promotion
   // (174 signals on the live candle rule: +844% vs +795% current).
-  // Owner 2026-11-13: Neon Support B.U. at +5% like the other patterns (was +10% from 2026-11-11).
+  // Owner 2026-11-11 / 2026-11-13: Neon Support B.U. only at +10% (a +8% B.U. was hit by wicks before INIT +154%).
+  if (sentimentKey === "neon_support_bounce") {
+    return 10;
+  }
   if (
     sentimentKey === "stealth_breakout" ||
     sentimentKey === "liquidation_cascade"

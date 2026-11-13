@@ -8905,7 +8905,7 @@ async function runInRunFastCycle(
         peakPnlNow >= trailingActivation;
 
       // Owner 2026-11-13: the ABNeon take at the nearest resistance (2026-11-12, R8 exit B) is removed — ABNeon is
-      // managed by its exit profile (B.U. +5%, partial take +8%, trailing from +20% at 10 p.p.).
+      // managed by its exit profile (+5% notice, partial take +8%, B.U. +10%, trailing from +20% at 20 p.p.).
 
       // ── HARD TRAILING EXIT ───────────────────────────────────────────────────
       // Закрытие по уже активированному трейлингу важнее любых Telegram-очередей,
@@ -11295,7 +11295,9 @@ async function runInRunFastCycle(
         pnl >= 8 &&
         (tracked.lastMilestone ?? 0) < 8
       ) {
-        const milestone8Kind = _buMilestone > 8 ? "pre_target" : "intermediate";
+        // Owner 2026-11-13: ABNeon's +8% is its partial take (20–25%), B.U. comes at +10%.
+        const milestone8Kind =
+          tracked.sentimentKey === "neon_support_bounce" || _buMilestone <= 8 ? "intermediate" : "pre_target";
         const claimed8 = await dbWriteStrict(
           "trackedSignal/fast-8pct-milestone",
           () =>

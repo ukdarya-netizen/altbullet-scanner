@@ -678,9 +678,12 @@ export function msgFirstTarget(
   const exitProfile = getExitProfile(t.sentimentKey, t.symbol);
   const isBitcoin = isBitcoinSignal(t);
   return buildPositionUpdate(t, {
+    // Owner 2026-11-13: ABNeon takes its part at +8%; its +10% is the B.U. move, not another fixation.
     event: isBitcoin
       ? `₿ BTC: Б/У после +${exitProfile.firstTarget}%`
-      : `🎯 TARGET HIT +${exitProfile.firstTarget}%`,
+      : t.sentimentKey === "neon_support_bounce"
+        ? `🛡 +${exitProfile.firstTarget}%: СТОП В Б/У`
+        : `🎯 TARGET HIT +${exitProfile.firstTarget}%`,
     price: `${fmtP(t.entryPrice)} → ${fmtP(currentPrice)} (${fmtPct(pnl)}) | ${dur.str}`,
     context: isBitcoin
       ? [
@@ -693,7 +696,7 @@ export function msgFirstTarget(
           `ℹ️ Уровень сопровождения, не подтверждение частичного исполнения`,
         ]
       : [
-          `✂️ Фиксируй 20-25%`,
+          ...(t.sentimentKey === "neon_support_bounce" ? [] : [`✂️ Фиксируй 20-25%`]),
           fmtPositionProtectionLine(t, {
             milestone: exitProfile.firstTarget,
           }),
@@ -1039,7 +1042,9 @@ export function msg8PercentHit(
     context: [
       `✂️ Фиксируй 20-25%`,
       fmtPositionProtectionLine(t, { milestone: 8 }),
-      `⏳ Следующее событие: активация трейлинга на +${exitProfile.trailingActivation}%`,
+      getBuStopMilestone(t.sentimentKey, t.symbol) > 8
+        ? `⏳ Стоп в Б/У при +${getBuStopMilestone(t.sentimentKey, t.symbol)}%`
+        : `⏳ Следующее событие: активация трейлинга на +${exitProfile.trailingActivation}%`,
     ],
     health,
     liqCtx,
