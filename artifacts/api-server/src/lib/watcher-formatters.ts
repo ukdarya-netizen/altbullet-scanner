@@ -98,13 +98,6 @@ export interface SpotHealth {
   cvd30m: boolean | null;
   /** Last 1h: taker_buy > taker_sell. null = unavailable. */
   cvd1h: boolean | null;
-  /**
-   * Owner 2026-11-13: where the delta came from — spot (CoinGlass aggregated spot CVD, the default) or futures
-   * (CoinGlass aggregated futures takers, when the coin has no spot data or spot failed).
-   */
-  cvdSource?: "spot" | "futures";
-  /** Minutes since the reading when CoinGlass failed now and the last good reading (≤ 60 min) is shown. */
-  staleMin?: number | null;
 }
 
 /**
@@ -131,12 +124,7 @@ export function fmtHealthLine(
   if (h?.cvd1h === true) parts.push("CVD1h ↑");
   else if (h?.cvd1h === false) parts.push("CVD1h ↓");
   else if (showUnavailable) parts.push("CVD1h н/д");
-  if (parts.length === 0) return "";
-  const notes = [
-    h?.cvdSource === "futures" ? "CVD по фьючам" : null,
-    h?.staleMin != null ? `данные ${h.staleMin} мин назад` : null,
-  ].filter(Boolean);
-  return `📈 ${parts.join(" | ")}${notes.length ? ` (${notes.join(", ")})` : ""}`;
+  return parts.length > 0 ? `📈 ${parts.join(" | ")}` : "";
 }
 
 // ── Price / number formatters ─────────────────────────────────────────────────
@@ -500,6 +488,24 @@ type LifecycleOptions = {
   showRunnerPolicy?: boolean;
 };
 
+export function withExperimentalPatternNotice(
+  signal: Pick<TrackedSignal, "sentimentKey">,
+  message: string,
+): string {
+  const notice =
+    signal.sentimentKey === "neon_support_bounce"
+      ? "🧪 <b>ТЕСТОВЫЙ РЕЖИМ · ABNeon</b>"
+      : signal.sentimentKey === "stealth_breakout"
+        ? "🧪 <b>ТЕСТОВЫЙ РЕЖИМ · Stealth Breakout</b>"
+        : "";
+  if (!notice || message.includes(notice)) return message;
+
+  const firstLineEnd = message.indexOf("\n");
+  return firstLineEnd < 0
+    ? `${message}\n${notice}`
+    : `${message.slice(0, firstLineEnd + 1)}${notice}\n${message.slice(firstLineEnd + 1)}`;
+}
+
 function lifecycleEvidence(
   t: TrackedSignal,
   liqCtx?: LiqContext | null,
@@ -516,22 +522,25 @@ function buildPositionUpdate(
   options: LifecycleOptions,
 ): string {
   const sym = t.symbol.replace("-USDT", "");
-  return [
-    `🟣📊 <b>POSITION UPDATE — ${sym}</b>`,
-    `<b>${options.event}</b>`,
-    options.price,
-    ``,
-    // Exit policy text only for the Core-close message (and the IB signal).
-    options.showRunnerPolicy ? fmtImpulseRunnerPolicyLine(t) : "",
-    ...(options.context ?? []),
-    fmtHealthLine(options.health, options.health !== undefined),
-    ...lifecycleEvidence(t, options.liqCtx),
-    ``,
-    // Owner 2026-10-23: the hashtag carries the pattern; no pattern-name line.
-    options.tags,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  return withExperimentalPatternNotice(
+    t,
+    [
+      `🟣📊 <b>POSITION UPDATE — ${sym}</b>`,
+      `<b>${options.event}</b>`,
+      options.price,
+      ``,
+      // Exit policy text only for the Core-close message (and the IB signal).
+      options.showRunnerPolicy ? fmtImpulseRunnerPolicyLine(t) : "",
+      ...(options.context ?? []),
+      fmtHealthLine(options.health, options.health !== undefined),
+      ...lifecycleEvidence(t, options.liqCtx),
+      ``,
+      // Owner 2026-10-23: the hashtag carries the pattern; no pattern-name line.
+      options.tags,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
 }
 
 function buildPositionClosed(
@@ -539,22 +548,25 @@ function buildPositionClosed(
   options: LifecycleOptions,
 ): string {
   const sym = t.symbol.replace("-USDT", "");
-  return [
-    `🏁 <b>POSITION CLOSED — ${sym}</b>`,
-    `<b>${options.event}</b>`,
-    options.price,
-    ``,
-    ...(options.context ?? []),
-    // Owner 2026-10-23: closure messages carry no OI/CVD, OB or SNF metrics.
-    // Stop-loss keeps its liquidation context line only.
-    ...(/STOP LOSS/i.test(options.event)
-      ? [fmtLiqContextLine(options.liqCtx)]
-      : []),
-    ``,
-    options.tags,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  return withExperimentalPatternNotice(
+    t,
+    [
+      `🏁 <b>POSITION CLOSED — ${sym}</b>`,
+      `<b>${options.event}</b>`,
+      options.price,
+      ``,
+      ...(options.context ?? []),
+      // Owner 2026-10-23: closure messages carry no OI/CVD, OB or SNF metrics.
+      // Stop-loss keeps its liquidation context line only.
+      ...(/STOP LOSS/i.test(options.event)
+        ? [fmtLiqContextLine(options.liqCtx)]
+        : []),
+      ``,
+      options.tags,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
 }
 
 // ── P&L math ──────────────────────────────────────────────────────────────────

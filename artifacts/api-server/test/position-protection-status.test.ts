@@ -13,6 +13,8 @@ import {
   msgLateSignal,
   msgMilestone,
   msgPartialTakeProfit,
+  msgPreTargetMilestone,
+  msg8PercentHit,
   msgReEntry,
   msgStopLoss,
   msgTrailingActivated,
@@ -48,17 +50,27 @@ function position(overrides: Partial<TrackedSignal> = {}): TrackedSignal {
   } as TrackedSignal;
 }
 
-test("keeps Neon Support's hashtag without an experiment marker in lifecycle messages", () => {
+test("marks ABNeon and Stealth lifecycle messages as being in testing mode", () => {
   assert.equal(patternTag("neon_support_bounce"), "#neon_support_bounce");
   assert.equal(patternTag("price_led_momentum"), "#price_led_momentum");
 
-  const lifecycle = msgStopLoss(
+  const abneonStop = msgStopLoss(
     position({ sentimentKey: "neon_support_bounce" }),
     0.9,
     -10,
   );
-  assert.match(lifecycle, /#neon_support_bounce #stop_loss/);
-  assert.doesNotMatch(lifecycle, /эксперимент/gi);
+  assert.match(abneonStop, /🧪 <b>ТЕСТОВЫЙ РЕЖИМ · ABNeon<\/b>/);
+  assert.match(abneonStop, /#neon_support_bounce #stop_loss/);
+
+  const stealthTarget = msgFirstTarget(
+    position({ sentimentKey: "stealth_breakout" }),
+    1.1,
+  );
+  assert.match(stealthTarget, /🧪 <b>ТЕСТОВЫЙ РЕЖИМ · Stealth Breakout<\/b>/);
+  assert.match(stealthTarget, /TARGET HIT/);
+
+  const ordinary = msgStopLoss(position(), 0.9, -10);
+  assert.doesNotMatch(ordinary, /ТЕСТОВЫЙ РЕЖИМ/);
 });
 
 const noEnrichment: PositionEnrichment = {
@@ -380,6 +392,34 @@ test("moonshot milestones show only the current trailing stop", () => {
   assert.doesNotMatch(text, /Тейк \+10% достигнут/);
   assert.doesNotMatch(text, /PROFIT STOP \+5% пройден/);
   assert.doesNotMatch(text, /Держим до срабатывания стопа/);
+});
+
+test("milestone updates always show OI and CVD availability", () => {
+  const signal = position();
+  const unavailableLine = "📈 OI: н/д | CVD15 н/д | CVD30 н/д | CVD1h н/д";
+  const messages = [
+    msgPreTargetMilestone(signal, 5, 1.05, null, null),
+    msg8PercentHit(signal, 1.08, null, null),
+    msgPartialTakeProfit(signal, 1.08, 8, null),
+    msgFirstTarget(signal, 1.1, null, null),
+    msgTrailingActivated(signal, 1.15, 1.06, null, null),
+    msgMilestone(signal, 20, 1.2, 1.1, null, null),
+  ];
+
+  for (const message of messages) {
+    assert.ok(message.includes(unavailableLine), message);
+  }
+
+  const availableMessage = msgMilestone(signal, 20, 1.2, 1.1, null, {
+    oiPct: 2.2,
+    cvd15m: true,
+    cvd30m: true,
+    cvd1h: true,
+  });
+  assert.ok(
+    availableMessage.includes("📈 OI: +2.2% | CVD15 ↑ | CVD30 ↑ | CVD1h ↑"),
+    availableMessage,
+  );
 });
 
 test("formats only fresh split-fill metrics that are available", () => {

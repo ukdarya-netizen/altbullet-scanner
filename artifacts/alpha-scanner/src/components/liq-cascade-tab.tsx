@@ -446,9 +446,10 @@ function EntryRow({
               {waiting.zones.slice(0, 3).map((zone, index) => (
                 <div
                   key={`${zone.venue}-${zone.timeframe}-${zone.detector}-${index}`}
+                  title={zone.detectorVersion}
                   className="text-[9px] text-amber-200/80"
                 >
-                  {zone.venue} · {zone.timeframe} · {zone.detector === "LuxAlgo" ? "OB" : zone.detector}
+                  {zone.venue} · {zone.timeframe} · {zone.detector}
                   {zone.invalidated ? " (mitigated)" : ""}: $
                   {fmtPrice(zone.low)}–${fmtPrice(zone.high)} ·{" "}
                   {zone.distancePct == null

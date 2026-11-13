@@ -228,12 +228,18 @@ function pnlForMonetaryDisplay(
   return status === "bu_stop" || status === "breakeven" ? null : pnl;
 }
 
-function protectedExitPrice(signal: {
+function displayedExitPrice(signal: {
   status: string | null | undefined;
   entryPrice: number | null | undefined;
   exitPrice: number | null | undefined;
+  policyVersion?: string | null;
+  runnerExitPrice?: number | null;
 }): number | null | undefined {
-  return signal.status === "bu_stop" ? signal.entryPrice : signal.exitPrice;
+  const actualExitPrice =
+    signal.policyVersion === "impulse_runner_v1"
+      ? (signal.runnerExitPrice ?? signal.exitPrice)
+      : signal.exitPrice;
+  return actualExitPrice ?? (signal.status === "bu_stop" ? signal.entryPrice : null);
 }
 
 function BuStopOutcome({
@@ -325,12 +331,6 @@ function ProtectionNote({ signal: s }: { signal: any }) {
   );
 }
 
-function impulseRunnerExitLabel(signal: any): string | null {
-  if (signal.policyVersion !== "impulse_runner_v1") return null;
-  if (signal.runnerState === "open") return "core closed · runner live";
-  return signal.runnerExitPrice != null ? "runner final" : "—";
-}
-
 function WhaleObTimeframeBadge({
   sentimentKey,
   timeframe,
@@ -378,7 +378,7 @@ function StealthLevelSourceBadge({
         className="mt-1 inline-flex rounded border border-amber-400/40 bg-amber-400/10 px-1 py-0.5 text-[9px] font-medium leading-none text-amber-300"
         title="Теневой паттерн: пробой ренджа на закрытой 1H свече без фильтров; в Telegram не отправляется; стоп −8% от закрытия, Б/У на +1R, трейлинг 1R"
       >
-        🧪 Эксперимент · пробой узкого ренджа 1H
+        🧪 Тестовый режим · пробой узкого ренджа 1H
       </span>
     );
   }
@@ -386,9 +386,9 @@ function StealthLevelSourceBadge({
     return (
       <span
         className="mt-1 inline-flex rounded border border-amber-400/40 bg-amber-400/10 px-1 py-0.5 text-[9px] font-medium leading-none text-amber-300"
-        title="Экспериментальный паттерн: пробой 4H-ренджа на закрытой 4H свече, объём ×2 по всем биржам, тейкеры и спот в покупке; стоп под верхом ренджа −1%, Б/У на +1R, трейлинг 1R"
+        title="Паттерн в тестовом режиме: пробой 4H-ренджа на закрытой 4H свече, объём ×2 по всем биржам, тейкеры и спот в покупке; стоп под верхом ренджа −1%, Б/У на +1R, трейлинг 1R"
       >
-        🧪 Эксперимент · пробой 4H-ренджа
+        🧪 Тестовый режим · пробой 4H-ренджа
       </span>
     );
   }
@@ -396,9 +396,9 @@ function StealthLevelSourceBadge({
     return (
       <span
         className="mt-1 inline-flex rounded border border-amber-400/40 bg-amber-400/10 px-1 py-0.5 text-[9px] font-medium leading-none text-amber-300"
-        title="Экспериментальный паттерн: свежий пробой 24ч-хая на закрытой 1H свече; стоп под уровнем, Б/У на +1R, трейлинг 1R"
+        title="Паттерн в тестовом режиме: свежий пробой 24ч-хая на закрытой 1H свече; стоп под уровнем, Б/У на +1R, трейлинг 1R"
       >
-        🧪 Эксперимент · пробой 24ч-хая 1H
+        🧪 Тестовый режим · пробой 24ч-хая 1H
       </span>
     );
   }
@@ -3034,8 +3034,7 @@ export default function Tracker() {
                           {fmtPrice(s.entryPrice)}
                         </td>
                         <td className="px-3 py-2 text-right font-mono text-xs">
-                          {impulseRunnerExitLabel(s) ??
-                            fmtPrice(protectedExitPrice(s))}
+                          {fmtPrice(displayedExitPrice(s))}
                         </td>
                         <td className="px-3 py-2 text-right">
                           {s.status === "reclassified" &&

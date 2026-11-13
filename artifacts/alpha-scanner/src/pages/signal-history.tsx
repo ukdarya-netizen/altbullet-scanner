@@ -211,7 +211,7 @@ function StealthLevelSourceBadge({
         className="mt-1 inline-flex rounded border border-amber-400/40 bg-amber-400/10 px-1 py-0.5 text-[9px] font-medium leading-none text-amber-300"
         title="Теневой паттерн: пробой ренджа на закрытой 1H свече без фильтров; в Telegram не отправляется; стоп −8% от закрытия, Б/У на +1R, трейлинг 1R"
       >
-        🧪 Эксперимент · пробой узкого ренджа 1H
+        🧪 Тестовый режим · пробой узкого ренджа 1H
       </span>
     );
   }
@@ -219,9 +219,9 @@ function StealthLevelSourceBadge({
     return (
       <span
         className="mt-1 inline-flex rounded border border-amber-400/40 bg-amber-400/10 px-1 py-0.5 text-[9px] font-medium leading-none text-amber-300"
-        title="Экспериментальный паттерн: пробой 4H-ренджа на закрытой 4H свече, объём ×2 по всем биржам, тейкеры и спот в покупке; стоп под верхом ренджа −1%, Б/У на +1R, трейлинг 1R"
+        title="Паттерн в тестовом режиме: пробой 4H-ренджа на закрытой 4H свече, объём ×2 по всем биржам, тейкеры и спот в покупке; стоп под верхом ренджа −1%, Б/У на +1R, трейлинг 1R"
       >
-        🧪 Эксперимент · пробой 4H-ренджа
+        🧪 Тестовый режим · пробой 4H-ренджа
       </span>
     );
   }
@@ -229,9 +229,9 @@ function StealthLevelSourceBadge({
     return (
       <span
         className="mt-1 inline-flex rounded border border-amber-400/40 bg-amber-400/10 px-1 py-0.5 text-[9px] font-medium leading-none text-amber-300"
-        title="Экспериментальный паттерн: свежий пробой 24ч-хая на закрытой 1H свече; стоп под уровнем, Б/У на +1R, трейлинг 1R"
+        title="Паттерн в тестовом режиме: свежий пробой 24ч-хая на закрытой 1H свече; стоп под уровнем, Б/У на +1R, трейлинг 1R"
       >
-        🧪 Эксперимент · пробой 24ч-хая 1H
+        🧪 Тестовый режим · пробой 24ч-хая 1H
       </span>
     );
   }

@@ -24,7 +24,6 @@
  * Кэш: 3 мин (15m свечи обновляются часто, нужна свежесть).
  */
 
-import type { CoinglassPriority } from "./coinglass_governor.js";
 import { applyCgAlias } from "./cg-symbol-alias.js";
 import { runWithoutMemo } from "./coinglass-memo.js";
 import { logger } from "./logger.js";
@@ -89,7 +88,7 @@ async function fetchAggFuturesTakerCandles(
   apiKey: string,
   limit: number,
   timeoutMs = 6000,
-  priority?: CoinglassPriority,
+  priority?: "high" | "low",
   interval = "15m",
 ): Promise<CgTakerCandle[] | null> {
   const base = applyCgAlias(bingxSymbol.replace(/-?USDT$/i, "").toUpperCase());
@@ -527,7 +526,6 @@ async function fetchNetBuyPct15m(
 export async function getAggFuturesTakerHistory(
   bingxSymbol: string,
   limit: number,
-  options: { priority?: CoinglassPriority; timeoutMs?: number } = {},
 ): Promise<{ time: number; buy: number; sell: number }[] | null> {
   const apiKey = getNextCgKey();
   if (!apiKey) return null;
@@ -535,8 +533,7 @@ export async function getAggFuturesTakerHistory(
     bingxSymbol,
     apiKey,
     limit,
-    options.timeoutMs ?? 15_000,
-    options.priority,
+    15_000,
   );
   return (
     rows?.map((r) => ({

@@ -6,13 +6,12 @@
  *  - Stealth: the live range (top / bottom);
  *  - ABNeon: the frozen support zone top (the bottom is not stored);
  *  - Impulse Buy, Liquidation Cascade: none.
- * Version 2 (owner 2026-11-05): + SMLS inducement and ICT Setup 05 New York session (lib/ict.ts 8–9).
  * Stored in signal_entry_extras.metrics.ict (rows are created for ABNeon / LC). Observation only.
  */
 import { pool } from "@workspace/db";
 import { getKlinesRange } from "./bingx.js";
 import { ensureExtrasTable } from "./entry-extras.js";
-import { ictReading, ictSessionReading, type IctBar } from "./ict.js";
+import { ictReading, type IctBar } from "./ict.js";
 import { logger } from "./logger.js";
 
 export const ICT_KEYS = ["impulse_buy", "stealth_breakout", "neon_support_bounce", "liquidation_cascade"] as const;
@@ -30,14 +29,13 @@ async function bars(symbol: string, tf: keyof typeof TF, entryStart: number): Pr
 }
 
 export async function computeIct(symbol: string, detectedAt: number, levelTop: number | null, levelBottom: number | null) {
-  const out: Record<string, unknown> = { version: 2, source: "bingx", levelTop, levelBottom };
+  const out: Record<string, unknown> = { version: 1, source: "bingx", levelTop, levelBottom };
   for (const tf of ["1h", "15m"] as const) {
     const { ms, window } = TF[tf];
     const entryStart = Math.floor(detectedAt / ms) * ms - ms;
     const b = await bars(symbol, tf, entryStart);
     const e = b.findIndex((x) => x.time === entryStart);
-    out[tf === "1h" ? "h1" : "m15"] = e < 0 ? { reason: "нет свечи входа" }
-      : { ...ictReading(b, e, { w0: e - window + 1, levelTop, levelBottom }), ...ictSessionReading(b, e, { levelTop, barMs: ms }) };
+    out[tf === "1h" ? "h1" : "m15"] = e < 0 ? { reason: "нет свечи входа" } : ictReading(b, e, { w0: e - window + 1, levelTop, levelBottom });
   }
   return out;
 }
@@ -66,7 +64,7 @@ export async function runIctBackfillCycle(limit = 25, gapMs = 1_000) {
        LEFT JOIN signal_entry_extras x ON x.tracked_signal_id = t.id
       WHERE t.sentiment_key = ANY($1::text[]) AND t.detected_at > now() - ($2::int * interval '1 day')
         AND t.detected_at < now() - interval '5 minutes'
-        AND (x.tracked_signal_id IS NULL OR COALESCE((x.metrics->'ict'->>'version')::int, 0) < 2)
+        AND (x.tracked_signal_id IS NULL OR NOT (x.metrics ? 'ict'))
         AND NOT (t.id = ANY($3::int[]))
       ORDER BY t.detected_at DESC LIMIT $4`, [[...ICT_KEYS], BACKFILL_DAYS, cooling, limit]);
   let tried = 0, written = 0;

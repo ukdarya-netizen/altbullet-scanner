@@ -310,7 +310,9 @@ export async function getBtcCrossAlerts() {
     FROM btc_cross_alert_events e
     LEFT JOIN btc_cross_alert_owner_state s
       ON s.event_id = e.id AND s.owner_key = ${OWNER_KEY}
-    ORDER BY e.day DESC
+    -- Older unread alerts must remain visible above newer read rows in the
+    -- mobile menu, where the bottom-sheet viewport can hide the rest.
+    ORDER BY (s.read_at IS NULL) DESC, e.day DESC
   `);
   const rows = result.rows as Record<string, unknown>[];
   return {

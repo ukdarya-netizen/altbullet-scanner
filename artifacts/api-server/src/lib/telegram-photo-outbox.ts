@@ -1,8 +1,20 @@
 import { createHash, randomUUID } from "node:crypto";
-import { isTelegramMutedAsync } from "./telegram-mute.js";
+import {
+  isAbneonPrimarySignalEventKey,
+  isEligibleAbneonPrimaryTelegramEvent,
+  isAbneonTrackedLifecycleEventKey,
+  isEligibleLiquidationCascadePrimaryTelegramEvent,
+  isLiquidationCascadePrimarySignalEventKey,
+  isEligibleStealthPrimaryTelegramEvent,
+  isStealthPrimarySignalEventKey,
+  isStealthTrackedLifecycleEventKey,
+  isWatchdogTelegramPhotoEvent,
+  isTelegramMuted,
+} from "./telegram-mute.js";
 import { readFileSync, statSync } from "node:fs";
 import { and, asc, eq, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import { photoPathForTimeoutDelivery } from "./timeout-exit-policy.js";
+import { photoPathForQueuedCancellationDelivery } from "./cancel-notification-photo-policy.js";
 import { photoPathForQueuedTargetHit } from "./milestone-photo-policy.js";
 import {
   db,
@@ -145,6 +157,189 @@ export async function quarantinePendingOperatorFailureAlerts(): Promise<number> 
   });
   return result;
 }
+
+const ICNT_IB_MILESTONE_REPLAY_SOURCE_KEYS = [
+  "milestone:v3:3580:partial:5",
+  "milestone:v3:3580:first_target:10",
+  "milestone:v3:3580:trailing:15",
+  "position:3580:impulse_runner_v1:core_close",
+] as const;
+const ICNT_IB_MILESTONE_REPLAY_SUFFIX = ":manual-replay:20261107";
+const ICNT_IB_MILESTONE_REPLAY_EVENT_KEY =
+  /^(?:milestone:v3:3580:(?:partial:5|first_target:10|trailing:15)|position:3580:impulse_runner_v1:core_close):manual-replay:20261107$/;
+
+type IcntMilestoneReplayResult = {
+  queuedRecipients: number;
+  outcome:
+    | "not_production"
+    | "already_exists"
+    | "source_event_state_mismatch"
+    | "source_delivery_rows_unsafe"
+    | "queued";
+};
+
+/**
+ * One-time recovery for ICNT's milestones suppressed by the Telegram mute.
+ * Copies only rows with no pre-send fence or Telegram acceptance evidence to
+ * new, idempotent event keys; the original abandoned audit rows stay intact.
+ */
+export async function replayMissedIcntImpulseBuyMilestones(): Promise<IcntMilestoneReplayResult> {
+  if (process.env.NODE_ENV !== "production") {
+    return { queuedRecipients: 0, outcome: "not_production" };
+  }
+
+  const sourceKeySql = sql.join(
+    ICNT_IB_MILESTONE_REPLAY_SOURCE_KEYS.map((key) => sql`${key}`),
+    sql`, `,
+  );
+  const replayEventKeys = ICNT_IB_MILESTONE_REPLAY_SOURCE_KEYS.map(
+    (key) => `${key}${ICNT_IB_MILESTONE_REPLAY_SUFFIX}`,
+  );
+  const replayKeySql = sql.join(
+    replayEventKeys.map((key) => sql`${key}`),
+    sql`, `,
+  );
+
+  return db.transaction(async (tx) => {
+    await tx.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtext('telegram_icnt_ib_milestone_replay_20261107'))`,
+    );
+
+    const priorReplay = await tx.execute(sql`
+      SELECT count(*)::int AS count
+      FROM telegram_delivery_events
+      WHERE event_key IN (${replayKeySql})
+    `);
+    if (Number(priorReplay.rows[0]?.count ?? 0) > 0) {
+      return { queuedRecipients: 0, outcome: "already_exists" };
+    }
+
+    const sourceEvents = await tx.execute(sql`
+      SELECT
+        count(*)::int AS event_count,
+        count(*) FILTER (
+          WHERE status = 'attention' AND expected_recipient_count = 4
+        )::int AS eligible_event_count
+      FROM telegram_delivery_events
+      WHERE event_key IN (${sourceKeySql})
+    `);
+    const eventRow = sourceEvents.rows[0] as
+      | { event_count?: number; eligible_event_count?: number }
+      | undefined;
+    if (
+      Number(eventRow?.event_count ?? 0) !== 4 ||
+      Number(eventRow?.eligible_event_count ?? 0) !== 4
+    ) {
+      return { queuedRecipients: 0, outcome: "source_event_state_mismatch" };
+    }
+
+    const sourceDeliveries = await tx.execute(sql`
+      SELECT
+        dedup_key,
+        count(*)::int AS recipient_count,
+        count(*) FILTER (
+          WHERE status = 'abandoned'
+            AND last_error = 'Retry budget exhausted: telegram_muted'
+            AND send_attempted_at IS NULL
+            AND accepted_at IS NULL
+            AND delivered_at IS NULL
+            AND delivery_policy_version = ${TELEGRAM_DELIVERY_POLICY_VERSION}
+        )::int AS safely_unsent_count
+      FROM telegram_photo_deliveries
+      WHERE dedup_key IN (${sourceKeySql})
+      GROUP BY dedup_key
+    `);
+    if (
+      sourceDeliveries.rows.length !== 4 ||
+      sourceDeliveries.rows.some((row) => {
+        const deliveryRow = row as {
+          recipient_count?: number;
+          safely_unsent_count?: number;
+        };
+        return (
+          Number(deliveryRow.recipient_count ?? 0) !== 4 ||
+          Number(deliveryRow.safely_unsent_count ?? 0) !== 4
+        );
+      })
+    ) {
+      return { queuedRecipients: 0, outcome: "source_delivery_rows_unsafe" };
+    }
+
+    await tx.execute(sql`
+      INSERT INTO telegram_delivery_events (
+        event_key, expected_recipient_count, status, created_at, updated_at
+      )
+      SELECT
+        event_key || ${ICNT_IB_MILESTONE_REPLAY_SUFFIX},
+        expected_recipient_count,
+        'queued',
+        now(),
+        now()
+      FROM telegram_delivery_events
+      WHERE event_key IN (${sourceKeySql})
+        AND status = 'attention'
+        AND expected_recipient_count = 4
+      ON CONFLICT (event_key) DO NOTHING
+    `);
+
+    const replayDeliveries = await tx.execute(sql`
+      INSERT INTO telegram_photo_deliveries (
+        dedup_key, target, photo_path, caption, fallback_text,
+        continuation_texts, status, phase, next_part_index, next_attempt_at,
+        lease_until, claim_token, send_attempted_at, accepted_at, delivered_at,
+        last_error, attempts, photo_attempts, plain_text,
+        ambiguous_retry_count, repeat_notice, delivery_policy_version,
+        created_at, updated_at
+      )
+      SELECT
+        d.dedup_key || ${ICNT_IB_MILESTONE_REPLAY_SUFFIX},
+        d.target,
+        d.photo_path,
+        d.caption,
+        d.fallback_text,
+        d.continuation_texts,
+        'ready',
+        'photo',
+        0,
+        now(),
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        0,
+        0,
+        false,
+        0,
+        false,
+        ${TELEGRAM_DELIVERY_POLICY_VERSION},
+        now(),
+        now()
+      FROM telegram_photo_deliveries d
+      WHERE d.dedup_key IN (${sourceKeySql})
+        AND d.status = 'abandoned'
+        AND d.last_error = 'Retry budget exhausted: telegram_muted'
+        AND d.send_attempted_at IS NULL
+        AND d.accepted_at IS NULL
+        AND d.delivered_at IS NULL
+        AND d.delivery_policy_version = ${TELEGRAM_DELIVERY_POLICY_VERSION}
+      ON CONFLICT (dedup_key, target) DO NOTHING
+      RETURNING id
+    `);
+
+    if (replayDeliveries.rows.length !== 16) {
+      throw new Error(
+        `Expected 16 ICNT replay deliveries, created ${replayDeliveries.rows.length}`,
+      );
+    }
+    return {
+      queuedRecipients: replayDeliveries.rows.length,
+      outcome: "queued",
+    };
+  });
+}
+
 const MEDIA_CACHE_LEASE_MS = 90_000;
 const MEDIA_CACHE_WAIT_MS = 3_000;
 const MEDIA_CACHE_WAIT_RETRY_MS = 1_000;
@@ -1296,6 +1491,12 @@ async function deliverTextParts(
   claimToken: string,
   phase: Exclude<DeliveryPhase, "photo">,
   startIndex: number,
+  allowImpulseBuyWhileMuted: boolean,
+  allowAbneonPrimaryWhileMuted: boolean,
+  allowAbneonTrackedLifecycleWhileMuted: boolean,
+  allowStealthPrimaryWhileMuted: boolean,
+  allowStealthTrackedLifecycleWhileMuted: boolean,
+  allowLiquidationCascadePrimaryWhileMuted: boolean,
   forcePlainText = row.plainText,
 ): Promise<boolean> {
   const parts = getPendingTelegramTextParts(row, phase, startIndex);
@@ -1327,6 +1528,12 @@ async function deliverTextParts(
         auditSource: "telegram-photo-outbox.deliverTextParts",
         auditEventKey: row.dedupKey,
         auditDeliveryPath: "outbox",
+        allowImpulseBuyWhileMuted,
+        allowAbneonPrimaryWhileMuted,
+        allowAbneonTrackedLifecycleWhileMuted,
+        allowStealthPrimaryWhileMuted,
+        allowStealthTrackedLifecycleWhileMuted,
+        allowLiquidationCascadePrimaryWhileMuted,
       },
     );
     await recordDeliveryAttemptOutcomeBestEffort(
@@ -1366,6 +1573,12 @@ async function deliverTextParts(
           auditSource: "telegram-photo-outbox.deliverTextParts",
           auditEventKey: row.dedupKey,
           auditDeliveryPath: "outbox",
+          allowImpulseBuyWhileMuted,
+          allowAbneonPrimaryWhileMuted,
+          allowAbneonTrackedLifecycleWhileMuted,
+          allowStealthPrimaryWhileMuted,
+          allowStealthTrackedLifecycleWhileMuted,
+          allowLiquidationCascadePrimaryWhileMuted,
         },
       );
       await recordDeliveryAttemptOutcomeBestEffort(
@@ -1415,6 +1628,37 @@ async function deliverClaimed(row: DeliveryRow): Promise<boolean> {
   let phase = normalizePhase(row.phase);
   let nextPartIndex = row.nextPartIndex;
   try {
+    let mutedDeliveryExceptions: {
+      allowImpulseBuyWhileMuted: boolean;
+      allowAbneonPrimaryWhileMuted: boolean;
+      allowAbneonTrackedLifecycleWhileMuted: boolean;
+      allowStealthPrimaryWhileMuted: boolean;
+      allowStealthTrackedLifecycleWhileMuted: boolean;
+      allowLiquidationCascadePrimaryWhileMuted: boolean;
+    };
+    try {
+      mutedDeliveryExceptions = await resolveMutedDeliveryExceptions(
+        row.dedupKey,
+      );
+    } catch (err) {
+      const retryAt = new Date(Date.now() + OUTBOX_RECOVERY_RETRY_MS);
+      await updateClaimed(row, claimToken, {
+        status: "retry",
+        phase,
+        nextPartIndex,
+        nextAttemptAt: retryAt,
+        leaseUntil: null,
+        claimToken: null,
+        sendAttemptedAt: null,
+        lastError: "Telegram mute eligibility unavailable; dispatch deferred",
+      });
+      logger.warn(
+        { err, deliveryId: row.id, retryAt },
+        "Telegram mute eligibility check failed; delivery deferred",
+      );
+      scheduleOutboxRecovery(OUTBOX_RECOVERY_RETRY_MS);
+      return false;
+    }
     // Existing outbox rows may predate the timing line. Resolve the immutable
     // signal timestamp at dispatch, so retries reflect the actual wait.
     const signalMatch = /^signal(?:-resend)?:([0-9]+)(?::|$)/.exec(
@@ -1447,14 +1691,28 @@ async function deliverClaimed(row: DeliveryRow): Promise<boolean> {
       };
     }
     if (phase !== "photo") {
-      return await deliverTextParts(row, claimToken, phase, nextPartIndex);
+      return await deliverTextParts(
+        row,
+        claimToken,
+        phase,
+        nextPartIndex,
+        mutedDeliveryExceptions.allowImpulseBuyWhileMuted,
+        mutedDeliveryExceptions.allowAbneonPrimaryWhileMuted,
+        mutedDeliveryExceptions.allowAbneonTrackedLifecycleWhileMuted,
+        mutedDeliveryExceptions.allowStealthPrimaryWhileMuted,
+        mutedDeliveryExceptions.allowStealthTrackedLifecycleWhileMuted,
+        mutedDeliveryExceptions.allowLiquidationCascadePrimaryWhileMuted,
+      );
     }
 
     row = {
       ...row,
       photoPath: photoPathForQueuedTargetHit(
         row.dedupKey,
-        photoPathForTimeoutDelivery(row.dedupKey, row.photoPath),
+        photoPathForQueuedCancellationDelivery(
+          row.dedupKey,
+          photoPathForTimeoutDelivery(row.dedupKey, row.photoPath),
+        ),
       ),
     };
     let media = await waitForPatternMedia(row.photoPath, row.dedupKey);
@@ -1496,6 +1754,7 @@ async function deliverClaimed(row: DeliveryRow): Promise<boolean> {
           auditSource: "telegram-photo-outbox.deliverClaimed",
           auditEventKey: row.dedupKey,
           auditDeliveryPath: "outbox",
+          ...mutedDeliveryExceptions,
         },
       );
       await recordDeliveryAttemptOutcomeBestEffort(
@@ -1541,6 +1800,7 @@ async function deliverClaimed(row: DeliveryRow): Promise<boolean> {
               auditSource: "telegram-photo-outbox.deliverClaimed",
               auditEventKey: row.dedupKey,
               auditDeliveryPath: "outbox",
+              ...mutedDeliveryExceptions,
             },
           );
           await recordDeliveryAttemptOutcomeBestEffort(
@@ -1573,6 +1833,7 @@ async function deliverClaimed(row: DeliveryRow): Promise<boolean> {
               auditSource: "telegram-photo-outbox.deliverClaimed",
               auditEventKey: row.dedupKey,
               auditDeliveryPath: "outbox",
+              ...mutedDeliveryExceptions,
             },
           );
           result = uploadedPhotoResult;
@@ -1608,6 +1869,7 @@ async function deliverClaimed(row: DeliveryRow): Promise<boolean> {
           auditSource: "telegram-photo-outbox.deliverClaimed",
           auditEventKey: row.dedupKey,
           auditDeliveryPath: "outbox",
+          ...mutedDeliveryExceptions,
         },
       );
       result = uploadedPhotoResult;
@@ -1730,6 +1992,12 @@ async function deliverClaimed(row: DeliveryRow): Promise<boolean> {
       claimToken,
       phase,
       nextPartIndex,
+      mutedDeliveryExceptions.allowImpulseBuyWhileMuted,
+      mutedDeliveryExceptions.allowAbneonPrimaryWhileMuted,
+      mutedDeliveryExceptions.allowAbneonTrackedLifecycleWhileMuted,
+      mutedDeliveryExceptions.allowStealthPrimaryWhileMuted,
+      mutedDeliveryExceptions.allowStealthTrackedLifecycleWhileMuted,
+      mutedDeliveryExceptions.allowLiquidationCascadePrimaryWhileMuted,
       isTelegramHtmlParseError(result.description),
     );
   } catch (err) {
@@ -1972,14 +2240,10 @@ async function persistTelegramDeliveryRows(
   });
 }
 
-// Owner 2026-11-01: Stealth runs in shadow mode. Its signals and every later
-// position message stay on the dashboard and never reach Telegram. Events are
-// recognised by the id embedded in their key.
-// Owner 2026-11-06: Impulse Buy goes to Telegram again — the signal and every
-// later position message (milestones, B.U., core close, runner close, cancels).
+// LC lifecycle events remain shadowed. Fresh LC primary signals now join the
+// existing scoped exceptions for the active pattern set.
 const SHADOW_SENTIMENT_KEYS = [
   "stealth_breakout",
-  "neon_support_bounce",
   "liquidation_cascade",
 ] as const;
 const SHADOW_TRACKED_KEY =
@@ -1988,10 +2252,280 @@ const SHADOW_SIGNAL_KEY = /^signal(?:-resend)?:(\d+)/;
 const shadowTrackedIds = new Set<number>();
 const shadowSignalIds = new Set<number>();
 
+const RECENT_TERMINAL_IMPULSE_BUY_ENQUEUE_MS = 15 * 60_000;
+async function isEligibleAbneonPrimaryEvent(
+  eventKey: string | undefined,
+): Promise<boolean> {
+  if (!isAbneonPrimarySignalEventKey(eventKey)) return false;
+  const signalId = Number(eventKey!.slice("signal:".length));
+  const [row] = await db
+    .select({
+      sentimentKey: trackedSignalsTable.sentimentKey,
+      status: trackedSignalsTable.status,
+      updatedAt: trackedSignalsTable.updatedAt,
+      detectedAt: signalsTable.detectedAt,
+    })
+    .from(trackedSignalsTable)
+    .innerJoin(signalsTable, eq(signalsTable.id, trackedSignalsTable.signalId))
+    .where(
+      and(
+        eq(trackedSignalsTable.signalId, signalId),
+        eq(trackedSignalsTable.sentimentKey, "neon_support_bounce"),
+      ),
+    )
+    .limit(1);
+  return Boolean(
+    row &&
+    isEligibleAbneonPrimaryTelegramEvent({
+      eventKey,
+      sentimentKey: row.sentimentKey ?? "",
+      status: row.status,
+      detectedAt: row.detectedAt,
+      updatedAt: row.updatedAt,
+    }),
+  );
+}
+
+async function isEligibleLiquidationCascadePrimaryEvent(
+  eventKey: string | undefined,
+): Promise<boolean> {
+  if (!isLiquidationCascadePrimarySignalEventKey(eventKey)) return false;
+  const signalId = Number(eventKey!.slice("signal:".length));
+  const [row] = await db
+    .select({
+      sentimentKey: trackedSignalsTable.sentimentKey,
+      status: trackedSignalsTable.status,
+      updatedAt: trackedSignalsTable.updatedAt,
+      detectedAt: signalsTable.detectedAt,
+    })
+    .from(trackedSignalsTable)
+    .innerJoin(signalsTable, eq(signalsTable.id, trackedSignalsTable.signalId))
+    .where(
+      and(
+        eq(trackedSignalsTable.signalId, signalId),
+        eq(trackedSignalsTable.sentimentKey, "liquidation_cascade"),
+      ),
+    )
+    .limit(1);
+  return Boolean(
+    row &&
+    isEligibleLiquidationCascadePrimaryTelegramEvent({
+      eventKey,
+      sentimentKey: row.sentimentKey ?? "",
+      status: row.status,
+      detectedAt: row.detectedAt,
+      updatedAt: row.updatedAt,
+    }),
+  );
+}
+
+async function isEligibleAbneonTrackedLifecycleEvent(
+  eventKey: string | undefined,
+): Promise<boolean> {
+  if (!isAbneonTrackedLifecycleEventKey(eventKey)) return false;
+  const match = SHADOW_TRACKED_KEY.exec(eventKey!);
+  if (!match) return false;
+  const trackedId = Number(match[1]);
+  if (!Number.isSafeInteger(trackedId) || trackedId <= 0) return false;
+  const [row] = await db
+    .select({ id: trackedSignalsTable.id })
+    .from(trackedSignalsTable)
+    .where(
+      and(
+        eq(trackedSignalsTable.id, trackedId),
+        eq(trackedSignalsTable.sentimentKey, "neon_support_bounce"),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
+
+async function isEligibleStealthPrimaryEvent(
+  eventKey: string | undefined,
+): Promise<boolean> {
+  if (!isStealthPrimarySignalEventKey(eventKey)) return false;
+  const match = SHADOW_SIGNAL_KEY.exec(eventKey!);
+  if (!match) return false;
+  const signalId = Number(match[1]);
+  const [row] = await db
+    .select({
+      sentimentKey: trackedSignalsTable.sentimentKey,
+      status: trackedSignalsTable.status,
+      updatedAt: trackedSignalsTable.updatedAt,
+      detectedAt: signalsTable.detectedAt,
+    })
+    .from(trackedSignalsTable)
+    .innerJoin(signalsTable, eq(signalsTable.id, trackedSignalsTable.signalId))
+    .where(
+      and(
+        eq(trackedSignalsTable.signalId, signalId),
+        eq(trackedSignalsTable.sentimentKey, "stealth_breakout"),
+      ),
+    )
+    .limit(1);
+  return Boolean(
+    row &&
+    isEligibleStealthPrimaryTelegramEvent({
+      eventKey,
+      sentimentKey: row.sentimentKey ?? "",
+      status: row.status,
+      detectedAt: row.detectedAt,
+      updatedAt: row.updatedAt,
+    }),
+  );
+}
+
+async function isEligibleStealthTrackedLifecycleEvent(
+  eventKey: string | undefined,
+): Promise<boolean> {
+  if (!isStealthTrackedLifecycleEventKey(eventKey)) return false;
+  const match = SHADOW_TRACKED_KEY.exec(eventKey!);
+  if (!match) return false;
+  const trackedId = Number(match[1]);
+  if (!Number.isSafeInteger(trackedId) || trackedId <= 0) return false;
+  const [row] = await db
+    .select({ id: trackedSignalsTable.id })
+    .from(trackedSignalsTable)
+    .where(
+      and(
+        eq(trackedSignalsTable.id, trackedId),
+        eq(trackedSignalsTable.sentimentKey, "stealth_breakout"),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
+
+async function findImpulseBuyTrackedEvent(
+  eventKey: string | undefined,
+): Promise<
+  | {
+      status: string;
+      updatedAt: Date;
+    }
+  | undefined
+> {
+  if (!eventKey) return undefined;
+  const tracked = SHADOW_TRACKED_KEY.exec(eventKey);
+  const signal = tracked ? null : SHADOW_SIGNAL_KEY.exec(eventKey);
+  const match = tracked ?? signal;
+  if (!match) return undefined;
+  const id = Number(match[1]);
+  const [row] = await db
+    .select({
+      status: trackedSignalsTable.status,
+      updatedAt: trackedSignalsTable.updatedAt,
+    })
+    .from(trackedSignalsTable)
+    .where(
+      and(
+        tracked
+          ? eq(trackedSignalsTable.id, id)
+          : eq(trackedSignalsTable.signalId, id),
+        eq(trackedSignalsTable.sentimentKey, "impulse_buy"),
+      ),
+    )
+    .limit(1);
+  return row;
+}
+
+async function isEligibleImpulseBuyEnqueue(
+  eventKey: string | undefined,
+): Promise<boolean> {
+  if (eventKey && ICNT_IB_MILESTONE_REPLAY_EVENT_KEY.test(eventKey))
+    return true;
+  const tracked = await findImpulseBuyTrackedEvent(eventKey);
+  if (!tracked) return false;
+  if (tracked.status === "active" || tracked.status === "in_run") return true;
+  return (
+    Date.now() - tracked.updatedAt.getTime() <=
+    RECENT_TERMINAL_IMPULSE_BUY_ENQUEUE_MS
+  );
+}
+
+const mutedDeliveryEligibilityInFlight = new Map<
+  string,
+  Promise<{
+    allowImpulseBuyWhileMuted: boolean;
+    allowAbneonPrimaryWhileMuted: boolean;
+    allowAbneonTrackedLifecycleWhileMuted: boolean;
+    allowStealthPrimaryWhileMuted: boolean;
+    allowStealthTrackedLifecycleWhileMuted: boolean;
+    allowLiquidationCascadePrimaryWhileMuted: boolean;
+  }>
+>();
+
+function resolveMutedDeliveryExceptions(eventKey: string): Promise<{
+  allowImpulseBuyWhileMuted: boolean;
+  allowAbneonPrimaryWhileMuted: boolean;
+  allowAbneonTrackedLifecycleWhileMuted: boolean;
+  allowStealthPrimaryWhileMuted: boolean;
+  allowStealthTrackedLifecycleWhileMuted: boolean;
+  allowLiquidationCascadePrimaryWhileMuted: boolean;
+}> {
+  const pending = mutedDeliveryEligibilityInFlight.get(eventKey);
+  if (pending) return pending;
+  const check = Promise.all([
+    isEligibleImpulseBuyEnqueue(eventKey),
+    isEligibleAbneonPrimaryEvent(eventKey),
+    isEligibleAbneonTrackedLifecycleEvent(eventKey),
+    isEligibleStealthPrimaryEvent(eventKey),
+    isEligibleStealthTrackedLifecycleEvent(eventKey),
+    isEligibleLiquidationCascadePrimaryEvent(eventKey),
+  ])
+    .then(
+      ([
+        allowImpulseBuyWhileMuted,
+        allowAbneonPrimaryWhileMuted,
+        allowAbneonTrackedLifecycleWhileMuted,
+        allowStealthPrimaryWhileMuted,
+        allowStealthTrackedLifecycleWhileMuted,
+        allowLiquidationCascadePrimaryWhileMuted,
+      ]) => ({
+        allowImpulseBuyWhileMuted,
+        allowAbneonPrimaryWhileMuted,
+        allowAbneonTrackedLifecycleWhileMuted,
+        allowStealthPrimaryWhileMuted,
+        allowStealthTrackedLifecycleWhileMuted,
+        allowLiquidationCascadePrimaryWhileMuted,
+      }),
+    )
+    .finally(() => {
+      mutedDeliveryEligibilityInFlight.delete(eventKey);
+    });
+  mutedDeliveryEligibilityInFlight.set(eventKey, check);
+  return check;
+}
+
+async function isSuppressedByTelegramMute(
+  eventKey: string | undefined,
+  messageKind: "photo" | "text" = "text",
+): Promise<boolean> {
+  if (process.env.NODE_ENV === "development") return true;
+  if (!isTelegramMuted(eventKey)) return false;
+  return !(
+    (messageKind === "photo" && isWatchdogTelegramPhotoEvent(eventKey)) ||
+    (await isEligibleImpulseBuyEnqueue(eventKey)) ||
+    (await isEligibleAbneonPrimaryEvent(eventKey)) ||
+    (await isEligibleAbneonTrackedLifecycleEvent(eventKey)) ||
+    (await isEligibleLiquidationCascadePrimaryEvent(eventKey)) ||
+    (await isEligibleStealthPrimaryEvent(eventKey)) ||
+    (await isEligibleStealthTrackedLifecycleEvent(eventKey))
+  );
+}
+
 export async function isShadowTelegramEvent(
   eventKey: string | undefined,
 ): Promise<boolean> {
   if (!eventKey) return false;
+  if (
+    (await isEligibleAbneonPrimaryEvent(eventKey)) ||
+    (await isEligibleAbneonTrackedLifecycleEvent(eventKey)) ||
+    (await isEligibleLiquidationCascadePrimaryEvent(eventKey)) ||
+    (await isEligibleStealthPrimaryEvent(eventKey)) ||
+    (await isEligibleStealthTrackedLifecycleEvent(eventKey))
+  )
+    return false;
   const tracked = SHADOW_TRACKED_KEY.exec(eventKey);
   const signal = tracked ? null : SHADOW_SIGNAL_KEY.exec(eventKey);
   const match = tracked ?? signal;
@@ -2029,12 +2563,12 @@ export async function enqueueTelegramPhotoBroadcast(params: {
   assertMarketCycleLeaseOwnership("Telegram outbox enqueue");
   if (params.targets.length === 0) return 0;
   if (
-    (await isTelegramMutedAsync(params.eventKey)) ||
+    (await isSuppressedByTelegramMute(params.eventKey, "photo")) ||
     (await isShadowTelegramEvent(params.eventKey))
   ) {
     logger.info(
       { eventKey: params.eventKey },
-      "Telegram message suppressed: shadow pattern",
+      "Telegram message suppressed: global mute or shadow policy",
     );
     return params.targets.length;
   }
@@ -2079,12 +2613,12 @@ export async function enqueueTelegramTextBroadcast(params: {
   assertMarketCycleLeaseOwnership("Telegram text outbox enqueue");
   if (params.targets.length === 0) return 0;
   if (
-    (await isTelegramMutedAsync(params.eventKey)) ||
+    (await isSuppressedByTelegramMute(params.eventKey)) ||
     (await isShadowTelegramEvent(params.eventKey))
   ) {
     logger.info(
       { eventKey: params.eventKey },
-      "Telegram message suppressed: shadow pattern",
+      "Telegram message suppressed: global mute or shadow policy",
     );
     return params.targets.length;
   }
@@ -2128,12 +2662,12 @@ export async function enqueueTelegramPhotoBroadcastAfterClaim(params: {
 }): Promise<{ claimed: boolean; queued: number }> {
   assertMarketCycleLeaseOwnership("transactional Telegram outbox enqueue");
   if (
-    (await isTelegramMutedAsync(params.eventKey)) ||
+    (await isSuppressedByTelegramMute(params.eventKey, "photo")) ||
     (await isShadowTelegramEvent(params.eventKey))
   ) {
     logger.info(
       { eventKey: params.eventKey },
-      "Telegram message suppressed: shadow pattern (state claim still committed)",
+      "Telegram message suppressed: global mute or shadow policy (state claim still committed)",
     );
     return db.transaction(async (tx) => ({
       claimed: await params.claim(tx),
@@ -2214,7 +2748,7 @@ export async function enqueueTelegramPhotoClaimPendingRecipientResolution(params
 }): Promise<{ claimed: boolean; queued: number }> {
   assertMarketCycleLeaseOwnership("pending Telegram recipient resolution");
   if (
-    (await isTelegramMutedAsync(params.eventKey)) ||
+    (await isSuppressedByTelegramMute(params.eventKey)) ||
     (await isShadowTelegramEvent(params.eventKey))
   ) {
     return db.transaction(async (tx) => ({

@@ -170,3 +170,143 @@ mtime_ms = 1793450817089
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/5aa1d851-1a05-45bb-8389-24f6a3572f0d/dd586efb-32af-413f-b083-0809bac95bdb"
 storage_version_token = "1793450821472329"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "3XZWamhzPYJvhPQrwkh3D"
+uri = "file://reports/abneon-study/trades.csv"
+type = "table"
+title = "ABNeon trades.csv"
+description = "Результаты 60-дневного бэктеста ABNeon; 11 130 строк включая заголовок."
+logical_id = "900ef028-9aa9-454a-86fd-e915a6d46111"
+content_hash = "sha256:c93f2f3567b60d63eda7fe2fe089f6c8459987bf3f034e993c11f8b81b552a38"
+size = 4197166
+mtime_ms = 1793948852348
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/900ef028-9aa9-454a-86fd-e915a6d46111/ceabf000-987c-4a79-b356-d27e95b7c645"
+storage_version_token = "1793948875370501"
+content_type = "text/csv"
+
+[[outputs]]
+id = "rCJqMv3AKVTWi7XQFWTu6"
+uri = "file://reports/stealth-study/trades.csv"
+type = "table"
+title = "Stealth trades.csv"
+description = "60-дневный бэктест Stealth; 16 479 строк включая заголовок."
+logical_id = "7d537db6-87df-49e8-8aae-1c0b7de37a12"
+content_hash = "sha256:ecefa6307e0e8646c44b1bfed0bfbb21c4cc61f5fc9cfa4ac44be2cf5dc0a760"
+size = 9003083
+mtime_ms = 1793952307947
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/7d537db6-87df-49e8-8aae-1c0b7de37a12/8d651a05-9667-4fc0-b3e0-0ce8da70d4a6"
+storage_version_token = "1793952331866607"
+content_type = "text/csv"
+
+[[outputs]]
+id = "Ju_Z7z4z-orLDl_XxGpBV"
+uri = "file://reports/abneon-defense/variants.csv"
+type = "table"
+title = "ABNeon defense — variants.csv"
+description = "Файл отчёта без изменений."
+logical_id = "4ed04ad1-d3e3-4d1a-a147-1d87afd8dc27"
+content_hash = "sha256:9fe36e07f6927d4ed0ee2eb74fac8c6fcc4a0397be69dd305bb0467b5b1f3971"
+size = 3888
+mtime_ms = 1794309972910
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/4ed04ad1-d3e3-4d1a-a147-1d87afd8dc27/461dbcb2-c60c-4e96-a67a-1d87fbeaa40c"
+storage_version_token = "1794310108069628"
+content_type = "text/csv"
+
+[[outputs]]
+id = "-ox_rDXFToa0O0BADpiLg"
+uri = "file://reports/abneon-defense/events.csv"
+type = "table"
+title = "ABNeon defense — events.csv"
+description = "Файл отчёта без изменений."
+logical_id = "544023e2-9d17-476e-958d-007cb3a3455c"
+content_hash = "sha256:b519916fed679cfc1c28861312c5d42f6b315881fb240cf89bb3a5f8338a77a9"
+size = 16411726
+mtime_ms = 1794309973914
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/544023e2-9d17-476e-958d-007cb3a3455c/1978c690-3d3e-46dc-8fde-23834b73f0c0"
+storage_version_token = "1794310109265764"
+content_type = "text/csv"
+
+[[outputs]]
+id = "fK7VrTsulmqSYJ5nUaCFH"
+uri = "file://reports/abneon-defense/trades.csv"
+type = "table"
+title = "ABNeon defense — trades.csv"
+description = "Файл отчёта без изменений."
+logical_id = "8f06fbd4-3f47-4da7-b499-65e131bfe4d2"
+content_hash = "sha256:42325f0753a1c171e058c49060f2c76fbcdd974b4c58d3a4f7e34898d1bff543"
+size = 8969596
+mtime_ms = 1794309974390
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/8f06fbd4-3f47-4da7-b499-65e131bfe4d2/a10d3ef3-b6f2-4380-bbf6-945abde87b84"
+storage_version_token = "1794310110749852"
+content_type = "text/csv"
+
+[[outputs]]
+id = "UU_cLdZ-vXe3Af4BxdpsC"
+uri = "file://reports/abneon-defense/owner_coins.csv"
+type = "table"
+title = "ABNeon defense — owner_coins.csv"
+description = "Файл отчёта без изменений."
+logical_id = "dfd4aa39-ae07-4cab-a7c6-3f43eeb3b86f"
+content_hash = "sha256:c3643bc17137c2f1cb5394b7f884c5d12c9a85f8c4518529f117c0ca5aa0411f"
+size = 127219
+mtime_ms = 1794309974410
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/dfd4aa39-ae07-4cab-a7c6-3f43eeb3b86f/64196a1d-f9bc-428a-a181-6b388cbba7d5"
+storage_version_token = "1794310111292941"
+content_type = "text/csv"
+
+[[outputs]]
+id = "WyWy_li3uJjfam5otyA9K"
+uri = "file://reports/abneon-defense/errors.json"
+type = "unspecified"
+title = "ABNeon defense — errors.json"
+description = "Файл отчёта без изменений."
+logical_id = "6487034e-772e-450f-a40f-891a2f56fc80"
+content_hash = "sha256:8fd24560b2da7509fd25970ec9835fa8cf8f551afe8d72e3d4c770079d87afaf"
+size = 506
+mtime_ms = 1794309974410
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/6487034e-772e-450f-a40f-891a2f56fc80/b3f67c93-1f78-407d-9907-2f5d87bfb94f"
+storage_version_token = "1794310112390023"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "4w-vGhNj5jb0hBwr0G5fQ"
+uri = "file://.agents/outputs/ib-signals-since-2026-11-01.csv"
+type = "table"
+title = "IB signals since 2026-11-01.csv"
+description = "Raw production query output."
+logical_id = "dea148a3-7ee6-405a-921a-ec9126686529"
+content_hash = "sha256:027ebc6e045844c101b7746490c822dd724c88cfa8ee3b3aa3d2a687b8782312"
+size = 51089
+mtime_ms = 1794310190530
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/dea148a3-7ee6-405a-921a-ec9126686529/43d87f3b-5bf4-47e1-b696-d1e21ab5ae4c"
+storage_version_token = "1794310199619520"
+content_type = "text/csv"
+
+[[outputs]]
+id = "J37J5dYYR70yxcyIZ9nwJ"
+uri = "file://.agents/outputs/ib-groups-since-2026-11-01.csv"
+type = "table"
+title = "IB grouped outcomes since 2026-11-01.csv"
+description = "Raw production query output."
+logical_id = "3726b5d3-b1a2-4c45-aef9-d9dbd520e898"
+content_hash = "sha256:0aed217f591c103d0c771826af424d419ff8fb26a71ae3b6de67fc8e91d19889"
+size = 525
+mtime_ms = 1794310190746
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/3726b5d3-b1a2-4c45-aef9-d9dbd520e898/bf1d6ea2-de60-4d93-aa8c-c30546c58942"
+storage_version_token = "1794310200195952"
+content_type = "text/csv"
+
+[[outputs]]
+id = "iMcP2M--R72LQNOtKrUnl"
+uri = "file://reports/abneon-miss-check/miss-check.txt"
+type = "text"
+title = "ABNeon miss-check"
+description = "Результат анализа: 462 строки по проверке отскоков."
+logical_id = "66228e00-63ef-435e-b0a9-c34193fa24ad"
+content_hash = "sha256:3a32e6c94a7532a90c211a2cca51094a54742a74812fc1b7863c6a112e0b438a"
+size = 73690
+mtime_ms = 1794372728452
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:770d2a33-8bb1-4c96-9262-fbfba42c2484/66228e00-63ef-435e-b0a9-c34193fa24ad/799bf0c5-9755-43c9-95da-e704e73a9f4e"
+storage_version_token = "1794372803010071"
+content_type = "text/plain"

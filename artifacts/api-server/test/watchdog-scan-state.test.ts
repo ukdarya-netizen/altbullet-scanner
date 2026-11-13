@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  getWatchdogElapsedMs,
   readWatchdogDiscoveryLeaseStatus,
   resolveWatchdogScanState,
 } from "../src/lib/watchdog-scan-state.js";
@@ -8,7 +9,7 @@ import {
 test("watchdog identifies a real discovery cycle", () => {
   assert.deepEqual(
     resolveWatchdogScanState(
-      { kind: "running" },
+      { kind: "running", startedAt: null },
       { busy: false, expectedExpiryAt: null },
       null,
     ),
@@ -18,6 +19,66 @@ test("watchdog identifies a real discovery cycle", () => {
       blocker: "discovery scanner выполняет цикл",
       expectedAction: "watchdog ждёт завершения цикла",
     },
+  );
+});
+
+test("watchdog measures an active cycle from its start, not the prior success", () => {
+  const now = Date.parse("2026-11-07T10:43:32.000Z");
+  const lastSuccessfulScanAt = new Date("2026-11-07T09:00:04.000Z");
+  const startedAt = new Date("2026-11-07T10:23:55.000Z");
+  assert.equal(
+    getWatchdogElapsedMs({
+      activity: { kind: "running", startedAt },
+      scannerLeaseBusy: false,
+      lastSuccessfulScanAt,
+      persistedScanStartedAt: startedAt,
+      now,
+    }),
+    19 * 60_000 + 37_000,
+  );
+});
+
+test("watchdog uses a newer persisted start for a scan running on another worker", () => {
+  const now = Date.parse("2026-11-07T10:43:32.000Z");
+  const lastSuccessfulScanAt = new Date("2026-11-07T09:00:04.000Z");
+  const startedAt = new Date("2026-11-07T10:23:55.000Z");
+  assert.equal(
+    getWatchdogElapsedMs({
+      activity: { kind: "idle" },
+      scannerLeaseBusy: true,
+      lastSuccessfulScanAt,
+      persistedScanStartedAt: startedAt,
+      now,
+    }),
+    19 * 60_000 + 37_000,
+  );
+});
+
+test("watchdog ignores a persisted start when no worker holds the scan lease", () => {
+  const now = Date.parse("2026-11-07T10:43:32.000Z");
+  const lastSuccessfulScanAt = new Date("2026-11-07T09:00:04.000Z");
+  assert.equal(
+    getWatchdogElapsedMs({
+      activity: { kind: "idle" },
+      scannerLeaseBusy: false,
+      lastSuccessfulScanAt,
+      persistedScanStartedAt: new Date("2026-11-07T10:23:55.000Z"),
+      now,
+    }),
+    103 * 60_000 + 28_000,
+  );
+});
+
+test("watchdog cannot infer a current scan duration without a start timestamp", () => {
+  assert.equal(
+    getWatchdogElapsedMs({
+      activity: { kind: "running", startedAt: null },
+      scannerLeaseBusy: false,
+      lastSuccessfulScanAt: new Date("2026-11-07T09:00:04.000Z"),
+      persistedScanStartedAt: null,
+      now: Date.parse("2026-11-07T10:43:32.000Z"),
+    }),
+    null,
   );
 });
 

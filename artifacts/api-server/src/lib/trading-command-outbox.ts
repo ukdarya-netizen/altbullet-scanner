@@ -16,7 +16,8 @@ import {
  * - Delivery repeats the same commandId until the receiver confirms it STORED
  *   the command. "Stored" is not "executed": execution confirmations arrive
  *   separately (POST /api/trading/command-acks), per environment.
- * - Types: close, move_stop (exact price), cancel_entry (not-yet-filled entry).
+ * - Types: close, move_stop (exact price), cancel_entry (not-yet-filled entry),
+ *   and position_review (reconciliation notification only; never closes).
  */
 export const TRADING_COMMAND_ENDPOINT =
   process.env.TRADING_COMMAND_ENDPOINT ??
@@ -28,6 +29,7 @@ export const TRADING_COMMAND_TYPES = [
   "close",
   "move_stop",
   "cancel_entry",
+  "position_review",
 ] as const;
 export type TradingCommandType = (typeof TRADING_COMMAND_TYPES)[number];
 
@@ -132,9 +134,7 @@ BEGIN
         'partial', false,
         'trackerStatus', NEW.status,
         'exitPrice', NEW.exit_price,
-        'pnlPercent', NEW.pnl_percent,
-        -- Owner 2026-11-10: a cancellation booked as stop_loss (smart_cancel / max_age / stale_cancel).
-        'closedBy', CASE WHEN NEW.status = 'stop_loss' THEN NEW.decision_metrics->>'closedBy' END
+        'pnlPercent', NEW.pnl_percent
       );
     ELSIF NEW.status IN ('cancelled', 'reclassified')
           AND OLD.status IN ('active', 'in_run') THEN
@@ -203,6 +203,37 @@ BEGIN
            THEN jsonb_build_object('stopPrice', v_stop::text) ELSE '{}'::jsonb END
       || v_extra
     ) ON CONFLICT DO NOTHING;
+
+    -- A tracker cancellation is not proof that the exchange position is
+    -- closed. Keep the pending-entry cancellation above, and send a second,
+    -- explicit reconciliation-only event so the receiver checks its own fills.
+    IF v_type = 'cancel_entry' THEN
+      v_seq := v_seq + 1;
+      v_cid := 'cab-cmd-' || NEW.id::text || '-' || v_seq::text;
+      INSERT INTO trading_command_outbox (
+        command_id, tracked_signal_id, source_signal_id, symbol, type,
+        event_seq, event_at, reason, payload
+      ) VALUES (
+        v_cid, NEW.id, 'cab-signal-' || NEW.signal_id::text,
+        replace(upper(NEW.symbol), '-', ''), 'position_review',
+        v_seq, now(), v_reason,
+        jsonb_build_object(
+          'commandId', v_cid,
+          'sourceSignalId', 'cab-signal-' || NEW.signal_id::text,
+          'symbol', replace(upper(NEW.symbol), '-', ''),
+          'type', 'position_review',
+          'eventSeq', v_seq,
+          'eventAt', to_char(now() AT TIME ZONE 'UTC',
+                             'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+          'reason', v_reason,
+          'source', 'CryptoAltBullet',
+          'action', 'review',
+          'trackerStatus', NEW.status,
+          'exchangeReconciliationRequired', true,
+          'closePosition', false
+        )
+      ) ON CONFLICT DO NOTHING;
+    END IF;
   EXCEPTION WHEN OTHERS THEN
     RAISE WARNING 'cab_enqueue_trading_command failed for tracked_signal %: %',
       NEW.id, SQLERRM;

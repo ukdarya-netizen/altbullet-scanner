@@ -75,10 +75,10 @@ test("monthly period is the previous full Dubai month", () => {
   assert.equal(end.toISOString(), "2026-09-30T20:00:00.000Z");
 });
 
-test("Neon Support label has an experiment marker", () => {
+test("Neon Support label says it is in testing mode", () => {
   const report = formatMonthlyDigest(
     [row("NEON-USDT", "profit", 8, null, "neon_support_bounce")],
     new Date("2026-08-31T20:00:00Z"),
   );
-  assert.match(report, /\[🩷 Neon Support 🧪 эксперимент — Отскок от поддержки\]/);
+  assert.match(report, /\[🩷 Neon Support 🧪 тестовый режим — Отскок от поддержки\]/);
 });

@@ -1,5 +1,5 @@
 export type ScannerWatchdogActivity =
-  | { kind: "running" }
+  | { kind: "running"; startedAt: Date | null }
   | {
       kind: "settlement_fence";
       pendingSince: Date | null;
@@ -27,6 +27,41 @@ export type WatchdogRecoverySummary = {
   failureReason: string | null;
   expectedLeaseExpiryAt: Date | null;
 };
+
+/**
+ * Measure an active scan from its own start time, not from the prior
+ * successful completion. During a slow but healthy cycle those timestamps can
+ * be far apart; using the completion cursor would report a false 100-minute
+ * stall and could trigger a worker restart while position management runs.
+ */
+export function getWatchdogElapsedMs(input: {
+  activity: ScannerWatchdogActivity;
+  scannerLeaseBusy: boolean;
+  lastSuccessfulScanAt: Date | null;
+  persistedScanStartedAt: Date | null;
+  now?: number;
+}): number | null {
+  const now = input.now ?? Date.now();
+  if (input.activity.kind === "running") {
+    return input.activity.startedAt
+      ? Math.max(0, now - input.activity.startedAt.getTime())
+      : null;
+  }
+
+  if (input.activity.kind === "settlement_fence") {
+    const anchor = input.activity.pendingSince ?? input.lastSuccessfulScanAt;
+    return anchor ? Math.max(0, now - anchor.getTime()) : null;
+  }
+
+  const persistedStart = input.persistedScanStartedAt;
+  const lastSuccess = input.lastSuccessfulScanAt;
+  const persistedScanIsActive =
+    input.scannerLeaseBusy &&
+    persistedStart !== null &&
+    (lastSuccess === null || persistedStart.getTime() > lastSuccess.getTime());
+  const anchor = persistedScanIsActive ? persistedStart : lastSuccess;
+  return anchor ? Math.max(0, now - anchor.getTime()) : null;
+}
 
 /**
  * The scheduler status comes from the same control-plane that may be down.

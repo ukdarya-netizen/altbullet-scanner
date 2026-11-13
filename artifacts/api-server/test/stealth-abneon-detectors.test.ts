@@ -60,6 +60,87 @@ test("ABNeon support arms and records a frozen level", () => {
   assert.equal(result.volumeEvidence.ratio, 20);
 });
 
+test("ABNeon no-touch rejection persists the nearest zone and exact touch bounds", () => {
+  const h4 = Array.from({ length: 40 }, (_, i) => ({
+    time: i * 4 * 3600000,
+    open: 112,
+    high: 120,
+    low: 110,
+    close: 115,
+    volume: 100,
+  }));
+  h4[20] = { ...h4[20]!, low: 100 };
+  const h1 = Array.from({ length: 21 }, (_, i) => ({
+    time: (139 + i) * 3600000,
+    open: 109,
+    high: 112,
+    low: 108,
+    close: 110,
+    volume: 100,
+  }));
+  const result = evaluateAbneonSupportBounce({
+    candles4h: h4,
+    candles1h: h1,
+    observedAt: 40 * 4 * 3600000,
+  });
+
+  assert.equal(result.reason, "price_above_support_touch_range");
+  assert.equal(result.evidence?.activeSupportZoneCount, 1);
+  const nearestZone = result.evidence?.nearestZone as
+    | Record<string, unknown>
+    | undefined;
+  assert.equal(nearestZone?.lowInsideTouchRange, false);
+  assert.equal(typeof nearestZone?.touchUpperBound, "number");
+  assert.equal(typeof nearestZone?.distancePctFromTouchRange, "number");
+});
+
+test("ABNeon records a support touch that failed the reclaim condition", () => {
+  const h4 = Array.from({ length: 40 }, (_, i) => ({
+    time: i * 4 * 3600000,
+    open: 112,
+    high: 120,
+    low: 110,
+    close: 115,
+    volume: 100,
+  }));
+  h4[20] = { ...h4[20]!, low: 100 };
+  h4[39] = { ...h4[39]!, low: 100, close: 90 };
+  const h1 = Array.from({ length: 21 }, (_, i) => ({
+    time: (139 + i) * 3600000,
+    open: 109,
+    high: 112,
+    low: 108,
+    close: 110,
+    volume: 100,
+  }));
+  const result = evaluateAbneonSupportBounce({
+    candles4h: h4,
+    candles1h: h1,
+    observedAt: 40 * 4 * 3600000,
+    sweepReclaimBars: 3,
+  });
+
+  assert.equal(result.reason, "support_touch_not_reclaimed");
+  assert.equal(result.evidence?.activeSupportZoneCount, 1);
+  const nearestZone = result.evidence?.nearestZone as
+    | Record<string, unknown>
+    | undefined;
+  assert.equal(nearestZone?.lowInsideTouchRange, true);
+  assert.equal(nearestZone?.closeReclaimed, false);
+});
+
+test("ABNeon records candle availability when history is insufficient", () => {
+  const result = evaluateAbneonSupportBounce({
+    candles4h: [],
+    candles1h: [],
+    observedAt: 0,
+  });
+  assert.equal(result.reason, "insufficient_closed_candles");
+  assert.equal(result.evidence?.providedH1, 0);
+  assert.equal(result.evidence?.closedH1, 0);
+  assert.equal(result.evidence?.requiredClosedH1, 21);
+});
+
 test("ABNeon frozen support requires 4x volume and $500k turnover", () => {
   const h4 = Array.from({ length: 24 }, (_, i) =>
     c((i - 16) * 4 * 3600000, 110, 100, 100),

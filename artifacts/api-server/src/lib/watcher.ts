@@ -3,6 +3,7 @@ import {
   LC_SMALL_LIQ_1H_PCT_OF_MCAP,
 } from "./turnover-threshold.js";
 import { isTelegramMuted } from "./telegram-mute.js";
+import { ABNEON_RULE_VERSION, abneonTake } from "./abneon-rule-entry.js";
 import {
   buildBtcTickerContext,
   parseBtcPrice,
@@ -219,8 +220,7 @@ import { getCoinglassOI, getCoinglassOi15mChange } from "./coinglass_oi.js";
 import { SPOT_TAKER_SELL_DOMINANCE } from "./scanner-patterns.js";
 import { calcLcScore } from "./lc-score.js";
 import { getCgAskBids } from "./coinglass_orderbook.js";
-import { getAggFuturesTakerHistory, getCoinglassTakerFlow } from "./coinglass_taker.js";
-import { futuresCvdFromTakers, mergeWithLastGoodHealth } from "./milestone-health.js";
+import { getCoinglassTakerFlow } from "./coinglass_taker.js";
 import { missingAggregatedFireData } from "./aggregated-fire-gate.js";
 import { getSpotTakerFlow } from "./coinglass_spot_taker.js";
 import {
@@ -852,22 +852,14 @@ export async function broadcastPhotoWithText(
  * pacing/429 cooldowns can stall these lookups for minutes (STRK/SYN +5/+10
  * milestones stayed "sending" with no Telegram event on 2026-10-08).
  */
-// Owner 2026-11-13: the delta line (OI, CVD 15m / 30m / 1h) must be in every position update — the subscriber
-// decides on it whether to hold. Before: 4 s at the watcher's low CoinGlass priority, so behind a busy scanner
-// queue or a CoinGlass failure the update went out with «н/д». Now: critical priority, 10 s; a coin without
-// spot data (or a failed spot read) takes the delta from aggregated futures takers; when CoinGlass fails, the
-// last good reading of the coin (≤ 60 min) is shown with its age.
-const MILESTONE_HEALTH_TIMEOUT_MS = 10_000;
-const lastGoodHealth = new Map<string, { health: SpotHealth; at: number }>();
-
+const MILESTONE_HEALTH_TIMEOUT_MS = 4_000;
 async function fetchMilestoneHealth(
   symbol: string,
   price: number,
 ): Promise<SpotHealth | null> {
   let timer: NodeJS.Timeout | undefined;
-  let fresh: SpotHealth | null;
   try {
-    fresh = await Promise.race([
+    return await Promise.race([
       _fetchSignalHealth(symbol, price).catch(() => null),
       new Promise<null>((resolve) => {
         timer = setTimeout(() => resolve(null), MILESTONE_HEALTH_TIMEOUT_MS);
@@ -876,7 +868,6 @@ async function fetchMilestoneHealth(
   } finally {
     if (timer) clearTimeout(timer);
   }
-  return mergeWithLastGoodHealth(symbol, fresh, Date.now(), lastGoodHealth);
 }
 
 async function _fetchSignalHealth(
@@ -884,25 +875,14 @@ async function _fetchSignalHealth(
   price: number,
 ): Promise<SpotHealth> {
   const [oi, cvd] = await Promise.all([
-    getCoinglassOI(symbol, price, undefined, { priority: "critical" }).catch(() => null),
-    getSpotCvdMtf(symbol, { priority: "critical" }).catch(() => null),
+    getCoinglassOI(symbol, price).catch(() => null),
+    getSpotCvdMtf(symbol).catch(() => null),
   ]);
-  const spot = cvd?.available
-    ? { cvd15m: cvd.cvd15m ?? null, cvd30m: cvd.cvd30m ?? null, cvd1h: cvd.cvd1h ?? null }
-    : null;
-  const spotOk = spot != null && (spot.cvd15m != null || spot.cvd30m != null || spot.cvd1h != null);
-  const fut = spotOk
-    ? null
-    : futuresCvdFromTakers(
-        await getAggFuturesTakerHistory(symbol, 6, { priority: "critical", timeoutMs: 8_000 }).catch(() => null),
-      );
-  const use = spotOk ? spot : fut;
   return {
     oiPct: oi?.available ? (oi.oiChange30m ?? null) : null,
-    cvd15m: use?.cvd15m ?? null,
-    cvd30m: use?.cvd30m ?? null,
-    cvd1h: use?.cvd1h ?? null,
-    ...(use ? { cvdSource: spotOk ? ("spot" as const) : ("futures" as const) } : {}),
+    cvd15m: cvd?.available ? (cvd.cvd15m ?? null) : null,
+    cvd30m: cvd?.available ? (cvd.cvd30m ?? null) : null,
+    cvd1h: cvd?.available ? (cvd.cvd1h ?? null) : null,
   };
 }
 
@@ -996,6 +976,7 @@ import {
   msgBreakevenAsStopLoss,
   fmtHealthLine,
   fmtSplitFillMarketContext,
+  withExperimentalPatternNotice,
   type SplitFillMarketContext,
   type SpotHealth,
 } from "./watcher-formatters.js";
@@ -1766,9 +1747,9 @@ async function sendMilestoneNotification(
       null,
       health,
     );
-    // Owner 2026-11-13: every trailing activation goes with its milestone picture (ABNeon activates at +20) —
-    // before, only +15 and BTC had one and the rest went as plain text.
-    return broadcastMilestonePhoto(tracked, kind, milestone, image ?? POSITION_UPDATE_IMG, text);
+    return image && (milestone === 15 || isBitcoinTrackedSignal(tracked))
+      ? broadcastMilestonePhoto(tracked, kind, milestone, image, text)
+      : broadcastMilestoneText(tracked, kind, milestone, text);
   }
 
   const text = msgMilestone(
@@ -4957,12 +4938,14 @@ export async function runStartupReset(): Promise<void> {
             : price < 100
               ? price.toFixed(4)
               : price.toFixed(2);
-        const fillMessage =
+        const fillMessage = withExperimentalPatternNotice(
+          tracked,
           `📥 <b>${tracked.symbol} — лимитка −5% сработала пока бот перезапускался</b>\n` +
-          `💰 Вход: $${_fmtP(_origEntry)} → средняя $${_fmtP(_avgEntry)} (−2.5%)\n` +
-          `🛑 Стоп смещён: $${_fmtP(_newStopPrice)} (−${effStopPct(tracked).toFixed(1)}% от средней)\n` +
-          `${formatMarketLinks(tracked.symbol)}\n` +
-          `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)}`;
+            `💰 Вход: $${_fmtP(_origEntry)} → средняя $${_fmtP(_avgEntry)} (−2.5%)\n` +
+            `🛑 Стоп смещён: $${_fmtP(_newStopPrice)} (−${effStopPct(tracked).toFixed(1)}% от средней)\n` +
+            `${formatMarketLinks(tracked.symbol)}\n` +
+            `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)}`,
+        );
         const filledAt = new Date();
         const delivery = await broadcastPhotoAfterClaim(
           POSITION_UPDATE_IMG,
@@ -5234,14 +5217,16 @@ export async function runStartupReset(): Promise<void> {
       pnl <= -effStopPct(tracked)
     ) {
       const _fill = stopLossFill(tracked, currentPrice, pnl);
-      const msg =
+      const msg = withExperimentalPatternNotice(
+        tracked,
         `🛑 <b>Пропущен стоп-лосс (сервер перезапускался)</b>\n\n` +
-        `<b>${tracked.symbol}</b>\n` +
-        `Вход: <b>$${tracked.entryPrice.toPrecision(4)}</b> → Выход: <b>$${_fill.exitPrice.toPrecision(4)}</b>\n` +
-        `Убыток: <b>${_fill.pnl.toFixed(1)}%</b>\n\n` +
-        `Позиция закрыта по стоп-лоссу.\n` +
-        `${formatMarketLinks(tracked.symbol)}\n\n` +
-        `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #stop_loss`;
+          `<b>${tracked.symbol}</b>\n` +
+          `Вход: <b>$${tracked.entryPrice.toPrecision(4)}</b> → Выход: <b>$${_fill.exitPrice.toPrecision(4)}</b>\n` +
+          `Убыток: <b>${_fill.pnl.toFixed(1)}%</b>\n\n` +
+          `Позиция закрыта по стоп-лоссу.\n` +
+          `${formatMarketLinks(tracked.symbol)}\n\n` +
+          `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #stop_loss`,
+      );
       const closedAt = new Date();
       const delivery = await broadcastPhotoAfterClaim(
         STOPLOSS_IMG,
@@ -5439,14 +5424,17 @@ export async function runStartupReset(): Promise<void> {
             finalPnl,
             tracked.sentimentKey,
           ) ?? 0;
-        const msg = trailingHit
-          ? `🔴 <b>Пропущен трейлинг-стоп (сервер перезапускался)</b>\n\n` +
-            `<b>${tracked.symbol}</b>\n` +
-            `Вход: <b>$${tracked.entryPrice.toPrecision(4)}</b> → Выход по трейлингу: <b>$${trailingStop.toPrecision(4)}</b>\n` +
-            `Пик: <b>$${peak.toPrecision(4)}</b> | Трейлинг уровень: <b>$${trailingStop.toPrecision(4)}</b>\n` +
-            `P&L: <b>${recordedPnl >= 0 ? "+" : ""}${recordedPnl.toFixed(1)}%</b>\n\n` +
-            `${formatMarketLinks(tracked.symbol)}\n\n${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #trailing_stop`
-          : msgBUStop(tracked, exitPrice, recordedPnl, null);
+        const msg = withExperimentalPatternNotice(
+          tracked,
+          trailingHit
+            ? `🔴 <b>Пропущен трейлинг-стоп (сервер перезапускался)</b>\n\n` +
+                `<b>${tracked.symbol}</b>\n` +
+                `Вход: <b>$${tracked.entryPrice.toPrecision(4)}</b> → Выход по трейлингу: <b>$${trailingStop.toPrecision(4)}</b>\n` +
+                `Пик: <b>$${peak.toPrecision(4)}</b> | Трейлинг уровень: <b>$${trailingStop.toPrecision(4)}</b>\n` +
+                `P&L: <b>${recordedPnl >= 0 ? "+" : ""}${recordedPnl.toFixed(1)}%</b>\n\n` +
+                `${formatMarketLinks(tracked.symbol)}\n\n${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #trailing_stop`
+            : msgBUStop(tracked, exitPrice, recordedPnl, null),
+        );
         const closedAt = new Date();
         const delivery = await broadcastPhotoAfterClaim(
           trailingHit ? TRAILING_STOP_IMG : BU_STOP_IMG,
@@ -5580,20 +5568,22 @@ export async function runStartupReset(): Promise<void> {
       const btcStartupTrailingActive =
         btcStartupRecovery &&
         computePnl(tracked, startupPeak) >= exitProfile.trailingActivation;
-      const msg =
+      const msg = withExperimentalPatternNotice(
+        tracked,
         (btcStartupRecovery
           ? `₿ <b>BTC достиг уровня +${firstTargetTransition.milestone}% пока бот перезапускался</b>\n\n`
           : `🚀 <b>Цель +${firstTargetTransition.milestone}% достигнута пока бот перезапускался</b>\n\n`) +
-        `<b>${tracked.symbol}</b>\n` +
-        `Вход: <b>$${tracked.entryPrice.toPrecision(4)}</b> → Сейчас: <b>$${currentPrice.toPrecision(4)}</b>\n` +
-        `Профит: <b>${sign}${pnl.toFixed(1)}%</b>\n\n` +
-        (btcStartupRecovery
-          ? btcStartupTrailingActive
-            ? `Сигнал переведён в <b>IN RUN</b>. BTC-трейлинг активен с +2%: стоп отстоит на 1 п.п. от пика. Это не подтверждение биржевого исполнения.\n`
-            : `Сигнал переведён в <b>IN RUN</b>. BTC-стоп в Б/У на цене входа; трейлинг включится только при пике +2%. Это не подтверждение биржевого исполнения.\n`
-          : `Сигнал переведён в <b>IN RUN</b>. Стоп перенесён в безубыток.\n`) +
-        `${formatMarketLinks(tracked.symbol)}\n\n` +
-        `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #in_run`;
+          `<b>${tracked.symbol}</b>\n` +
+          `Вход: <b>$${tracked.entryPrice.toPrecision(4)}</b> → Сейчас: <b>$${currentPrice.toPrecision(4)}</b>\n` +
+          `Профит: <b>${sign}${pnl.toFixed(1)}%</b>\n\n` +
+          (btcStartupRecovery
+            ? btcStartupTrailingActive
+              ? `Сигнал переведён в <b>IN RUN</b>. BTC-трейлинг активен с +2%: стоп отстоит на 1 п.п. от пика. Это не подтверждение биржевого исполнения.\n`
+              : `Сигнал переведён в <b>IN RUN</b>. BTC-стоп в Б/У на цене входа; трейлинг включится только при пике +2%. Это не подтверждение биржевого исполнения.\n`
+            : `Сигнал переведён в <b>IN RUN</b>. Стоп перенесён в безубыток.\n`) +
+          `${formatMarketLinks(tracked.symbol)}\n\n` +
+          `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #in_run`,
+      );
       const transitionedAt = new Date();
       const delivery = await broadcastPhotoAfterClaim(
         milestoneImageFor(tracked, firstTargetTransition.imageMilestone) ??
@@ -8549,20 +8539,23 @@ async function runInRunFastCycle(
           )
         ) {
           const closedAt = new Date();
-          const msg = [
-            `❌ <b>Позиция отменена — цена недоступна</b>`,
-            ``,
-            `<b>${tracked.symbol}</b>`,
-            `Цена не найдена на BingX более ${Math.round(ageMs / 60_000)}м.`,
-            `Цена недоступна на BingX — торги приостановлены или символ снят с торгов.`,
-            activeForLine(tracked.detectedAt, closedAt),
-            ``,
-            formatMarketLinks(tracked.symbol),
-            ``,
-            `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #cancelled`,
-          ]
-            .filter(Boolean)
-            .join("\n");
+          const msg = withExperimentalPatternNotice(
+            tracked,
+            [
+              `❌ <b>Позиция отменена — цена недоступна</b>`,
+              ``,
+              `<b>${tracked.symbol}</b>`,
+              `Цена не найдена на BingX более ${Math.round(ageMs / 60_000)}м.`,
+              `Цена недоступна на BingX — торги приостановлены или символ снят с торгов.`,
+              activeForLine(tracked.detectedAt, closedAt),
+              ``,
+              formatMarketLinks(tracked.symbol),
+              ``,
+              `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #cancelled`,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          );
 
           const delivery = await broadcastPhotoAfterClaim(
             CANCEL_IMG,
@@ -8656,13 +8649,15 @@ async function runInRunFastCycle(
           const fillMarketLines = fmtSplitFillMarketContext(fillMarketContext);
           const fillMarketBlock =
             fillMarketLines.length > 0 ? `${fillMarketLines.join("\n")}\n` : "";
-          const fillMessage =
+          const fillMessage = withExperimentalPatternNotice(
+            tracked,
             `📥 <b>${tracked.symbol} — лимитка −5% сработала</b>\n` +
-            `💰 Вход: $${_fmtP(_origEntry)} → средняя $${_fmtP(_avgEntry)} (−2.5%)\n` +
-            `🛑 Стоп смещён: $${_fmtP(_newStopPrice)} (−${effStopPct(tracked).toFixed(1)}% от средней)\n` +
-            fillMarketBlock +
-            `${formatMarketLinks(tracked.symbol)}\n` +
-            `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)}`;
+              `💰 Вход: $${_fmtP(_origEntry)} → средняя $${_fmtP(_avgEntry)} (−2.5%)\n` +
+              `🛑 Стоп смещён: $${_fmtP(_newStopPrice)} (−${effStopPct(tracked).toFixed(1)}% от средней)\n` +
+              fillMarketBlock +
+              `${formatMarketLinks(tracked.symbol)}\n` +
+              `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)}`,
+          );
           const filledAt = new Date();
           const delivery = await broadcastPhotoAfterClaim(
             POSITION_UPDATE_IMG,
@@ -8889,8 +8884,68 @@ async function runInRunFastCycle(
           tracked.lastMilestone < trailingActivation) &&
         peakPnlNow >= trailingActivation;
 
-      // Owner 2026-11-13: the ABNeon take at the nearest resistance (2026-11-12, R8 exit B) is removed — ABNeon is
-      // managed like the other patterns (B.U. +5%, partial take +8%, trailing from +15%).
+      // ── ABNeon: тейк у ближайшего сопротивления (owner 2026-11-12, R8, выход B) ──
+      // The bottom of the nearest ABNeon zone above the entry (decision_metrics.neonLevel.resistances, written at
+      // the signal). Reached → the whole position is closed at the market price. No zone above → the usual exit.
+      if (
+        (tracked.status === "active" || tracked.status === "in_run") &&
+        tracked.sentimentKey === "neon_support_bounce" &&
+        tracked.entryPrice != null &&
+        tracked.entryPrice > 0
+      ) {
+        const _ntLevel = (tracked.decisionMetrics as { neonLevel?: { resistances?: unknown; rule?: unknown } } | null)?.neonLevel;
+        const _ntTake =
+          _ntLevel?.rule === ABNEON_RULE_VERSION && Array.isArray(_ntLevel.resistances)
+            ? abneonTake(tracked.entryPrice, (_ntLevel.resistances as unknown[]).map(Number))
+            : null;
+        if (_ntTake && currentPrice >= _ntTake.price) {
+          const closedAt = new Date();
+          const statusAtClaim = tracked.status;
+          const takeMessage = withExperimentalPatternNotice(
+            tracked,
+            [
+              `🎯 <b>${tracked.symbol.replace("-USDT", "")}</b> — ЦЕЛЬ: БЛИЖАЙШЕЕ СОПРОТИВЛЕНИЕ`,
+              `Цена дошла до сопротивления ${_ntTake.price.toPrecision(4)} (+${_ntTake.pct.toFixed(1)}% от входа) — позиция закрыта целиком`,
+              `Вход: <b>${tracked.entryPrice.toPrecision(4)}</b> | Выход: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
+              activeForLine(tracked.detectedAt, closedAt),
+              ``,
+              `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #take_profit`,
+            ].join("\n"),
+          );
+          const delivery = await broadcastPhotoAfterClaim(
+            TARGET_HIT_IMG,
+            takeMessage,
+            `position:${tracked.id}:neon_resistance_take`,
+            async (tx) => {
+              const claimed = await tx
+                .update(trackedSignalsTable)
+                .set({
+                  status: "profit",
+                  decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'resistance_take')`,
+                  exitPrice: currentPrice,
+                  pnlPercent: pnl,
+                  peakPrice: newPeak,
+                  closedAt,
+                  updatedAt: closedAt,
+                })
+                .where(
+                  sql`${trackedSignalsTable.id} = ${tracked.id} AND ${trackedSignalsTable.status} = ${statusAtClaim}`,
+                )
+                .returning({ id: trackedSignalsTable.id });
+              return claimed.length > 0;
+            },
+          );
+          if (delivery.claimed) {
+            void _writeExitMetrics(tracked.id, tracked.symbol);
+            await recordCloseSnapshot(tracked, currentPrice, pnl, peakPnlNow, "profit");
+            logger.info(
+              { symbol: tracked.symbol, take: _ntTake.price, pnl: pnl.toFixed(1), queued: delivery.queued },
+              "TAKE: ABNeon nearest resistance 🎯",
+            );
+          }
+          continue;
+        }
+      }
 
       // ── HARD TRAILING EXIT ───────────────────────────────────────────────────
       // Закрытие по уже активированному трейлингу важнее любых Telegram-очередей,
@@ -9302,21 +9357,24 @@ async function runInRunFastCycle(
         if (_nlClose !== null) {
           const _nlIsStopLoss = pnl <= -CANCEL_STOP_LOSS_PCT;
           const closedAt = new Date();
-          const zoneLostMessage = [
-            _nlIsStopLoss
-              ? `🔴 <b>${tracked.symbol.replace("-USDT", "")}</b> — ОТМЕНА: 4H ЗАКРЫЛАСЬ ПОД УРОВНЕМ — STOP LOSS`
-              : `⚠️ <b>${tracked.symbol.replace("-USDT", "")}</b> — ОТМЕНА: 4H ЗАКРЫЛАСЬ ПОД УРОВНЕМ`,
-            `Причина: 4H-свеча закрылась на ${_nlClose.toPrecision(4)} — ниже уровня ${_nlBottom.toPrecision(4)}; отскок не удержался`,
-            _nlIsStopLoss
-              ? `⚠️ Засчитан как стоп лосс (цена ниже входа ≥5%)`
-              : `<i>Позиция закрыта по рынку.</i>`,
-            `Вход: <b>${tracked.entryPrice.toPrecision(4)}</b> | Сейчас: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
-            activeForLine(tracked.detectedAt, closedAt),
-            ``,
-            `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_nlIsStopLoss ? "#stop_loss" : "#level_lost"}`,
-          ]
-            .filter(Boolean)
-            .join("\n");
+          const zoneLostMessage = withExperimentalPatternNotice(
+            tracked,
+            [
+              _nlIsStopLoss
+                ? `🔴 <b>${tracked.symbol.replace("-USDT", "")}</b> — ОТМЕНА: 4H ЗАКРЫЛАСЬ ПОД УРОВНЕМ — STOP LOSS`
+                : `⚠️ <b>${tracked.symbol.replace("-USDT", "")}</b> — ОТМЕНА: 4H ЗАКРЫЛАСЬ ПОД УРОВНЕМ`,
+              `Причина: 4H-свеча закрылась на ${_nlClose.toPrecision(4)} — ниже уровня ${_nlBottom.toPrecision(4)}; отскок не удержался`,
+              _nlIsStopLoss
+                ? `⚠️ Засчитан как стоп лосс (цена ниже входа ≥5%)`
+                : `<i>Позиция закрыта по рынку.</i>`,
+              `Вход: <b>${tracked.entryPrice.toPrecision(4)}</b> | Сейчас: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
+              activeForLine(tracked.detectedAt, closedAt),
+              ``,
+              `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_nlIsStopLoss ? "#stop_loss" : "#level_lost"}`,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          );
           const _nlReason = _nlIsStopLoss ? "stop_loss" : "neon_level_lost_4h";
           const delivery = await broadcastPhotoAfterClaim(
             _nlIsStopLoss ? STOP_LOSS_IMG : CANCEL_IMG,
@@ -9628,21 +9686,24 @@ async function runInRunFastCycle(
             }
             const _oldIsStopLoss = pnl <= -CANCEL_STOP_LOSS_PCT;
             const closedAt = new Date();
-            const maxAgeMessage = [
-              _oldIsStopLoss
-                ? `🔴⏱ <b>${tracked.symbol.replace("-USDT", "")}</b> — MAX-AGE (${cancellationPolicy.maxAgeHours}ч) — STOP LOSS`
-                : `⏱ <b>${tracked.symbol.replace("-USDT", "")}</b> — MAX-AGE (${cancellationPolicy.maxAgeHours}ч)`,
-              `Причина: max-age — за ${cancellationPolicy.maxAgeHours}ч цена не поднялась выше +2% от входа`,
-              _oldIsStopLoss
-                ? `⚠️ Засчитан как стоп лосс (цена ниже входа ≥5%)`
-                : `<i>Позиция закрыта принудительно. Попробуем снова при новом сигнале.</i>`,
-              `Вход: <b>${tracked.entryPrice!.toPrecision(4)}</b> | Сейчас: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
-              activeForLine(tracked.detectedAt, closedAt),
-              ``,
-              `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_oldIsStopLoss ? "#stop_loss" : "#max_age"}`,
-            ]
-              .filter(Boolean)
-              .join("\n");
+            const maxAgeMessage = withExperimentalPatternNotice(
+              tracked,
+              [
+                _oldIsStopLoss
+                  ? `🔴⏱ <b>${tracked.symbol.replace("-USDT", "")}</b> — MAX-AGE (${cancellationPolicy.maxAgeHours}ч) — STOP LOSS`
+                  : `⏱ <b>${tracked.symbol.replace("-USDT", "")}</b> — MAX-AGE (${cancellationPolicy.maxAgeHours}ч)`,
+                `Причина: max-age — за ${cancellationPolicy.maxAgeHours}ч цена не поднялась выше +2% от входа`,
+                _oldIsStopLoss
+                  ? `⚠️ Засчитан как стоп лосс (цена ниже входа ≥5%)`
+                  : `<i>Позиция закрыта принудительно. Попробуем снова при новом сигнале.</i>`,
+                `Вход: <b>${tracked.entryPrice!.toPrecision(4)}</b> | Сейчас: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
+                activeForLine(tracked.detectedAt, closedAt),
+                ``,
+                `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_oldIsStopLoss ? "#stop_loss" : "#max_age"}`,
+              ]
+                .filter(Boolean)
+                .join("\n"),
+            );
 
             const cancelOutcomeReason = _oldIsStopLoss
               ? "stop_loss"
@@ -10056,25 +10117,28 @@ async function runInRunFastCycle(
                 ? `<i>Накопление не переросло в импульс. Возможен повторный вход при новом сигнале.</i>`
                 : `<i>Капитал освобождён для новых сделок.</i>`;
           const closedAt = new Date();
-          const staleMessage = [
-            _staleIsStopLoss
-              ? `🔴⏱ <b>${tracked.symbol.replace("-USDT", "")}</b> — STALE CANCEL — STOP LOSS`
-              : `⏱ <b>${tracked.symbol.replace("-USDT", "")}</b> — STALE CANCEL`,
-            ``,
-            staleCancelReason,
-            _cvdFlippedNeg
-              ? `⚠️ Спот CVD (1h+4h) перевернулся — устойчивая распродажа`
-              : null,
-            _staleHealthLine,
-            ``,
-            `💰 Вход: <b>${tracked.entryPrice.toPrecision(4)}</b> | Сейчас: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
-            activeForLine(tracked.detectedAt, closedAt),
-            ``,
-            staleHint,
-            `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_staleIsStopLoss ? "#stop_loss" : "#stale_cancel"}`,
-          ]
-            .filter(Boolean)
-            .join("\n");
+          const staleMessage = withExperimentalPatternNotice(
+            tracked,
+            [
+              _staleIsStopLoss
+                ? `🔴⏱ <b>${tracked.symbol.replace("-USDT", "")}</b> — STALE CANCEL — STOP LOSS`
+                : `⏱ <b>${tracked.symbol.replace("-USDT", "")}</b> — STALE CANCEL`,
+              ``,
+              staleCancelReason,
+              _cvdFlippedNeg
+                ? `⚠️ Спот CVD (1h+4h) перевернулся — устойчивая распродажа`
+                : null,
+              _staleHealthLine,
+              ``,
+              `💰 Вход: <b>${tracked.entryPrice.toPrecision(4)}</b> | Сейчас: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
+              activeForLine(tracked.detectedAt, closedAt),
+              ``,
+              staleHint,
+              `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_staleIsStopLoss ? "#stop_loss" : "#stale_cancel"}`,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          );
 
           const cancelOutcomeReason = _staleIsStopLoss
             ? "stop_loss"
@@ -11014,23 +11078,26 @@ async function runInRunFastCycle(
                     ? `📈 ${_scCvdParts.join(" | ")}`
                     : null;
                 const closedAt = new Date();
-                const smartCancelMessage = [
-                  _scIsStopLoss
-                    ? `🔴🚫 <b>SMART CANCEL — ${base} — STOP LOSS</b>`
-                    : `🟣🚫 <b>SMART CANCEL — ${base}</b>`,
-                  `Причина: smart — спот CVD (30m + 1h) устойчиво отрицательный, разворот подтверждён`,
-                  _scHealthLine,
-                  `${fmtP(tracked.entryPrice)} → ${fmtP(currentPrice)} (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
-                  activeForLine(tracked.detectedAt, closedAt),
-                  ``,
-                  _scIsStopLoss
-                    ? `⚠️ Засчитан как стоп лосс (цена ниже входа ≥5%)`
-                    : null,
-                  ``,
-                  `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_scIsStopLoss ? "#stop_loss" : "#smart_cancel"}`,
-                ]
-                  .filter(Boolean)
-                  .join("\n");
+                const smartCancelMessage = withExperimentalPatternNotice(
+                  tracked,
+                  [
+                    _scIsStopLoss
+                      ? `🔴🚫 <b>SMART CANCEL — ${base} — STOP LOSS</b>`
+                      : `🟣🚫 <b>SMART CANCEL — ${base}</b>`,
+                    `Причина: smart — спот CVD (30m + 1h) устойчиво отрицательный, разворот подтверждён`,
+                    _scHealthLine,
+                    `${fmtP(tracked.entryPrice)} → ${fmtP(currentPrice)} (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
+                    activeForLine(tracked.detectedAt, closedAt),
+                    ``,
+                    _scIsStopLoss
+                      ? `⚠️ Засчитан как стоп лосс (цена ниже входа ≥5%)`
+                      : null,
+                    ``,
+                    `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} ${_scIsStopLoss ? "#stop_loss" : "#smart_cancel"}`,
+                  ]
+                    .filter(Boolean)
+                    .join("\n"),
+                );
 
                 const cancelOutcomeReason = _scIsStopLoss
                   ? "stop_loss"
@@ -14825,19 +14892,22 @@ async function repairMisclassifiedBuStopsFromPeak(): Promise<void> {
       protectedProfitPct > 0
         ? `PROFIT STOP +${protectedProfitPct}%`
         : "BE STOP";
-    const correctionMessage = [
-      `⚠️ <b>ИСПРАВЛЕНИЕ РЕЗУЛЬТАТА — ${tracked.symbol.replace("-USDT", "")}</b>`,
-      ``,
-      `Сохранённый пик позиции: <b>+${persistedPeakPnl.toFixed(2)}%</b>.`,
-      `Уровень защиты +${milestone}% был достигнут, поэтому обычный STOP LOSS был ошибочным.`,
-      `Предыдущее сообщение STOP LOSS аннулировано.`,
-      ``,
-      `🛡 Итог исправлен на <b>${protectedLabel}</b>: ${fmtP(tracked.entryPrice)} → ${fmtP(protectedExit.exitPrice ?? tracked.entryPrice)} (${fmtPct(protectedExit.pnlPercent)}).`,
-      ``,
-      `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #be_stop #correction`,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const correctionMessage = withExperimentalPatternNotice(
+      tracked,
+      [
+        `⚠️ <b>ИСПРАВЛЕНИЕ РЕЗУЛЬТАТА — ${tracked.symbol.replace("-USDT", "")}</b>`,
+        ``,
+        `Сохранённый пик позиции: <b>+${persistedPeakPnl.toFixed(2)}%</b>.`,
+        `Уровень защиты +${milestone}% был достигнут, поэтому обычный STOP LOSS был ошибочным.`,
+        `Предыдущее сообщение STOP LOSS аннулировано.`,
+        ``,
+        `🛡 Итог исправлен на <b>${protectedLabel}</b>: ${fmtP(tracked.entryPrice)} → ${fmtP(protectedExit.exitPrice ?? tracked.entryPrice)} (${fmtPct(protectedExit.pnlPercent)}).`,
+        ``,
+        `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #be_stop #correction`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
 
     const delivery = await broadcastPhotoAfterClaim(
       BU_STOP_IMG,

@@ -3,6 +3,7 @@ export type NeonUniverseOrchestrationInput<T> = {
   neonSymbols: readonly T[];
   qualifiedDeliverySymbols?: readonly T[];
   evaluateNeon: (symbol: T) => Promise<T | null>;
+  onNeonError?: (symbol: T, error: unknown) => void;
   runGeneric: (symbol: T) => Promise<void>;
   signal?: AbortSignal;
   deadlineAt?: number;
@@ -31,8 +32,9 @@ export async function runNeonUniverseOrchestration<T>(
       try {
         const qualified = await input.evaluateNeon(neon[index]!);
         if (qualified !== null) qualifiedDeliverySymbols.push(qualified);
-      } catch {
+      } catch (error) {
         // One symbol's DB/API failure must not lose the remaining universe.
+        input.onNeonError?.(neon[index]!, error);
       }
     }
   };

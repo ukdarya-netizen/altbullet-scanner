@@ -345,7 +345,7 @@ test("preserves the historical Balanced Grind label without an experiment tag", 
   assert.doesNotMatch(text, /эксперимент/gi);
 });
 
-test("shows Neon Support Bounce with an experiment marker and keeps its hashtag", () => {
+test("marks Neon Support Bounce as being in testing mode and keeps its hashtag", () => {
   const text = formatAlphaSignal({
     ...baseSignal,
     sentiment: "Neon Support Bounce",
@@ -354,9 +354,9 @@ test("shows Neon Support Bounce with an experiment marker and keeps its hashtag"
 
   assert.match(
     text,
-    /🏷 <b>Паттерн:<\/b> 🩷 Neon Support 🧪 эксперимент — Отскок от поддержки/,
+    /🏷 <b>Паттерн:<\/b> 🩷 Neon Support 🧪 тестовый режим — Отскок от поддержки/,
   );
-  assert.match(text, /эксперимент/i);
+  assert.match(text, /тестовый режим/i);
   assert.match(text, /#neon_support_bounce/);
 });
 

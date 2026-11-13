@@ -19,7 +19,10 @@ type Coverage = {
   loops?: Record<string, { mode: string; passes: number; lastPassAt: string | null; lastTried: number; lastWritten: number; running: boolean; lastError: string | null }>;
 };
 const NAMES: Record<string, string> = {
-  impulse_buy: "Impulse Buy", stealth_breakout: "Stealth", neon_support_bounce: "ABNeon", liquidation_cascade: "Liquidation Cascade",
+  impulse_buy: "Impulse Buy",
+  stealth_breakout: "🧪 Stealth Breakout",
+  neon_support_bounce: "🧪 ABNeon",
+  liquidation_cascade: "Liquidation Cascade",
 };
 
 /** VSA and Wyckoff at the entry: how many signals already have them (restored in the background). */

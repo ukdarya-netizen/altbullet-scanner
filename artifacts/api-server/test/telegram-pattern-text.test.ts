@@ -12,10 +12,10 @@ import {
 } from "../src/lib/pattern-labels.js";
 import { buildCanonicalSignalFirePrice } from "../src/lib/scanner-patterns.js";
 
-test("names Stealth Breakout without an experiment marker", () => {
+test("marks Stealth Breakout as being in testing mode", () => {
   assert.equal(
     STEALTH_BREAKOUT_TELEGRAM_NAME,
-    "🔵 Stealth Breakout 🧪 эксперимент — Пробой узкого ренджа",
+    "🔵 Stealth Breakout 🧪 тестовый режим — Пробой узкого ренджа",
   );
 });
 
@@ -33,15 +33,15 @@ test("treats Price Led Momentum as a finalized pattern", () => {
 test("treats Neon Support Bounce as a full pattern with its standalone name", () => {
   assert.equal(
     NEON_SUPPORT_BOUNCE_TELEGRAM_NAME,
-    "🩷 Neon Support 🧪 эксперимент — Отскок от поддержки",
+    "🩷 Neon Support 🧪 тестовый режим — Отскок от поддержки",
   );
   assert.equal(
     getPatternTgLabel("neon_support_bounce"),
-    "🩷 Neon Support 🧪 эксперимент — Отскок от поддержки",
+    "🩷 Neon Support 🧪 тестовый режим — Отскок от поддержки",
   );
   assert.equal(
     getPatternLabel("neon_support_bounce"),
-    "🩷 Neon Support 🧪 эксперимент — Отскок от поддержки #neon_support_bounce",
+    "🩷 Neon Support 🧪 тестовый режим — Отскок от поддержки #neon_support_bounce",
   );
 });
 
@@ -55,7 +55,7 @@ test("treats Impulse Buy as a finalized pattern", () => {
 test("uses a blue label for Stealth Breakout", () => {
   assert.equal(
     getPatternTgLabel("stealth_breakout"),
-    "🔵 Stealth Breakout 🧪 эксперимент — Пробой узкого ренджа",
+    "🔵 Stealth Breakout 🧪 тестовый режим — Пробой узкого ренджа",
   );
 });
 
