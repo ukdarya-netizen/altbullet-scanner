@@ -6,6 +6,7 @@ import {
   setCoinglassGovernorClockForTests,
   extendCoinglassCooldownForTests,
   getCoinglassGovernorSnapshot,
+  coinglassBacklogged,
 } from "../src/lib/coinglass_governor.js";
 
 const realFetch = globalThis.fetch;
@@ -501,4 +502,33 @@ test("aged low priority admits during a sustained critical backlog", async () =>
   assert.ok(
     starts.slice(lowIndex + 1).some((entry) => entry.includes("/critical/")),
   );
+});
+
+test("backfills see a backlog while live work is queued or a cooldown is on", async () => {
+  virtualTime = 0;
+  setCoinglassGovernorClockForTests(
+    () => virtualTime,
+    async (ms) => {
+      virtualTime += ms;
+    },
+  );
+  assert.equal(coinglassBacklogged(), false);
+  const release: (() => void)[] = [];
+  globalThis.fetch = (async () => {
+    await new Promise<void>((resolve) => release.push(resolve));
+    return response();
+  }) as typeof fetch;
+  const jobs = Array.from({ length: 8 }, (_, i) =>
+    coinglassFetch(`https://cg.test/live-${i}`, {}, { endpoint: "live", priority: "normal" }),
+  );
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(coinglassBacklogged(), true); // 6 in flight, 2 queued
+  while (release.length || getCoinglassGovernorSnapshot().completed < 8) {
+    release.shift()?.();
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  await Promise.all(jobs);
+  assert.equal(coinglassBacklogged(), false);
+  extendCoinglassCooldownForTests(virtualTime + 5_000);
+  assert.equal(coinglassBacklogged(), true);
 });

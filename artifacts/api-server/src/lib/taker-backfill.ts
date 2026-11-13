@@ -5,6 +5,7 @@ import { getAggSpotTakerHistory } from "./coinglass_spot_taker.js";
 import { logger } from "./logger.js";
 import { cgTimedFetch } from "./cg_latency.js";
 import { getNextCgKey } from "./coinglass_keys.js";
+import { coinglassBacklogged } from "./coinglass_governor.js";
 import { getKlinesRange } from "./bingx.js";
 
 const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
@@ -94,6 +95,9 @@ export async function backfillDecisionTaker(): Promise<{
   let rowsTotal = 0;
   let filled = 0;
   for (const symbol of symbols) {
+    // History candles do not change: waiting costs nothing, so the backfill only
+    // uses CoinGlass when no live request is queued and no 429 cooldown is on.
+    if (coinglassBacklogged()) break;
     const [fut, spot] = await Promise.all([
       getAggFuturesTakerHistory(symbol, HISTORY_CANDLES).catch(() => null),
       getAggSpotTakerHistory(symbol, HISTORY_CANDLES).catch(() => null),

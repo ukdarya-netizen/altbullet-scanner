@@ -243,6 +243,11 @@ export function describeLcStateForScan(symbol: string): string {
 // ── Флаги ─────────────────────────────────────────────────────────────────────
 let _initialized = false;
 let _running = false;
+// Retail positioning on a watching row is display/observation only (the LC fire
+// cycle reads its own fresh value). Refreshed once an hour per symbol, not every
+// 3-minute cycle: it was ~435 CoinGlass requests per scan window.
+const GLOBAL_RATIO_REFRESH_MS = 60 * 60_000;
+const _globalRatioLast = new Map<string, { at: number; longPct: number }>();
 
 // ── Public API ─────────────────────────────────────────────────────────────────
 
@@ -1206,10 +1211,18 @@ export async function runLiqCascadeWatcherJob(
             );
           }
 
-          // Ритейл-позиционирование
-          const gRatio = await getGlobalAccountRatio(row.symbol).catch(
-            () => null,
-          );
+          // Ритейл-позиционирование (раз в час на монету)
+          const gRatioLast = _globalRatioLast.get(row.symbol);
+          const gRatioFresh =
+            gRatioLast && now - gRatioLast.at < GLOBAL_RATIO_REFRESH_MS
+              ? null
+              : await getGlobalAccountRatio(row.symbol).catch(() => null);
+          if (gRatioFresh !== null)
+            _globalRatioLast.set(row.symbol, { at: now, longPct: gRatioFresh.longPct });
+          // Fresh value is written to the row; the hour-old one still goes to the observation.
+          const gRatio = gRatioFresh;
+          const gRatioForObservation =
+            gRatioFresh?.longPct ?? _globalRatioLast.get(row.symbol)?.longPct ?? null;
           await db
             .update(liqCascadeWatchTable)
             .set({
@@ -1242,7 +1255,7 @@ export async function runLiqCascadeWatcherJob(
               currentLongLiq1h: liqNow?.longLiq1h ?? null,
               longLiq1hAtDetect: row.longLiq1hAtDetect,
               longLiq24hAtDetect: row.longLiq24hAtDetect,
-              globalLongPct: gRatio?.longPct ?? null,
+              globalLongPct: gRatioForObservation,
             },
           }).catch((err) =>
             logger.warn(

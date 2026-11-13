@@ -86,7 +86,7 @@ function callSiteChain(): string {
     const n = /at (?:.*[\\/])?([^\\/]+:\d+):\d+/.exec(f);
     const label = m ? `${m[1]}@${m[2]}` : n ? n[1]! : null;
     if (label) out.push(label);
-    if (out.length >= 4) break;
+    if (out.length >= 6) break;
   }
   return out.length ? out.join(" < ") : "unknown";
 }
@@ -616,6 +616,18 @@ export function coinglassGovernorCollectionSizes(): {
     windowMinuteCells: minuteCells,
     endpointCounts: endpointCounts.size,
   };
+}
+/**
+ * True while live work is waiting for CoinGlass (any critical/high/normal waiter)
+ * or a 429 cooldown is active. Background backfills step aside then: they take the
+ * same per-minute key budget, and under a backlog every extra request pushes live
+ * requests past their deadline.
+ */
+export function coinglassBacklogged(): boolean {
+  return (
+    cooldownUntil > now() ||
+    queues.critical.length + queues.high.length + queues.normal.length > 0
+  );
 }
 export function getCoinglassGovernorSnapshot() {
   return {
