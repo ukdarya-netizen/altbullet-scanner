@@ -98,6 +98,13 @@ export interface SpotHealth {
   cvd30m: boolean | null;
   /** Last 1h: taker_buy > taker_sell. null = unavailable. */
   cvd1h: boolean | null;
+  /**
+   * Owner 2026-11-13: where the delta came from — spot (CoinGlass aggregated spot CVD, the default) or futures
+   * (CoinGlass aggregated futures takers, when the coin has no spot data or spot failed).
+   */
+  cvdSource?: "spot" | "futures";
+  /** Minutes since the reading when CoinGlass failed now and the last good reading (≤ 60 min) is shown. */
+  staleMin?: number | null;
 }
 
 /**
@@ -124,7 +131,12 @@ export function fmtHealthLine(
   if (h?.cvd1h === true) parts.push("CVD1h ↑");
   else if (h?.cvd1h === false) parts.push("CVD1h ↓");
   else if (showUnavailable) parts.push("CVD1h н/д");
-  return parts.length > 0 ? `📈 ${parts.join(" | ")}` : "";
+  if (parts.length === 0) return "";
+  const notes = [
+    h?.cvdSource === "futures" ? "CVD по фьючам" : null,
+    h?.staleMin != null ? `данные ${h.staleMin} мин назад` : null,
+  ].filter(Boolean);
+  return `📈 ${parts.join(" | ")}${notes.length ? ` (${notes.join(", ")})` : ""}`;
 }
 
 // ── Price / number formatters ─────────────────────────────────────────────────
