@@ -62,8 +62,10 @@ import {
   drainCgOiSourceCounts,
   CG_SYMBOL_ALIAS,
   getCoinglassOiHistory30m,
+  getCoinglassOi15mChange,
   type CoinglassOIResult,
 } from "./coinglass_oi.js";
+import { evaluateAbneonOi15mGate } from "./abneon-oi15m-gate.js";
 import { isBingxExclusive, isBinanceSpotListed } from "./coinglass_listings.js";
 import {
   getSpotMarketStatus,
@@ -13552,6 +13554,29 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                       _neonSupportBounceEvent.triggerCandleTime,
                     takerNetUsd: _neonFlow.takerNetUsd,
                     spotCvd1h: _neonFlow.spotCvd1h,
+                  },
+                );
+              }
+            }
+            // Owner 2026-11-13: new money at the fire — aggregated OI 15m > +0.18% (unknown = no signal).
+            if (!det && _neonSupportBounceEvent !== null && !_neonLevelBroken && !_neonFlowBlocked) {
+              const _neonOi15m = await getCoinglassOi15mChange(symbol).catch(() => null);
+              const _neonOiGate = evaluateAbneonOi15mGate(_neonOi15m);
+              if (!_neonOiGate.pass) {
+                _neonFlowBlocked = true;
+                _symRej(
+                  symbol,
+                  "neon_support_bounce",
+                  _neonOiGate.reason,
+                  null,
+                  null,
+                  null,
+                  null,
+                  "rejected",
+                  {
+                    frozenLevel: _neonSupportBounceEvent.frozenLevel,
+                    triggerCandleTime: _neonSupportBounceEvent.triggerCandleTime,
+                    oi15mPct: _neonOiGate.oi15mPct,
                   },
                 );
               }

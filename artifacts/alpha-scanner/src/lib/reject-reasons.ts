@@ -55,6 +55,8 @@ export const REJECT_LABELS: Record<string, string> = {
   reaction_window_expired: "Окно 1H-реакции истекло",
   support_invalidated_before_reaction: "Поддержка пробита до реакции",
   support_broken_before_entry: "Поддержка пробита до входа",
+  oi15m_no_new_money: "OI 15m не вырос больше +0,18% — нет новых денег",
+  oi15m_unknown: "Нет данных OI 15m",
   support_not_reached: "Цена не дошла до поддержки",
   no_retested_support: "Нет поддержки с ретестами",
   srv2_touch_without_reaction: "Касание поддержки без реакции",
