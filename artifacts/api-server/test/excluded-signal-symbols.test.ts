@@ -7,8 +7,9 @@ import {
 } from "../src/lib/excluded-signal-symbols.js";
 import { isClosedTradeOutcome } from "../src/lib/raw-pnl.js";
 
-test("ETH, BNB, SOL, DOGE, ETC and BCH are excluded from new trading signals", () => {
+test("BTC (own bot since 2026-11-13), ETH, BNB, SOL, DOGE, ETC and BCH are excluded from new trading signals", () => {
   assert.deepEqual(EXCLUDED_SIGNAL_SYMBOLS, [
+    "BTC-USDT",
     "ETH-USDT",
     "BNB-USDT",
     "SOL-USDT",
@@ -23,10 +24,12 @@ test("ETH, BNB, SOL, DOGE, ETC and BCH are excluded from new trading signals", (
   assert.equal(isSignalSymbolExcluded("dogeusdt"), true);
   assert.equal(isSignalSymbolExcluded("etcusdt"), true);
   assert.equal(isSignalSymbolExcluded("BCH-USDT"), true);
-  assert.equal(isSignalSymbolExcluded("BTC-USDT"), false);
+  assert.equal(isSignalSymbolExcluded("BTC-USDT"), true);
+  assert.equal(isSignalSymbolExcluded("btcusdt"), true);
 });
 
 test("signal symbols are normalized without broad ticker matching", () => {
+  assert.equal(isSignalSymbolExcluded("BTCDOM-USDT"), false);
   assert.equal(normalizeSignalSymbol(" solusdt "), "SOL-USDT");
   assert.equal(isSignalSymbolExcluded("ETH2-USDT"), false);
   assert.equal(isSignalSymbolExcluded("1000BNB-USDT"), false);

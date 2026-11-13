@@ -3,6 +3,8 @@
  * not create new trading signals or open positions.
  */
 export const EXCLUDED_SIGNAL_SYMBOLS = [
+  // Owner 2026-11-13: Bitcoin has its own bot (Bitcoin Margin Master) — no BTC signals in CAB.
+  "BTC-USDT",
   "ETH-USDT",
   "BNB-USDT",
   "SOL-USDT",
@@ -14,6 +16,8 @@ export const EXCLUDED_SIGNAL_SYMBOLS = [
 
 /** Symbols the scanner must not analyse at all (owner blacklist). */
 export const ANALYSIS_BLOCKED_SYMBOLS = [
+  // Owner 2026-11-13: BTC is not scanned for signals (its own bot); BTC market context is read directly.
+  "BTC-USDT",
   "NCSKECHO2USD-USDT",
   "ETH-USDT",
   "SOL-USDT",

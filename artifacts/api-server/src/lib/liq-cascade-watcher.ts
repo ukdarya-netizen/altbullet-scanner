@@ -69,6 +69,7 @@ import {
   or,
 } from "drizzle-orm";
 import { getFutureTickers, getKlines } from "./bingx.js";
+import { isAnalysisBlockedSymbol } from "./excluded-signal-symbols.js";
 import type { BingXTicker } from "./bingx.js";
 import {
   fetchLiqCoinList,
@@ -519,6 +520,8 @@ export async function runLiqCascadeWatcherJob(
     await refreshAggregatedVolume24h();
     for (const ticker of tickers) {
       if (!ticker.symbol.endsWith("-USDT")) continue;
+      // Owner blacklist (BTC since 2026-11-13: its own bot) — not scanned.
+      if (isAnalysisBlockedSymbol(ticker.symbol)) continue;
       const detectorPrice = parseFloat(ticker.lastPrice ?? "0") || 0;
       const vol = aggregatedVolume24hUsd(ticker.symbol);
       if (
