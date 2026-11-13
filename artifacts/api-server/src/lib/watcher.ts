@@ -1767,8 +1767,8 @@ async function sendMilestoneNotification(
       null,
       health,
     );
-    // Owner 2026-11-13: every trailing activation goes with its milestone picture (ABNeon activates at +20,
-    // whale_watch at +12) — before, only +15 and BTC had one and the rest went as plain text.
+    // Owner 2026-11-13: every trailing activation goes with its milestone picture (ABNeon activates at +20) —
+    // before, only +15 and BTC had one and the rest went as plain text.
     return broadcastMilestonePhoto(tracked, kind, milestone, image ?? POSITION_UPDATE_IMG, text);
   }
 
