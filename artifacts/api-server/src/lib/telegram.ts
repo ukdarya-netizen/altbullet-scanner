@@ -155,8 +155,8 @@ export function buildSignalManagementLine(
     return `🛡 <b>Сопровождение BTC:</b> Б/У после +1% · трейлинг только с +2% от входа, отступ от пика 1 п.п. · после активации каждый новый +1% пика подтягивает стоп на +1 п.п.`;
   }
 
-  // Owner 2026-11-13: ABNeon is managed like the other patterns — B.U. +5%, partial take +8%, trailing from +15%
-  // at 10 p.p. under the peak (no take at the nearest resistance); cancel on a 4H close under the level.
+  // Owner 2026-11-13: ABNeon — B.U. +5%, partial take +8%, trailing from +20% at 10 p.p. under the peak (no take at
+  // the nearest resistance); cancel on a 4H close under the level.
   if (sentimentKey === "neon_support_bounce") {
     return `🛡 <b>Сопровождение:</b> БУ с +${beActivation}% · частичная фиксация +${exitProfile.firstTarget}% · трейлинг с +${exitProfile.trailingActivation}% на ${exitProfile.trailingGap} п.п. ниже пика · отмена, если 4H закроется под уровнем`;
   }

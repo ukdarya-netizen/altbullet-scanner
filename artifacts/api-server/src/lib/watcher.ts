@@ -8905,7 +8905,7 @@ async function runInRunFastCycle(
         peakPnlNow >= trailingActivation;
 
       // Owner 2026-11-13: the ABNeon take at the nearest resistance (2026-11-12, R8 exit B) is removed — ABNeon is
-      // managed like the other patterns (B.U. +5%, partial take +8%, trailing from +15%).
+      // managed by its exit profile (B.U. +5%, partial take +8%, trailing from +20% at 10 p.p.).
 
       // ── HARD TRAILING EXIT ───────────────────────────────────────────────────
       // Закрытие по уже активированному трейлингу важнее любых Telegram-очередей,

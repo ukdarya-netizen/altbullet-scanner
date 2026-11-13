@@ -2003,5 +2003,5 @@
   "Сигнал приходит сразу после закрытия часовой свечи отскока. Если зона пробита вниз, сигнал не выходит и ждётся следующая зона.": "The signal arrives right after the hourly bounce candle closes. If the zone breaks downward, no signal is issued and the next zone is awaited.",
   "На +5% стоп в безубыток": "At +5% the stop moves to break-even",
   "На +8% частичная фиксация 20–25%": "At +8% take 20–25% of the position",
-  "С +15% трейлинг: стоп идёт за ценой на 10 п.п. ниже пика": "From +15% trailing: the stop follows the price 10 pp below the peak"
+  "С +20% трейлинг: стоп идёт за ценой на 10 п.п. ниже пика": "From +20% trailing: the stop follows the price 10 pp below the peak"
 }

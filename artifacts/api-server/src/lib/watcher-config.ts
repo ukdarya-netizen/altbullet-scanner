@@ -104,11 +104,11 @@ const WHALE_WATCH_EXIT_PROFILE: ExitProfile = {
 
 // BTC is managed in one-point steps: +1% earns BE; +2% arms the trailing
 // boundary at +1%, and each further point of peak PnL raises it by one point.
-// Owner 2026-11-13: ABNeon is managed like the other patterns — B.U. at +5%, partial take at +8%, trailing from
-// +15% at 10 p.p. under the peak (the +10 / +20 / 20 profile and the take at the nearest resistance are dropped).
+// Owner 2026-11-13: ABNeon — B.U. at +5%, partial take at +8%, trailing from +20% (her backtest) at 10 p.p. under
+// the peak; no take at the nearest resistance.
 const NEON_SUPPORT_EXIT_PROFILE: ExitProfile = {
   firstTarget: 8,
-  trailingActivation: TRAILING_ACTIVATION_PCT,
+  trailingActivation: 20,
   trailingGap: TRAILING_FIXED_PCT,
 };
 
