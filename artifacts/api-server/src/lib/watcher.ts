@@ -3,7 +3,6 @@ import {
   LC_SMALL_LIQ_1H_PCT_OF_MCAP,
 } from "./turnover-threshold.js";
 import { isTelegramMuted } from "./telegram-mute.js";
-import { ABNEON_RULE_VERSION, abneonTake } from "./abneon-rule-entry.js";
 import {
   buildBtcTickerContext,
   parseBtcPrice,
@@ -8890,65 +8889,8 @@ async function runInRunFastCycle(
           tracked.lastMilestone < trailingActivation) &&
         peakPnlNow >= trailingActivation;
 
-      // ── ABNeon: тейк у ближайшего сопротивления (owner 2026-11-12, R8, выход B) ──
-      // The bottom of the nearest ABNeon zone above the entry (decision_metrics.neonLevel.resistances, written at
-      // the signal). Reached → the whole position is closed at the market price. No zone above → the usual exit.
-      if (
-        (tracked.status === "active" || tracked.status === "in_run") &&
-        tracked.sentimentKey === "neon_support_bounce" &&
-        tracked.entryPrice != null &&
-        tracked.entryPrice > 0
-      ) {
-        const _ntLevel = (tracked.decisionMetrics as { neonLevel?: { resistances?: unknown; rule?: unknown } } | null)?.neonLevel;
-        const _ntTake =
-          _ntLevel?.rule === ABNEON_RULE_VERSION && Array.isArray(_ntLevel.resistances)
-            ? abneonTake(tracked.entryPrice, (_ntLevel.resistances as unknown[]).map(Number))
-            : null;
-        if (_ntTake && currentPrice >= _ntTake.price) {
-          const closedAt = new Date();
-          const statusAtClaim = tracked.status;
-          const takeMessage = [
-            `🎯 <b>${tracked.symbol.replace("-USDT", "")}</b> — ЦЕЛЬ: БЛИЖАЙШЕЕ СОПРОТИВЛЕНИЕ`,
-            `Цена дошла до сопротивления ${_ntTake.price.toPrecision(4)} (+${_ntTake.pct.toFixed(1)}% от входа) — позиция закрыта целиком`,
-            `Вход: <b>${tracked.entryPrice.toPrecision(4)}</b> | Выход: <b>${currentPrice.toPrecision(4)}</b> (${pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}%)`,
-            activeForLine(tracked.detectedAt, closedAt),
-            ``,
-            `${tickerTag(tracked.symbol)} ${patternTag(tracked.sentimentKey)} #take_profit`,
-          ].join("\n");
-          const delivery = await broadcastPhotoAfterClaim(
-            TARGET_HIT_IMG,
-            takeMessage,
-            `position:${tracked.id}:neon_resistance_take`,
-            async (tx) => {
-              const claimed = await tx
-                .update(trackedSignalsTable)
-                .set({
-                  status: "profit",
-                  decisionMetrics: sql`coalesce(${trackedSignalsTable.decisionMetrics}, '{}'::jsonb) || jsonb_build_object('closedBy', 'resistance_take')`,
-                  exitPrice: currentPrice,
-                  pnlPercent: pnl,
-                  peakPrice: newPeak,
-                  closedAt,
-                  updatedAt: closedAt,
-                })
-                .where(
-                  sql`${trackedSignalsTable.id} = ${tracked.id} AND ${trackedSignalsTable.status} = ${statusAtClaim}`,
-                )
-                .returning({ id: trackedSignalsTable.id });
-              return claimed.length > 0;
-            },
-          );
-          if (delivery.claimed) {
-            void _writeExitMetrics(tracked.id, tracked.symbol);
-            await recordCloseSnapshot(tracked, currentPrice, pnl, peakPnlNow, "profit");
-            logger.info(
-              { symbol: tracked.symbol, take: _ntTake.price, pnl: pnl.toFixed(1), queued: delivery.queued },
-              "TAKE: ABNeon nearest resistance 🎯",
-            );
-          }
-          continue;
-        }
-      }
+      // Owner 2026-11-13: the ABNeon take at the nearest resistance (2026-11-12, R8 exit B) is removed — ABNeon is
+      // managed like the other patterns (B.U. +5%, partial take +8%, trailing from +15%).
 
       // ── HARD TRAILING EXIT ───────────────────────────────────────────────────
       // Закрытие по уже активированному трейлингу важнее любых Telegram-очередей,
