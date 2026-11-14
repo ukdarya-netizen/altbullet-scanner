@@ -340,7 +340,8 @@ export async function entryExtrasCoverage() {
 
 // ── Neon levels at the Stealth breakout (owner 2026-11-05) ─────────────────────────────────────
 /**
- * Did the Stealth breakout candle cross a Neon S/R zone (same zones as ABNeon: 4H pivots, 700 bars)?
+ * Did the Stealth breakout candle cross a Neon S/R zone (same zones as ABNeon: DAILY pivots, 700 days since
+ * 2026-11-14 — 4H pivots before; the source is written with the reading)?
  * crossed = a zone whose top the candle opened at/below and closed above. Also the nearest zone
  * above the close (overhead resistance). Written into signal_entry_extras.metrics.neonLevel.
  * BingX price only — no CoinGlass.
@@ -385,16 +386,18 @@ export async function runNeonLevelBackfillCycle(limit = 25, gapMs = 1_000) {
     try {
       const at = Date.parse(r.candle_time);
       const closeAt = at + H1;
-      const raw = await getKlinesRange(r.symbol, "4h", closeAt - 700 * H4, closeAt).catch(() => []);
-      const h4 = raw
+      const D1 = 24 * H1;
+      const raw = await getKlinesRange(r.symbol, "1d", closeAt - 701 * D1, closeAt).catch(() => []);
+      const d1 = raw
         .map((k) => ({ time: Number(k.time), open: Number(k.open), high: Number(k.high), low: Number(k.low), close: Number(k.close) }))
-        .filter((k) => k.time + H4 <= closeAt && Number.isFinite(k.close))
-        .sort((a, b) => a.time - b.time);
-      if (h4.length < 20) { neonFailures.set(r.id, Date.now()); continue; }
-      const lvl = neonLevelAtBreakout(h4, { open: Number(r.open), close: Number(r.close) });
+        .filter((k) => k.time + D1 <= closeAt && Number.isFinite(k.close))
+        .sort((a, b) => a.time - b.time)
+        .slice(-700);
+      if (d1.length < 20) { neonFailures.set(r.id, Date.now()); continue; }
+      const lvl = neonLevelAtBreakout(d1, { open: Number(r.open), close: Number(r.close) });
       await pool.query(
         `UPDATE signal_entry_extras SET metrics = metrics || jsonb_build_object('neonLevel', $2::jsonb) WHERE tracked_signal_id = $1`,
-        [r.id, JSON.stringify({ ...lvl, source: "bingx_4h_neon_zones" })]);
+        [r.id, JSON.stringify({ ...lvl, source: "bingx_1d_neon_zones" })]);
       written++;
     } catch (err) {
       neonFailures.set(r.id, Date.now());

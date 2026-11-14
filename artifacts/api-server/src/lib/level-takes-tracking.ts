@@ -5,8 +5,8 @@ import { logger } from "./logger.js";
 
 /**
  * Take levels tracking (owner 2026-11-12, research only — never changes a trade): for every ABNeon
- * (neon_support_bounce) and Stealth Breakout (stealth_breakout) signal, the ABNeon 4H levels (the same zones as the
- * indicator, from the closed 4H candles before the signal) that lie at least +10% above the entry are recorded as
+ * (neon_support_bounce) and Stealth Breakout (stealth_breakout) signal, the ABNeon levels (the same zones as the
+ * indicator, from the closed DAILY candles before the signal since 2026-11-14 — 4H before) that lie at least +10% above the entry are recorded as
  * take levels L1, L2, L3… (the bottom of each zone — where the price first meets it). Then, on closed 15m candles
  * from the signal to the real close of the trade, the first time the price reached each level is recorded. A level
  * reached after the real close does not count.
@@ -14,7 +14,9 @@ import { logger } from "./logger.js";
  * Table level_take_tracking (one row per tracked signal). Signals from Dubai November 2026 on.
  * Read with SQL: which share reaches L1 / L2 / L3, and what a take at the level would have given vs the real result.
  */
-const H4 = 4 * 3_600_000;
+const D1 = 24 * 3_600_000;
+/** Owner 2026-11-14: daily zones (as the live ABNeon / Stealth); rows recorded before used 4H. */
+const ZONE_DAYS = 700;
 const M15 = 900_000;
 const FROM_UTC = "2026-10-31 20:00:00+00";
 const MIN_PCT = 10;
@@ -49,9 +51,9 @@ function ensureTable(): Promise<void> {
   return ready;
 }
 
-/** ABNeon levels at least +10% above the entry, from the closed 4H candles before the signal. */
-export function takeLevels(h4Before: readonly ClosedDetectorCandle[], entry: number): Level[] {
-  return computeSupportZones(h4Before)
+/** ABNeon levels at least +10% above the entry, from the closed daily candles before the signal. */
+export function takeLevels(zoneCandlesBefore: readonly ClosedDetectorCandle[], entry: number): Level[] {
+  return computeSupportZones(zoneCandlesBefore)
     .filter((z) => z.bottom >= entry * (1 + MIN_PCT / 100))
     .sort((a, b) => a.bottom - b.bottom)
     .slice(0, MAX_LEVELS)
@@ -74,9 +76,9 @@ async function addNew(): Promise<number> {
     let levels: Level[] = [];
     let error: string | null = null;
     try {
-      const raw = await getKlinesRange(r.symbol, "4h", det - 641 * H4, det);
-      const h4 = raw.map(toCandle).filter((c) => c.time + H4 <= det).slice(-640);
-      levels = takeLevels(h4, Number(r.entry_price));
+      const raw = await getKlinesRange(r.symbol, "1d", det - (ZONE_DAYS + 1) * D1, det);
+      const d1 = raw.map(toCandle).filter((c) => c.time + D1 <= det).slice(-ZONE_DAYS);
+      levels = takeLevels(d1, Number(r.entry_price));
     } catch (err) {
       error = String(err).slice(0, 160);
     }

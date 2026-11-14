@@ -701,6 +701,32 @@ async function neonLevelDailyCandles(symbol: string, dayCloseAt: number): Promis
   return merged.filter((c) => c.time + D <= dayCloseAt);
 }
 
+/**
+ * Owner 2026-11-14 («истинные уровни»): the ABNeon zones of ABNeon and Stealth come from the closed DAILY candles
+ * (the last ABNEON_ZONE_DAYS UTC days, BingX futures) — the touch, the arming, the reaction and the breakout stay on
+ * 4H / 1H / 15m. One cache for every user of the zones (bounce detector, R8 zone, takes, Stealth, the fire-time
+ * zone readings); refetched only when a new UTC day has closed (or after an error, at most every 10 minutes).
+ */
+const ABNEON_ZONE_DAYS = 700;
+const ABNEON_D1_MS = 24 * 60 * 60_000;
+const abneonZoneDaysCache = new Map<string, { lastDay: number; at: number; candles: NlCandle[] }>();
+async function abneonZoneDays(symbol: string, now = Date.now()): Promise<NlCandle[]> {
+  const lastClosedDay = Math.floor(now / ABNEON_D1_MS) * ABNEON_D1_MS - ABNEON_D1_MS;
+  const hit = abneonZoneDaysCache.get(symbol);
+  if (hit && (hit.lastDay >= lastClosedDay || now - hit.at < 10 * 60_000)) {
+    return hit.candles.filter((c) => c.time + ABNEON_D1_MS <= now);
+  }
+  try {
+    const rows = await getKlines(symbol, "1d", ABNEON_ZONE_DAYS + 2);
+    const candles = mergeCandles([], rows.map(toNl), ABNEON_ZONE_DAYS + 2).filter((c) => c.time + ABNEON_D1_MS <= now);
+    abneonZoneDaysCache.set(symbol, { lastDay: candles.at(-1)?.time ?? 0, at: now, candles });
+    return candles;
+  } catch (err) {
+    if (hit) { hit.at = now; return hit.candles.filter((c) => c.time + ABNEON_D1_MS <= now); }
+    throw err;
+  }
+}
+
 /** Every closed 4H candle (and the UTC day it closes) of every BingX USDT perpetual, once. */
 async function runStealthNeonLevel(now = Date.now()): Promise<void> {
   if (!STEALTH_NEON_LEVEL_LIVE || stealthNeonLevelRunning) return;
@@ -733,9 +759,12 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
         try {
           if (neonLevelCandles.has(symbol)) stats.cached!++;
           const candles = await neonLevel4hCandles(symbol, h4Start);
+          // Owner 2026-11-14: the levels are the DAILY ABNeon zones; the breakout stays the closed 4H candle.
+          const zoneDays = await abneonZoneDays(symbol, closeAt);
+          const dayZones = computeSupportZones(zoneDays);
           const lastBar = candles.at(-1);
           if (lastBar && lastBar.time === h4Start) {
-            const zones = computeSupportZones(candles);
+            const zones = dayZones;
             const nearest = zones
               .filter((z) => z.top > lastBar.close)
               .sort((a, b) => a.top - b.top)[0];
@@ -757,7 +786,7 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
           if (!fire) continue;
           // Owner 2026-11-11: Stealth = the closed 4H candle closes above an ABNeon zone top on M/W
           // aggregated futures volume. Aggregated volume is requested only for a price crossing.
-          const cross = neonLevelCrossing4h(candles, h4Start);
+          const cross = neonLevelCrossing4h(candles, h4Start, dayZones);
           if (!cross) continue;
           const agg4h = await getAggFuturesVolumeByInterval(symbol, "4h", 60).catch(() => null);
           const colour = agg4h ? neonBreakoutColour(candles, agg4h) : null;
@@ -1682,19 +1711,19 @@ const _neonRuleEntryEvidence = new Map<string, Record<string, unknown>>();
 
 /**
  * Support zone (bottom/top) matching a persisted Neon event level, plus the
- * next zone below it. Uses the bot's own 4H zone detector on closed candles.
+ * next zone below it. Owner 2026-11-14: the DAILY ABNeon zones (the detector's own zone candles).
  */
 function neonZonesForLevel(
-  fourHour: Parameters<typeof normalizeClosedBreakoutCandles>[0],
+  zoneDays: readonly NlCandle[],
   level: number,
   armCandleTime: number,
 ): {
   zone: { bottom: number; top: number } | null;
   lower: { bottom: number; top: number } | null;
 } {
-  const closed = normalizeClosedBreakoutCandles(fourHour);
+  const closed = [...zoneDays];
   // Same zone the detector itself holds for this frozen level.
-  const zone = resolveFrozenZone(closed, armCandleTime, level);
+  const zone = resolveFrozenZone(closed, armCandleTime, level, 24 * 60 * 60_000);
   const below = computeSupportZones(closed)
     .filter((candidate) => candidate.top < zone.bottom * 0.999)
     .sort((a, b) => b.top - a.top)[0];
@@ -6702,9 +6731,12 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         neonKlines1dPrefetch.get(symbol) ?? [],
       );
       let closed15m: typeof closed1h | undefined;
+      // Owner 2026-11-14: the zones come from the daily candles (the touch / arming / reaction stay on 4H / 1H / 15m).
+      const zoneDays = await abneonZoneDays(symbol);
       const runSupport = (candles1h: typeof closed1h) =>
         evaluateAbneonSupportBounce({
           candles4h: closed4h,
+          zoneCandles1d: zoneDays,
           candles1h,
           candles15m: closed15m,
           candles1d: neonCandles1d,
@@ -6786,7 +6818,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             ? { level: support.frozenLevel, armedAt: support.armCandleTime }
             : null;
       if (r8Arm) {
-        const r8Zone = resolveFrozenZone(closed4h, r8Arm.armedAt, r8Arm.level);
+        const r8Zone = resolveFrozenZone(zoneDays, r8Arm.armedAt, r8Arm.level, ABNEON_D1_MS);
         let lucyVol: Promise<[Map<number, number> | null, Map<number, number> | null]> | null = null;
         const rule = await ruleEntryOnArm({
           candles1h: closed1h,
@@ -13430,7 +13462,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             const _neonZones =
               _neonSupportBounceEvent !== null
                 ? neonZonesForLevel(
-                    klines4hPrefetch.get(symbol) ?? [],
+                    abneonZoneDaysCache.get(symbol)?.candles ?? [],
                     _neonSupportBounceEvent.frozenLevel,
                     _neonSupportBounceEvent.armCandleTime,
                   )
@@ -13451,7 +13483,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             const _neonResistances =
               _neonSupportBounceEvent !== null && _neonZoneMetrics.zoneTop != null
                 ? resistancesAbove(
-                    computeSupportZones(normalizeClosedBreakoutCandles(klines4hPrefetch.get(symbol) ?? [])),
+                    computeSupportZones(abneonZoneDaysCache.get(symbol)?.candles ?? []), // owner 2026-11-14: daily zones
                     _neonZoneMetrics.zoneTop,
                   )
                 : [];

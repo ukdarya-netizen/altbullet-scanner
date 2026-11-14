@@ -85,7 +85,7 @@ export default function RangeBreakoutTab({ filterQ }: { filterQ: string }) {
   return (
     <div className="overflow-x-auto">
       <div className="px-3 py-2 text-[11px] text-muted-foreground">
-        Кандидаты на пробой сопротивления ABNeon: ближайшая зона сопротивления не дальше 5% над закрытием последней 4ч свечи. Сигнал — закрытие 4ч или дневной свечи выше верха зоны.
+        Кандидаты на пробой сопротивления ABNeon: ближайшая дневная зона сопротивления (уровни по свечам 1D) не дальше 5% над закрытием последней 4ч свечи. Сигнал — закрытие 4ч свечи выше верха зоны на ярком объёме.
       </div>
       <table className="w-full text-xs">
         <thead>

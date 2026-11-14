@@ -1,8 +1,8 @@
 /**
  * Stealth = breakout of an ABNeon resistance level (owner 2026-11-06).
  *
- * Levels: the Neon zones of the owner's ABNeon indicator (computeSupportZones — 4H pivots, the same
- * levels on any chart timeframe). Every zone is kept with BOTH edges (bottom and top), lower and upper
+ * Levels: the Neon zones of the owner's ABNeon indicator (computeSupportZones — DAILY pivots since
+ * 2026-11-14, the same levels on any chart timeframe; 4H before). Every zone is kept with BOTH edges (bottom and top), lower and upper
  * ones alike; a zone above the previous close is resistance.
  *
  * Breakout, on a CLOSED candle of one of two timeframes:
@@ -208,13 +208,16 @@ export function evaluateNeonRangeBreakout(
 export const NEON_VSA_VERSION = "stealth-neon-vsa-v3" as const;
 const VSA_BRIGHT = new Set(["M", "W"]);
 
-/** Price-only: the 4H crossing of the candle that opened at `h4Start` (last bar of `h4`, closed), or null. */
-export function neonLevelCrossing4h(h4: readonly NlCandle[], h4Start: number): NeonLevelBreakout | null {
+/**
+ * Price-only: the 4H crossing of the candle that opened at `h4Start` (last bar of `h4`, closed), or null.
+ * Owner 2026-11-14: `zones` = the DAILY ABNeon zones (live); without it the zones come from the 4H candles.
+ */
+export function neonLevelCrossing4h(h4: readonly NlCandle[], h4Start: number, zonesIn?: readonly SupportZone[]): NeonLevelBreakout | null {
   const last = h4.at(-1);
   if (!last || last.time !== h4Start || h4.length < 60) return null;
   const prev = h4.at(-2);
   if (!prev || prev.time !== h4Start - H4_MS) return null;
-  const zones = computeSupportZones(h4);
+  const zones = zonesIn ? [...zonesIn] : computeSupportZones(h4);
   if (!zones.length) return null;
   const b = breakoutOf(zones, prev.close, last.close);
   if (!b) return null;

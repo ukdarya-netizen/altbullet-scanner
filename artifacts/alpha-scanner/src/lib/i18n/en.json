@@ -2002,7 +2002,10 @@
   "сетап отменяется, если 4H-свеча закрылась под зоной или за 48 часов после касания входа не было": "the setup is void if a 4H candle closes under the zone or there is no entry within 48 hours of the touch",
   "Сигнал приходит сразу после закрытия часовой свечи отскока. Если зона пробита вниз, сигнал не выходит и ждётся следующая зона.": "The signal arrives right after the hourly bounce candle closes. If the zone breaks downward, no signal is issued and the next zone is awaited.",
   "На +5% — уведомление: по желанию можно зафиксировать часть, безубыток с +10%": "At +5% — a notice: you may take part of the position, break-even from +10%",
- "На +10% стоп в безубыток": "At +10% the stop moves to break-even",
+  "На +10% стоп в безубыток": "At +10% the stop moves to break-even",
   "На +8% частичная фиксация 20–25%": "At +8% take 20–25% of the position",
-  "С +20% трейлинг: стоп идёт за ценой на 20 п.п. ниже пика": "From +20% trailing: the stop follows the price 20 pp below the peak"
+  "С +20% трейлинг: стоп идёт за ценой на 20 п.п. ниже пика": "From +20% trailing: the stop follows the price 20 pp below the peak",
+  "уровень — зона ABNeon по дневным свечам (1D), от которой цена уже разворачивалась": "the level is an ABNeon zone from the daily (1D) candles where price has reversed before",
+  "зона поддержки ABNeon по дневным свечам (1D) — уровень, от которого цена уже разворачивалась; касание и вход смотрятся на 4H / 1H": "ABNeon support zone from the daily (1D) candles — a level price has already reversed from; the touch and the entry are read on 4H / 1H",
+  "Кандидаты на пробой сопротивления ABNeon: ближайшая дневная зона сопротивления (уровни по свечам 1D) не дальше 5% над закрытием последней 4ч свечи. Сигнал — закрытие 4ч свечи выше верха зоны на ярком объёме.": "ABNeon resistance breakout candidates: the nearest daily resistance zone (levels from the 1D candles) at most 5% above the last 4h close. Signal — a 4h close above the zone top on bright volume."
 }

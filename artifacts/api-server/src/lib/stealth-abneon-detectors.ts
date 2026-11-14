@@ -56,6 +56,7 @@ export type ShadowDetectorResult<
 const H1 = 60 * 60_000;
 const H4 = 4 * H1;
 const M15 = 15 * 60_000;
+const D1 = 24 * H1;
 const VOLUME_LOOKBACK = 20;
 /** Owner 2026-10-22: 4x (peak>=10% share 34% vs 27% at 1.5x on 865 zones). */
 // Owner 2026-11-02: Neon shadow mode, no volume filters (ratio/turnover are only recorded).
@@ -463,10 +464,19 @@ export function evaluateAbneonSupportBounce(input: {
   researchKeepBrokenZones?: boolean;
   /** Research only (backtest, owner 2026-11-06): up to N zones instead of 6. Production omits it. */
   researchMaxZones?: number;
+  /**
+   * Owner 2026-11-14 («истинные уровни»): the ABNeon zones come from these closed DAILY candles (≈ 640 days);
+   * the touch, the arming, the invalidation, the ATR tolerance and the reaction stay on 4H / 1H / 15m. Without
+   * it the zones come from `candles4h` (the earlier behaviour, research).
+   */
+  zoneCandles1d?: readonly ClosedDetectorCandle[];
 }): ShadowDetectorResult<AbneonShadowMethod> {
   const sweep = input.sweepReclaimBars;
   const ZONE_TF = input.zoneTimeframeMs ?? H4;
   const h4 = closed(input.candles4h, ZONE_TF, input.observedAt);
+  // The candles the zones are built from (daily in production since 2026-11-14) and their timeframe.
+  const zSrc = input.zoneCandles1d ? closed(input.zoneCandles1d, D1, input.observedAt) : h4;
+  const zTf = input.zoneCandles1d ? D1 : ZONE_TF;
   const h1 = closed(input.candles1h, H1, input.observedAt);
   if (h1.length < VOLUME_LOOKBACK + 1) {
     return {
@@ -503,10 +513,10 @@ export function evaluateAbneonSupportBounce(input: {
       };
     }
     const zone = resolveFrozenZone(
-      h4,
+      zSrc,
       arm,
       frozenLevel,
-      ZONE_TF,
+      zTf,
       input.researchMaxZones,
     );
     const brokenBelow = zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE);
@@ -590,7 +600,7 @@ export function evaluateAbneonSupportBounce(input: {
     // 2026-10-21). Breakouts are not signals; they are reported for analysis (shadow).
     const brokenResistance =
       reactionLike && reaction
-        ? resistanceClosedAbove(h4, zone, reaction.open, reaction.close)
+        ? resistanceClosedAbove(zSrc, zone, reaction.open, reaction.close)
         : null;
     const closesAboveZone = brokenResistance != null;
     const qualified = reactionLike && !closesAboveZone;
@@ -646,7 +656,7 @@ export function evaluateAbneonSupportBounce(input: {
           touch15 &&
           r15.low <= zone.top + 2 * atr4h &&
           r15.close >= zone.bottom &&
-          resistanceClosedAbove(h4, zone, r15.open, r15.close) == null &&
+          resistanceClosedAbove(zSrc, zone, r15.open, r15.close) == null &&
           (ev15.ratio ?? 0) >= SUPPORT_VOLUME_RATIO &&
           true
         ) {
@@ -754,15 +764,15 @@ export function evaluateAbneonSupportBounce(input: {
     };
   // Owner 2026-10-22 (SOPH): no support under a falling price — drop zones
   // that price has already traded through after their latest pivot.
-  const rawZones = computeSupportZones(h4, input.researchMaxZones);
+  const rawZones = computeSupportZones(zSrc, input.researchMaxZones);
   const zoneChecks = rawZones.map((zone) => {
     const brokenAfterPivot =
       sweep != null && !input.researchKeepBrokenZones
-        ? zoneBrokenAfterPivot(h4, zone, sweep)
+        ? zoneBrokenAfterPivot(zSrc, zone, sweep)
         : false;
     const undercutAfterPivot =
       sweep == null && !input.researchKeepBrokenZones
-        ? zoneUndercutAfterPivot(h4, zone)
+        ? zoneUndercutAfterPivot(zSrc, zone)
         : false;
     return { zone, brokenAfterPivot, undercutAfterPivot };
   });
