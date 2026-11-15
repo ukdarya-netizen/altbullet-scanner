@@ -67,7 +67,7 @@ export async function ruleEntryOnArm(input: {
     if (closeAt - lowAt > ABNEON_REACTION_WINDOW_H * H1) continue;
     const tv = await input.lucy(c.time, closeAt);
     if (!tv.ok && tv.reason === "touch_bar_not_closed") { waiting = "awaiting_touch_4h_close"; continue; }
-    if (!tv.ok) return { status: "void", reason: tv.reason === "touch_volume_grey" ? `touch_volume_grey_${tv.colours.join("")}` : `touch_${tv.reason}`, colours: tv.colours };
+    if (!tv.ok) return { status: "void", reason: tv.reason === "touch_volume_grey" || tv.reason === "touch_volume_no_buying" ? `${tv.reason}_${tv.colours.join("")}` : `touch_${tv.reason}`, colours: tv.colours };
     return { status: "entry", candleTime: c.time, closeAt, entry: c.close, testTime, testLow: low, testLowAt: lowAt, touch: tv };
   }
   if (input.nowMs > input.armTime + ABNEON_ARM_WINDOW_H * H1) return { status: "void", reason: "arm_window_over" };

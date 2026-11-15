@@ -91,7 +91,7 @@ export function findLowBounce(input: {
       if (q > k - (LUCY_LONG_BARS - 1) && cs[q]!.time - cs[q - 1]!.time !== H4) return null;
       const usd = totalUsd(input.agg4hUsdByTime, input.spot4hUsdByTime, cs[q]!.time);
       if (!(usd != null && cs[q]!.close > 0)) return null;
-      vol.push(usd / cs[q]!.close);
+      vol.push(usd); // owner 2026-11-15: USD volume as the indicator (not coins)
     }
     return lucyColour(vol, vol.length - 1);
   };

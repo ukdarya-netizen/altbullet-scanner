@@ -18,7 +18,7 @@
  */
 import { computeSupportZones, type SupportZone } from "./stealth-abneon-detectors.js";
 import { detectAutoRangePine, detectAutoRangePine1d, type AutoRangeCandle } from "./auto-range-pine.js";
-import { welkinColour } from "./abneon-volume-gate.js";
+import { LUCY_LONG_BARS, lucyColour, totalUsd } from "./abneon-volume-gate.js";
 
 export const NEON_LEVEL_4H_METHOD = "neon_level_4h_breakout" as const;
 export const NEON_LEVEL_1D_METHOD = "neon_level_1d_breakout" as const;
@@ -236,18 +236,22 @@ export function neonLevelCrossing4h(h4: readonly NlCandle[], h4Start: number, zo
   };
 }
 
-/** Welkin colour of the last 4H candle on aggregated futures volume (USD by candle open time), or null. */
-export function neonBreakoutColour(h4: readonly NlCandle[], agg4hUsdByTime: ReadonlyMap<number, number>): string | null {
+/**
+ * Colour of the last 4H candle by Lucy's VSA exactly as her indicator (owner 2026-11-15): USD volume of aggregated
+ * futures + spot (spot missing = 0, futures required), Welkin over 20 bars, grey under the 120-bar average.
+ * Was: futures only, in coins, 20 bars without the long average. null = not enough aggregated data.
+ */
+export function neonBreakoutColour(h4: readonly NlCandle[], agg4hUsdByTime: ReadonlyMap<number, number>, spot4hUsdByTime?: ReadonlyMap<number, number> | null): string | null {
   const n = h4.length;
-  if (n < 20) return null;
+  if (n < LUCY_LONG_BARS) return null;
   const vol: number[] = [];
-  for (let q = n - 20; q < n; q++) {
-    if (q > n - 20 && h4[q]!.time - h4[q - 1]!.time !== H4_MS) return null;
-    const usd = agg4hUsdByTime.get(h4[q]!.time);
-    if (!(usd != null && usd > 0 && h4[q]!.close > 0)) return null;
-    vol.push(usd / h4[q]!.close);
+  for (let q = n - LUCY_LONG_BARS; q < n; q++) {
+    if (q > n - LUCY_LONG_BARS && h4[q]!.time - h4[q - 1]!.time !== H4_MS) return null;
+    const usd = totalUsd(agg4hUsdByTime, spot4hUsdByTime, h4[q]!.time);
+    if (usd == null) return null;
+    vol.push(usd);
   }
-  return welkinColour(vol, vol.length - 1);
+  return lucyColour(vol, vol.length - 1);
 }
 
 export const isNeonVsaBright = (colour: string | null): colour is string => colour !== null && VSA_BRIGHT.has(colour);

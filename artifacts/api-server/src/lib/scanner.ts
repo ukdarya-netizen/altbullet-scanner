@@ -788,8 +788,10 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
           // aggregated futures volume. Aggregated volume is requested only for a price crossing.
           const cross = neonLevelCrossing4h(candles, h4Start, dayZones);
           if (!cross) continue;
-          const agg4h = await getAggFuturesVolumeByInterval(symbol, "4h", 60).catch(() => null);
-          const colour = agg4h ? neonBreakoutColour(candles, agg4h) : null;
+          // Owner 2026-11-15: Lucy's VSA as the indicator — futures + spot, 120 bars (was futures, 60 bars).
+          const agg4h = await getAggFuturesVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 20).catch(() => null);
+          const spot4h = agg4h ? await getAggSpotVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 20).catch(() => null) : null;
+          const colour = agg4h ? neonBreakoutColour(candles, agg4h, spot4h) : null;
           if (!isNeonVsaBright(colour)) {
             stats.notBright = (stats.notBright ?? 0) + 1;
             continue;

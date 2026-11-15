@@ -73,7 +73,7 @@ export function preTouchBlueCount(input: {
 const H4 = 4 * H1;
 export type TouchVolume =
   | { ok: true; colours: string[]; firstTouchTime: number }
-  | { ok: false; reason: "no_trigger" | "no_aggregated_volume" | "short_history" | "touch_bar_not_closed" | "touch_volume_grey"; colours: string[] };
+  | { ok: false; reason: "no_trigger" | "no_aggregated_volume" | "short_history" | "touch_bar_not_closed" | "touch_volume_grey" | "touch_volume_no_buying"; colours: string[] };
 
 /** First closed 1H candle after the arm whose low reached the zone top (+0.2%) — as the pre-touch gate. */
 export function firstTouchTime(candles1h: readonly Bar[], armCandleTime: number, triggerCandleTime: number, zoneTop: number): number | null {
@@ -110,6 +110,14 @@ export function welkinColour(vol: readonly number[], j: number): string {
  * aggregated spot (the indicator's total); spot missing at CoinGlass counts as 0 (the indicator shows what exists).
  */
 export const LUCY_LONG_BARS = 120;
+/**
+ * Owner 2026-11-15 («код TV и код CAB должны совпадать»): the indicator colours USD volume (volume × hlc3 of every
+ * market), so the bot colours the CoinGlass USD volume as it is — not divided by the close (coins), which made a
+ * rising bar look smaller and a falling one bigger than on her chart.
+ * «Фильтр должен показывать интерес покупок»: a bar shows buying when it is not grey AND closes above the middle of its
+ * range (as the indicator's BUY: the close above the middle — buyers took the bar).
+ */
+export const closesAboveMiddle = (c: { high: number; low: number; close: number }): boolean => c.high > c.low && (c.close - c.low) / (c.high - c.low) > 0.5;
 export function lucyColour(vol: readonly number[], j: number): string {
   if (j - (LUCY_LONG_BARS - 1) >= 0) {
     let s = 0;
@@ -128,7 +136,7 @@ export function totalUsd(fut: ReadonlyMap<number, number>, spot: ReadonlyMap<num
 
 export function touchVolumeNotGrey(input: {
   candles1h: readonly Bar[];
-  candles4h: readonly Bar[];
+  candles4h: readonly (Bar & { high: number })[];
   /** CoinGlass aggregated futures volume, USD, by 4H candle open time. */
   agg4hUsdByTime: ReadonlyMap<number, number>;
   /** CoinGlass aggregated spot volume, USD, by 4H candle open time (Lucy's VSA total = futures + spot). */
@@ -149,17 +157,23 @@ export function touchVolumeNotGrey(input: {
   if (from < 0) return { ok: false, reason: "short_history", colours: [] };
   const vol: number[] = [];
   const colours: string[] = [];
+  let buying = false;
   for (let j = from; j < cs.length && j <= j0 + 2; j++) {
     const c = cs[j]!;
     if (c.time + H4 > input.nowMs) break; // only closed 4H candles
     if (j > from && c.time - cs[j - 1]!.time !== H4) return { ok: false, reason: "short_history", colours };
     const usd = totalUsd(input.agg4hUsdByTime, input.spot4hUsdByTime, c.time);
     if (!(usd != null && c.close > 0)) return { ok: false, reason: "no_aggregated_volume", colours };
-    vol.push(usd / c.close);
-    if (j >= j0) colours.push(lucyColour(vol, vol.length - 1));
+    vol.push(usd);
+    if (j >= j0) {
+      const colour = lucyColour(vol, vol.length - 1);
+      colours.push(colour);
+      if (colour !== "N" && closesAboveMiddle(c)) buying = true;
+    }
   }
   if (!colours.length) return { ok: false, reason: "touch_bar_not_closed", colours };
-  return colours.some((c) => c !== "N") ? { ok: true, colours, firstTouchTime: touch } : { ok: false, reason: "touch_volume_grey", colours };
+  if (!colours.some((c) => c !== "N")) return { ok: false, reason: "touch_volume_grey", colours };
+  return buying ? { ok: true, colours, firstTouchTime: touch } : { ok: false, reason: "touch_volume_no_buying", colours };
 }
 
 /**
