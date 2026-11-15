@@ -26,10 +26,18 @@ test("R8: a reaction more than 8 h after the test low is not taken; a 4H close u
   assert.deepEqual(voided, { status: "void", reason: "closed_4h_under_zone" });
 });
 
-test("R8: a grey touch voids; an open touch 4H candle waits", async () => {
+test("R8: a grey touch voids once all three touch 4H candles closed; before that it waits for the volume; an open touch 4H candle waits", async () => {
   const c1 = [bar(0, 100, 100, 96, 96.5), bar(1, 96.5, 99, 96.4, 98.8)];
-  const grey = await ruleEntryOnArm({ candles1h: c1, candles4h: [], zone, armTime: T0, nowMs: T0 + 2 * H1, lucy: async () => ({ ok: false, reason: "touch_volume_grey", colours: ["N", "N"] }) });
-  assert.deepEqual(grey, { status: "void", reason: "touch_volume_grey_NN", colours: ["N", "N"] });
+  const grey = await ruleEntryOnArm({ candles1h: c1, candles4h: [], zone, armTime: T0, nowMs: T0 + 2 * H1, lucy: async () => ({ ok: false, reason: "touch_volume_grey", colours: ["N", "N", "N"] }) });
+  assert.deepEqual(grey, { status: "void", reason: "touch_volume_grey_NNN", colours: ["N", "N", "N"] });
+  const early = await ruleEntryOnArm({ candles1h: c1, candles4h: [], zone, armTime: T0, nowMs: T0 + 2 * H1, lucy: async () => ({ ok: false, reason: "touch_volume_no_buying", colours: ["A"] }) });
+  assert.deepEqual(early, { status: "waiting", reason: "awaiting_touch_volume" });
+  // Owner 2026-11-15 (ELSA): quiet touch, the buyer comes on the next 4H candle — the next green 1H candle enters.
+  const c1b = [...c1, bar(2, 98.8, 99, 97.5, 97.8), bar(3, 97.8, 101, 97.7, 100.6)];
+  const lucy = async (t: number) => (t < T0 + 3 * H1 ? { ok: false as const, reason: "touch_volume_grey" as const, colours: ["N"] } : { ok: true as const, colours: ["N", "O"], firstTouchTime: T0 });
+  const late = await ruleEntryOnArm({ candles1h: c1b, candles4h: [], zone, armTime: T0, nowMs: T0 + 4 * H1, lucy });
+  assert.equal(late.status, "entry");
+  if (late.status === "entry") assert.equal(late.candleTime, T0 + 3 * H1);
   const open = await ruleEntryOnArm({ candles1h: c1, candles4h: [], zone, armTime: T0, nowMs: T0 + 2 * H1, lucy: async () => ({ ok: false, reason: "touch_bar_not_closed", colours: [] }) });
   assert.deepEqual(open, { status: "waiting", reason: "awaiting_touch_4h_close" });
 });
