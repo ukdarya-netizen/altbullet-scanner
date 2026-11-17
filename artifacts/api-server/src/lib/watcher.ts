@@ -860,42 +860,52 @@ export async function broadcastPhotoWithText(
 const MILESTONE_HEALTH_TIMEOUT_MS = 10_000;
 const lastGoodHealth = new Map<string, { health: SpotHealth; at: number }>();
 
+/** A promise or null after `ms` (a part that is late is left out, the rest is kept). */
+function withinMs<T>(p: Promise<T>, ms: number): Promise<T | null> {
+  let timer: NodeJS.Timeout | undefined;
+  return Promise.race([
+    p.catch(() => null),
+    new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), ms); }),
+  ]).finally(() => { if (timer) clearTimeout(timer); });
+}
+const healthEmpty = (h: SpotHealth | null) =>
+  !h || (h.oiPct == null && h.cvd15m == null && h.cvd30m == null && h.cvd1h == null);
+/** Owner 2026-11-17 (NES +21 % went out with OI / CVD «н/д»): one more try after this pause when nothing came. */
+const MILESTONE_HEALTH_RETRY_MS = 20_000;
+
 async function fetchMilestoneHealth(
   symbol: string,
   price: number,
 ): Promise<SpotHealth | null> {
-  let timer: NodeJS.Timeout | undefined;
-  let fresh: SpotHealth | null;
-  try {
-    fresh = await Promise.race([
-      _fetchSignalHealth(symbol, price).catch(() => null),
-      new Promise<null>((resolve) => {
-        timer = setTimeout(() => resolve(null), MILESTONE_HEALTH_TIMEOUT_MS);
-      }),
-    ]);
-  } finally {
-    if (timer) clearTimeout(timer);
+  let fresh: SpotHealth | null = await _fetchSignalHealth(symbol, price).catch(() => null);
+  if (healthEmpty(fresh)) {
+    logger.warn({ symbol }, "milestone health: OI / CVD empty, retrying once");
+    await new Promise((r) => setTimeout(r, MILESTONE_HEALTH_RETRY_MS));
+    fresh = await _fetchSignalHealth(symbol, price).catch(() => null);
+    if (healthEmpty(fresh)) logger.warn({ symbol }, "milestone health: OI / CVD still empty after retry");
   }
   return mergeWithLastGoodHealth(symbol, fresh, Date.now(), lastGoodHealth);
 }
 
+/**
+ * OI, spot CVD and futures takers are read side by side, each with its own time limit: a slow or failed part
+ * is left out and the others are kept (owner 2026-11-17 — before, one overall limit dropped everything, and the
+ * futures fallback only started after the spot read had failed).
+ */
 async function _fetchSignalHealth(
   symbol: string,
   price: number,
 ): Promise<SpotHealth> {
-  const [oi, cvd] = await Promise.all([
-    getCoinglassOI(symbol, price, undefined, { priority: "critical" }).catch(() => null),
-    getSpotCvdMtf(symbol, { priority: "critical" }).catch(() => null),
+  const [oi, cvd, takers] = await Promise.all([
+    withinMs(getCoinglassOI(symbol, price, undefined, { priority: "critical" }), MILESTONE_HEALTH_TIMEOUT_MS),
+    withinMs(getSpotCvdMtf(symbol, { priority: "critical" }), MILESTONE_HEALTH_TIMEOUT_MS),
+    withinMs(getAggFuturesTakerHistory(symbol, 6, { priority: "critical", timeoutMs: MILESTONE_HEALTH_TIMEOUT_MS - 1_000 }), MILESTONE_HEALTH_TIMEOUT_MS),
   ]);
   const spot = cvd?.available
     ? { cvd15m: cvd.cvd15m ?? null, cvd30m: cvd.cvd30m ?? null, cvd1h: cvd.cvd1h ?? null }
     : null;
   const spotOk = spot != null && (spot.cvd15m != null || spot.cvd30m != null || spot.cvd1h != null);
-  const fut = spotOk
-    ? null
-    : futuresCvdFromTakers(
-        await getAggFuturesTakerHistory(symbol, 6, { priority: "critical", timeoutMs: 8_000 }).catch(() => null),
-      );
+  const fut = spotOk ? null : futuresCvdFromTakers(takers);
   const use = spotOk ? spot : fut;
   return {
     oiPct: oi?.available ? (oi.oiChange30m ?? null) : null,
