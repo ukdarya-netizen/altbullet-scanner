@@ -485,6 +485,9 @@ export interface ImpulseBuyDecision {
   /** Live Wyckoff gate reading (owner 2026-11-09): the phase the gate saw, or why it had none. */
   wyckoffPhase?: string | null;
   wyckoffReason?: string | null;
+  /** Owner 2026-11-18: Lucy's VSA colour of the 30m signal candle (N grey, A blue, Y yellow, O / M / W climax). */
+  lucy30mColour?: string | null;
+  lucy30mReason?: string | null;
 }
 
 /**

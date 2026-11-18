@@ -1069,7 +1069,7 @@
   "Первое движение за 24 ч": "First move in 24h",
   "Первое пересечение": "First crossover",
   "Перегрев: 20–30% против &gt;30%": "Overheating: 20–30% vs &gt;30%",
-  "Перегретые ситуации отсеиваются: слишком резкий всплеск спота, сильно отрицательный фандинг или взрывной рост открытого интереса.": "Overheated situations are filtered out: an excessively sharp spot spike, deeply negative funding, or explosive open interest growth.",
+  "Перегретые ситуации отсеиваются: слишком резкий всплеск спота, сильно отрицательный фандинг или взрывной рост открытого интереса. Сигнала нет, если объём сигнальной получасовой свечи кульминационный — всплеск далеко выше обычного.": "Overheated situations are filtered out: an excessively sharp spot spike, deeply negative funding, or explosive open interest growth. No signal when the volume of the 30-minute signal candle is a climax — a spike far above normal.",
   "Передвинуть стоп": "Move stop",
   "Перезагрузить": "Reload",
   "Перенесено в архив без исполнения выхода, цены закрытия и PnL": "Archived without exit execution, closing price, and PnL",

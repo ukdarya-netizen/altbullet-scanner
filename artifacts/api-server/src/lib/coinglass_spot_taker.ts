@@ -249,7 +249,7 @@ export async function getAggSpotVolume1h(
 /** Aggregated spot taker volume (buy + sell, USD) of every spot exchange by candle open time (ms); null = no data. */
 export async function getAggSpotVolumeByInterval(
   bingxSymbol: string,
-  interval: "1h" | "4h",
+  interval: "15m" | "1h" | "4h",
   limit: number,
 ): Promise<Map<number, number> | null> {
   const apiKey = getNextCgKey();

@@ -7,6 +7,7 @@ import {
   stealth1hVolumeRatioPasses,
 } from "./stealth-oi-breakout-filter.js";
 import { impulseWyckoffCheck } from "./entry-readings.js";
+import { ibSignalCandleVsa } from "./ib-signal-candle-vsa.js";
 import { welkinEmptyBeforeBreakout } from "./entry-volume-colors.js";
 import { calcStealthScore } from "./stealth-score.js";
 import { registerProcessHealthSource } from "./process-health.js";
@@ -8661,6 +8662,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                         candleCloseStrength: res.impulseDecision.closeStrength,
                         wyckoffPhase: res.impulseDecision.wyckoffPhase ?? null,
                         wyckoffReason: res.impulseDecision.wyckoffReason ?? null,
+                        lucy30mColour: res.impulseDecision.lucy30mColour ?? null,
                         candleClosedAt:
                           res.impulseCandleClosedAt?.toISOString() ?? null,
                         score: res.impulseDecision.score,
@@ -10025,6 +10027,22 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 };
               }
             }
+            // Owner 2026-11-18 («внедряем VSA»): no Impulse Buy on a climax 30m signal candle on Lucy's VSA
+            // (orange / purple / white); no reading (aggregated data missing) → no signal. The colour is recorded.
+            if (_impulseDecision.passes && _closed30m) {
+              const _ibVsa = await ibSignalCandleVsa(symbol, _closed30m.time);
+              _impulseDecision = { ..._impulseDecision, lucy30mColour: _ibVsa.colour, lucy30mReason: _ibVsa.reason };
+              if (_ibVsa.colour === null || _ibVsa.climax) {
+                _impulseDecision = {
+                  ..._impulseDecision,
+                  passes: false,
+                  rejectReasons: [
+                    ..._impulseDecision.rejectReasons,
+                    _ibVsa.colour === null ? `ib_vsa30m_unknown_${_ibVsa.reason ?? "unknown"}` : "ib_vsa30m_climax",
+                  ],
+                };
+              }
+            }
             // Owner 2026-11-10: the 30m candle volume (aggregated, vs 20 bars) was never measured for small
             // candles. Measured for every IB that passes all the other conditions — fired, or stopped only by
             // the 24h growth or the Wyckoff gate — record only, it never blocks.
@@ -10032,7 +10050,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               !_impulseDecision.passes &&
               _impulseDecision.missingReasons.length === 0 &&
               _impulseDecision.rejectReasons.length > 0 &&
-              _impulseDecision.rejectReasons.every((r) => r === "price24h_below_15" || r.startsWith("wyckoff_"));
+              _impulseDecision.rejectReasons.every((r) => r === "price24h_below_15" || r.startsWith("wyckoff_") || r.startsWith("ib_vsa30m_"));
             if ((_impulseDecision.passes || _ibOnlyFilters) && _impulseDecision.volumeMultiplier === null && _closed30m) {
               const _ibVol = await getAggregatedFuturesVolume30m(symbol, _closed30m.time).catch(() => null);
               if (_ibVol && _ibVol.baselineVolumeUsd > 0) {
@@ -10330,6 +10348,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 score: _impulseDecision.score,
                 wyckoffPhase: _impulseDecision.wyckoffPhase ?? null,
                 wyckoffReason: _impulseDecision.wyckoffReason ?? null,
+                lucy30mColour: _impulseDecision.lucy30mColour ?? null,
+                lucy30mReason: _impulseDecision.lucy30mReason ?? null,
                 price24hMinimumPct: IMPULSE_BUY_MIN_PRICE_24H_PCT,
                 candleOpen: parseFloat(_closed30m?.open ?? "") || null,
                 candleHigh: parseFloat(_closed30m?.high ?? "") || null,
