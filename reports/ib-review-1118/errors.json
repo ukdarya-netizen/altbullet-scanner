@@ -1,0 +1,15 @@
+{
+  "SHELL-USDT": "Error: code 109429 over 10 error code:109415 requests within 900000 ms for this api, please verify and fix it ,can retry after time: 1794988383712",
+  "NES-USDT": "Error: code 109429 over 10 error code:109415 requests within 900000 ms for this api, please verify and fix it ,can retry after time: 1794988317356",
+  "HOOKED-USDT": "Error: code 109418 HOOKED-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "CLAUDIA-USDT": "Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "KIMCHI-USDT": "Error: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "4STOCK-USDT": "Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "AGI-USDT": "Error: code 109418 AGI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "KNTQ-USDT": "Error: code 109418 KNTQ-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "KOR-USDT": "Error: code 109418 KOR-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "CATE-USDT": "Error: code 109418 CATE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "BATON-USDT": "Error: code 109418 BATON-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "GANG-USDT": "Error: code 109418 GANG-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it",
+  "SI-USDT": "Error: code 109418 SI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+}
