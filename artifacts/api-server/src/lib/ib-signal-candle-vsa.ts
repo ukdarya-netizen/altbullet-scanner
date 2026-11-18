@@ -16,6 +16,12 @@ import { getAggSpotVolumeByInterval } from "./coinglass_spot_taker.js";
 
 const M15 = 15 * 60_000;
 const M30 = 30 * 60_000;
+/**
+ * Owner 2026-11-18 (ZIL 17:00–17:30 Dubai: orange on her Lucy's VSA, the IB still fired): CoinGlass keeps adding
+ * to a bar for a few minutes after its close. The colour is read only from 5 minutes after the candle's close, on
+ * fresh (uncached) data; earlier the IB waits (no signal yet, the next scan reads it again).
+ */
+export const IB_VSA_SETTLE_MS = 5 * 60_000;
 export const IB_CLIMAX_COLOURS: ReadonlySet<string> = new Set(["O", "M", "W"]);
 
 /** 30m volume of the candle opening at `start`: both 15m halves required (spot halves → 0 when missing). */
@@ -41,10 +47,11 @@ export function lucyColour30m(fut15: ReadonlyMap<number, number>, spot15: Readon
 export type IbCandleVsa = { colour: string | null; climax: boolean; reason: string | null };
 
 /** Reads the colour for the IB gate; fetches 15m aggregated futures and spot (cached closed bars for futures). */
-export async function ibSignalCandleVsa(symbol: string, candleStart: number): Promise<IbCandleVsa> {
+export async function ibSignalCandleVsa(symbol: string, candleStart: number, nowMs = Date.now()): Promise<IbCandleVsa> {
+  if (nowMs < candleStart + M30 + IB_VSA_SETTLE_MS) return { colour: null, climax: false, reason: "volume_not_settled" };
   const bars = LUCY_LONG_BARS * 2 + 8;
   const [fut, spot] = await Promise.all([
-    getAggFuturesVolumeByInterval(symbol, "15m", bars).catch(() => null),
+    getAggFuturesVolumeByInterval(symbol, "15m", bars, nowMs, "high", 15_000, true).catch(() => null),
     getAggSpotVolumeByInterval(symbol, "15m", bars).catch(() => null),
   ]);
   if (!fut) return { colour: null, climax: false, reason: "no_aggregated_futures_volume" };
