@@ -608,6 +608,15 @@ const neonLevelDaily = new Map<string, NlCandle[]>();
 const stealthNeonLevelQueue = new Map<string, NeonLevelEvent>();
 const neonLevelCandles = new Map<string, NlCandle[]>();
 let stealthNeonLevelLastCandle = 0;
+/**
+ * Owner 2026-11-18 (12 of 22 bright 4H breakouts since 15.11 had no signal; PIEVERSE 18.11: purple on the final
+ * CoinGlass volume, not bright when read 90 s after the close): a crossing whose bar is not bright yet is read again
+ * with fresh CoinGlass volume 5, 10 and 15 minutes after the close; the first bright reading fires.
+ */
+const NEON_RECHECK_MS = 5 * 60_000;
+const NEON_RECHECK_TRIES = 3;
+const stealthNeonRecheck = new Map<string, { symbol: string; h4Start: number; cross: NeonLevelBreakout; candles: NlCandle[]; qv: number; tries: number; next: number }>();
+let stealthNeonRecheckRunning = false;
 let stealthNeonLevelRunning = false;
 let stealthNeonLevelTimer: NodeJS.Timeout | null = null;
 
@@ -728,6 +737,54 @@ async function abneonZoneDays(symbol: string, now = Date.now()): Promise<NlCandl
   }
 }
 
+function queueNeonLevelEvent(symbol: string, cross: NeonLevelBreakout, colour: string, qv: number): void {
+  const ev: NeonLevelBreakout & { volumeColour: string } = { ...cross, volumeColour: colour };
+  neonLevelRecentBreakouts.set(symbol, {
+    tf: ev.tf,
+    at: Date.now(),
+    close: ev.close,
+    levelTop: ev.level.top,
+    levelBottom: ev.level.bottom,
+    levelPivots: ev.level.count,
+  });
+  stealthNeonLevelQueue.set(`${symbol}:${ev.candleTime}:${ev.tf}`, {
+    ...ev,
+    symbol,
+    detectedAt: Date.now(),
+    quoteVolume24h: Number.isFinite(qv) ? qv : null,
+  });
+}
+
+/** Re-reads the volume of not-yet-bright crossings of the last 4H close (fresh CoinGlass data). */
+async function runStealthNeonRecheck(now = Date.now()): Promise<void> {
+  if (!STEALTH_NEON_LEVEL_LIVE || stealthNeonRecheckRunning || stealthNeonRecheck.size === 0) return;
+  stealthNeonRecheckRunning = true;
+  const fired: string[] = [];
+  try {
+    for (const [key, r] of [...stealthNeonRecheck]) {
+      if (now - (r.h4Start + NL_H4_MS) > STEALTH_FH_EVENT_TTL_MS) { stealthNeonRecheck.delete(key); continue; }
+      if (now < r.next) continue;
+      r.tries++;
+      r.next += NEON_RECHECK_MS;
+      try {
+        const agg4h = await getAggFuturesVolumeByInterval(r.symbol, "4h", LUCY_LONG_BARS + 20, Date.now(), "high", 15_000, true).catch(() => null);
+        const spot4h = agg4h ? await getAggSpotVolumeByInterval(r.symbol, "4h", LUCY_LONG_BARS + 20).catch(() => null) : null;
+        const colour = agg4h ? neonBreakoutColour(r.candles, agg4h, spot4h) : null;
+        if (isNeonVsaBright(colour)) {
+          queueNeonLevelEvent(r.symbol, r.cross, colour, r.qv);
+          fired.push(`${r.symbol}:${colour}:${r.tries}`);
+          stealthNeonRecheck.delete(key);
+          continue;
+        }
+      } catch { /* next try */ }
+      if (r.tries >= NEON_RECHECK_TRIES) stealthNeonRecheck.delete(key);
+    }
+    if (fired.length) logger.info({ fired }, "Stealth ABNeon level breakout: bright after the volume re-read");
+  } finally {
+    stealthNeonRecheckRunning = false;
+  }
+}
+
 /** Every closed 4H candle (and the UTC day it closes) of every BingX USDT perpetual, once. */
 async function runStealthNeonLevel(now = Date.now()): Promise<void> {
   if (!STEALTH_NEON_LEVEL_LIVE || stealthNeonLevelRunning) return;
@@ -795,24 +852,11 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
           const colour = agg4h ? neonBreakoutColour(candles, agg4h, spot4h) : null;
           if (!isNeonVsaBright(colour)) {
             stats.notBright = (stats.notBright ?? 0) + 1;
+            stealthNeonRecheck.set(`${symbol}:${h4Start}`, { symbol, h4Start, cross, candles, qv, tries: 0, next: closeAt + NEON_RECHECK_MS });
             continue;
           }
-          const ev: NeonLevelBreakout & { volumeColour: string } = { ...cross, volumeColour: colour };
-          neonLevelRecentBreakouts.set(symbol, {
-            tf: ev.tf,
-            at: Date.now(),
-            close: ev.close,
-            levelTop: ev.level.top,
-            levelBottom: ev.level.bottom,
-            levelPivots: ev.level.count,
-          });
-          passes.push(`${symbol}:${ev.tf}`);
-          stealthNeonLevelQueue.set(`${symbol}:${ev.candleTime}:${ev.tf}`, {
-            ...ev,
-            symbol,
-            detectedAt: Date.now(),
-            quoteVolume24h: Number.isFinite(qv) ? qv : null,
-          });
+          queueNeonLevelEvent(symbol, cross, colour, qv);
+          passes.push(`${symbol}:${cross.tf}`);
         } catch {
           stats.errors!++;
         }
@@ -16073,6 +16117,7 @@ export async function startScanner(): Promise<void> {
   if (STEALTH_NEON_LEVEL_LIVE && !stealthNeonLevelTimer) {
     stealthNeonLevelTimer = setInterval(() => {
       void runStealthNeonLevel();
+      void runStealthNeonRecheck();
     }, 30_000);
     stealthNeonLevelTimer.unref();
   }

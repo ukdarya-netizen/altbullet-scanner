@@ -607,6 +607,7 @@ export async function getAggregatedFuturesVolume30m(
   return { candleVolumeUsd, baselineVolumeUsd: total / 20 };
 }
 
+const CG_BAR_SETTLE_MS = 10 * 60_000;
 const INTERVAL_MS = {
   "15m": 900_000,
   "1h": 3_600_000,
@@ -686,12 +687,14 @@ export async function getAggFuturesVolumeByInterval(
   priority: "high" | "low" = "high",
   /** A background request may wait behind the scanner in the CoinGlass queue: give it longer. */
   timeoutMs = 15_000,
+  /** Owner 2026-11-18 (Stealth PIEVERSE / PIPPIN): skip the cache — the volume of a just-closed bar is re-read. */
+  fresh = false,
 ): Promise<Map<number, number> | null> {
   const cacheKey = `${applyCgAlias(bingxSymbol.replace(/-?USDT$/i, "")).toUpperCase()}|${interval}`;
   const barMs = INTERVAL_MS[interval];
   const latestClosed = Math.floor(nowMs / barMs) * barMs - barMs;
   const hit = closedVolumeCache.get(cacheKey);
-  if (hit && hit.limit >= limit && hit.volumes.has(latestClosed)) {
+  if (!fresh && hit && hit.limit >= limit && hit.volumes.has(latestClosed)) {
     closedVolumeCacheHits++;
     return hit.volumes;
   }
@@ -714,6 +717,10 @@ export async function getAggFuturesVolumeByInterval(
         (Number(r.taker_sell_volume_usd) || 0),
     ]),
   );
-  if (volumes.has(latestClosed)) storeClosedVolumes(cacheKey, limit, volumes);
+  // Owner 2026-11-18: CoinGlass keeps adding to a 1H / 4H bar for a while after its close (PIEVERSE 18.11 08:00–12:00:
+  // purple on the final data, not bright 90 s after the close). Such a bar is not kept as closed until 10 minutes
+  // after its close, so later readings get the settled volume.
+  const settled = interval === "15m" || nowMs - (latestClosed + barMs) >= CG_BAR_SETTLE_MS;
+  if (volumes.has(latestClosed) && settled) storeClosedVolumes(cacheKey, limit, volumes);
   return volumes;
 }
