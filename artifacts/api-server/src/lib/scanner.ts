@@ -9352,6 +9352,16 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   },
                   "Stealth ABNeon signal queued but durable event did not transition to fired",
                 );
+                _symRej(
+                  res.symbol,
+                  "stealth_breakout",
+                  "stealth_neon_level_fire_state_transition_failed",
+                  res.globalOiChange ?? null,
+                  res.volumeMultiplier ?? null,
+                  res.price24hChange ?? null,
+                  prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                  "deferred",
+                );
               }
             }
             await dbWriteStrict("signals/alert-queued", () =>
