@@ -487,6 +487,8 @@ export interface ImpulseBuyDecision {
   wyckoffReason?: string | null;
   /** Owner 2026-11-18: Lucy's VSA colour of the 30m signal candle (N grey, A blue, Y yellow, O / M / W climax). */
   lucy30mColour?: string | null;
+  /** Owner 2026-11-19 (K1): signal-candle aggregated USD volume / mean of 120 closed 30m bars, including itself. */
+  lucy30mVolAvg120?: number | null;
   lucy30mReason?: string | null;
 }
 

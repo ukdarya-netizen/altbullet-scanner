@@ -8707,6 +8707,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                         wyckoffPhase: res.impulseDecision.wyckoffPhase ?? null,
                         wyckoffReason: res.impulseDecision.wyckoffReason ?? null,
                         lucy30mColour: res.impulseDecision.lucy30mColour ?? null,
+                        lucy30mVolAvg120: res.impulseDecision.lucy30mVolAvg120 ?? null,
                         candleClosedAt:
                           res.impulseCandleClosedAt?.toISOString() ?? null,
                         score: res.impulseDecision.score,
@@ -10071,11 +10072,16 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 };
               }
             }
-            // Owner 2026-11-18 («внедряем VSA»): no Impulse Buy on a climax 30m signal candle on Lucy's VSA
-            // (orange / purple / white); no reading (aggregated data missing) → no signal. The colour is recorded.
+            // Owner 2026-11-18/19: reject climax candles and, for non-climax readings, K1 volume below 0.95
+            // of the same 120-bar mean (including the signal candle). Missing aggregated data → no signal.
             if (_impulseDecision.passes && _closed30m) {
               const _ibVsa = await ibSignalCandleVsa(symbol, _closed30m.time);
-              _impulseDecision = { ..._impulseDecision, lucy30mColour: _ibVsa.colour, lucy30mReason: _ibVsa.reason };
+              _impulseDecision = {
+                ..._impulseDecision,
+                lucy30mColour: _ibVsa.colour,
+                lucy30mVolAvg120: _ibVsa.volAvg120,
+                lucy30mReason: _ibVsa.reason,
+              };
               if (_ibVsa.colour === null || _ibVsa.climax) {
                 _impulseDecision = {
                   ..._impulseDecision,
@@ -10084,6 +10090,12 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                     ..._impulseDecision.rejectReasons,
                     _ibVsa.colour === null ? `ib_vsa30m_unknown_${_ibVsa.reason ?? "unknown"}` : "ib_vsa30m_climax",
                   ],
+                };
+              } else if (_ibVsa.lowVolume) {
+                _impulseDecision = {
+                  ..._impulseDecision,
+                  passes: false,
+                  rejectReasons: [..._impulseDecision.rejectReasons, "ib_vsa30m_low_volume"],
                 };
               }
             }
@@ -10393,6 +10405,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 wyckoffPhase: _impulseDecision.wyckoffPhase ?? null,
                 wyckoffReason: _impulseDecision.wyckoffReason ?? null,
                 lucy30mColour: _impulseDecision.lucy30mColour ?? null,
+                lucy30mVolAvg120: _impulseDecision.lucy30mVolAvg120 ?? null,
                 lucy30mReason: _impulseDecision.lucy30mReason ?? null,
                 price24hMinimumPct: IMPULSE_BUY_MIN_PRICE_24H_PCT,
                 candleOpen: parseFloat(_closed30m?.open ?? "") || null,
