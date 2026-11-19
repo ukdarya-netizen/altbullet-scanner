@@ -358,10 +358,21 @@ import {
   NEON_LEVEL_HISTORY_BARS,
   NEON_LEVEL_STOP_PCT,
   H4_MS as NL_H4_MS,
-  type NeonLevelBreakout,
   type NeonRangeBreakout,
   type NlCandle,
 } from "./stealth-neon-level-breakout.js";
+import {
+  claimStealthNeonLevelVolumeCheck,
+  finishStealthNeonLevelCandidate,
+  listDueStealthNeonLevelVolumeChecks,
+  listReadyStealthNeonLevelEvents,
+  persistStealthNeonLevelEvent,
+  persistStealthNeonLevelReject,
+  stealthNeonLevelEventCloseAt,
+  updateStealthNeonLevelVolumeState,
+  type PersistedStealthNeonLevelEvent,
+  type StealthNeonLevelQueueEvent,
+} from "./stealth-neon-level-queue.js";
 
 // Owner 2026-10-28: Stealth fires only from the experimental fresh-24H-high
 // detection (live, no shadow). The quiet-zone / Range arm detection no longer
@@ -598,29 +609,22 @@ const STEALTH_NEON_LEVEL_LIVE = true as boolean;
 /** ABNeon level breakouts remain eligible for firing for 24h after the breakout candle closes. */
 const STEALTH_NEON_LEVEL_EVENT_TTL_MS = 24 * 60 * 60_000;
 // Owner 2026-11-11: the live event is the 4H ABNeon-zone breakout on M/W aggregated volume (no Auto Range).
-type NeonLevelEvent = NeonLevelBreakout & {
-  range?: NeonRangeBreakout["range"];
-  volumeColour?: string;
-  symbol: string;
-  detectedAt: number;
-  quoteVolume24h: number | null;
-};
 /** Closed UTC days per symbol for the daily Auto Range (owner 2026-11-07), refreshed once a day at the day close. */
 const neonLevelDaily = new Map<string, NlCandle[]>();
-const stealthNeonLevelQueue = new Map<string, NeonLevelEvent>();
 const neonLevelCandles = new Map<string, NlCandle[]>();
-let stealthNeonLevelLastCandle = 0;
+/** Optimization only; event and volume-recheck state are stored in PostgreSQL. */
+const neonLevelSymbolLastCandle = new Map<string, number>();
+const neonLevelRetrySymbols = new Set<string>();
+let stealthNeonLevelLastCompletedCandle = 0;
 /**
- * Owner 2026-11-18 (12 of 22 bright 4H breakouts since 15.11 had no signal; PIEVERSE 18.11: purple on the final
- * CoinGlass volume, not bright when read 90 s after the close): a crossing whose bar is not bright yet is read again
- * with fresh CoinGlass volume 5, 10 and 15 minutes after the close; the first bright reading fires.
+ * Volume checks are persisted in stealth_abneon_shadow_candidates and retried
+ * at 5-minute intervals (nominally +5, +10 and +15 minutes from candle close).
  */
 const NEON_RECHECK_MS = 5 * 60_000;
 const NEON_RECHECK_TRIES = 3;
-const stealthNeonRecheck = new Map<string, { symbol: string; h4Start: number; cross: NeonLevelBreakout; candles: NlCandle[]; qv: number; tries: number; next: number }>();
-let stealthNeonRecheckRunning = false;
 let stealthNeonLevelRunning = false;
 let stealthNeonLevelTimer: NodeJS.Timeout | null = null;
+const STEALTH_NEON_LEVEL_DISCOVERY_LEASE = "stealth-neon-level-discovery";
 
 /**
  * Owner 2026-11-06: the scanner's «Range» tab lists candidates for the ABNeon resistance breakout:
@@ -739,103 +743,350 @@ async function abneonZoneDays(symbol: string, now = Date.now()): Promise<NlCandl
   }
 }
 
-function queueNeonLevelEvent(symbol: string, cross: NeonLevelBreakout, colour: string, qv: number): void {
-  const ev: NeonLevelBreakout & { volumeColour: string } = { ...cross, volumeColour: colour };
-  neonLevelRecentBreakouts.set(symbol, {
-    tf: ev.tf,
-    at: Date.now(),
-    close: ev.close,
-    levelTop: ev.level.top,
-    levelBottom: ev.level.bottom,
-    levelPivots: ev.level.count,
-  });
-  stealthNeonLevelQueue.set(`${symbol}:${ev.candleTime}:${ev.tf}`, {
-    ...ev,
-    symbol,
-    detectedAt: Date.now(),
-    quoteVolume24h: Number.isFinite(qv) ? qv : null,
-  });
+function compactNeonLevelError(error: unknown): string {
+  return (error instanceof Error ? error.message : String(error))
+    .replace(/\s+/g, " ")
+    .slice(0, 180);
 }
 
-/** Re-reads the volume of not-yet-bright crossings of the last 4H close (fresh CoinGlass data). */
-async function runStealthNeonRecheck(now = Date.now()): Promise<void> {
-  if (!STEALTH_NEON_LEVEL_LIVE || stealthNeonRecheckRunning || stealthNeonRecheck.size === 0) return;
-  stealthNeonRecheckRunning = true;
-  const fired: string[] = [];
+function neonLevelQueueCandidateId(decisionMetrics: unknown): number | null {
+  if (!decisionMetrics || typeof decisionMetrics !== "object") return null;
+  const level = (decisionMetrics as Record<string, unknown>).stealthNeonLevel;
+  if (!level || typeof level !== "object") return null;
+  const id = (level as Record<string, unknown>).queueCandidateId;
+  return typeof id === "number" && Number.isInteger(id) && id > 0 ? id : null;
+}
+
+async function recordNeonLevelReject(symbol: string, reason: string): Promise<void> {
   try {
-    for (const [key, r] of [...stealthNeonRecheck]) {
-      if (
-        now - (r.h4Start + NL_H4_MS) >
-        STEALTH_NEON_LEVEL_EVENT_TTL_MS
-      ) {
-        stealthNeonRecheck.delete(key);
-        continue;
-      }
-      if (now < r.next) continue;
-      r.tries++;
-      r.next += NEON_RECHECK_MS;
-      try {
-        const agg4h = await getAggFuturesVolumeByInterval(r.symbol, "4h", LUCY_LONG_BARS + 20, Date.now(), "high", 15_000, true).catch(() => null);
-        const spot4h = agg4h ? await getAggSpotVolumeByInterval(r.symbol, "4h", LUCY_LONG_BARS + 20).catch(() => null) : null;
-        const colour = agg4h ? neonBreakoutColour(r.candles, agg4h, spot4h) : null;
-        if (isNeonVsaBright(colour)) {
-          queueNeonLevelEvent(r.symbol, r.cross, colour, r.qv);
-          fired.push(`${r.symbol}:${colour}:${r.tries}`);
-          stealthNeonRecheck.delete(key);
-          continue;
-        }
-      } catch { /* next try */ }
-      if (r.tries >= NEON_RECHECK_TRIES) stealthNeonRecheck.delete(key);
-    }
-    if (fired.length) logger.info({ fired }, "Stealth ABNeon level breakout: bright after the volume re-read");
-  } finally {
-    stealthNeonRecheckRunning = false;
+    await persistStealthNeonLevelReject({ symbol, reason });
+  } catch (error) {
+    logger.error(
+      { err: error, symbol, reason },
+      "Stealth ABNeon level rejection could not be persisted",
+    );
   }
 }
 
-/** Every closed 4H candle (and the UTC day it closes) of every BingX USDT perpetual, once. */
+async function blockNeonLevelQueueCandidate(
+  candidateId: number,
+  symbol: string,
+  reason: string,
+): Promise<void> {
+  try {
+    const updated = await finishStealthNeonLevelCandidate({
+      id: candidateId,
+      status: "blocked",
+      reason,
+    });
+    if (!updated) {
+      logger.warn(
+        { candidateId, symbol, reason },
+        "Stealth ABNeon candidate was not transitioned to blocked",
+      );
+    }
+  } catch (error) {
+    logger.error(
+      { err: error, candidateId, symbol, reason },
+      "Stealth ABNeon candidate block write failed",
+    );
+  }
+  await recordNeonLevelReject(symbol, reason);
+}
+
+function nextNeonLevelVolumeCheckAt(
+  event: StealthNeonLevelQueueEvent,
+  readCount: number,
+  nowMs: number,
+): number | null {
+  if (readCount >= NEON_RECHECK_TRIES + 1) return null;
+  return Math.max(
+    stealthNeonLevelEventCloseAt(event) + readCount * NEON_RECHECK_MS,
+    nowMs + NEON_RECHECK_MS,
+  );
+}
+
+function rememberNeonLevelBreakout(
+  event: StealthNeonLevelQueueEvent,
+): void {
+  neonLevelRecentBreakouts.set(event.symbol, {
+    tf: event.tf,
+    at: event.detectedAt,
+    close: event.close,
+    levelTop: event.level.top,
+    levelBottom: event.level.bottom,
+    levelPivots: event.level.count,
+  });
+}
+
+async function readNeonLevelVolumeColour(
+  symbol: string,
+  candles: NlCandle[],
+  fresh: boolean,
+): Promise<{ colour: string | null; error: string | null }> {
+  try {
+    const agg4h = await getAggFuturesVolumeByInterval(
+      symbol,
+      "4h",
+      LUCY_LONG_BARS + 20,
+      Date.now(),
+      "high",
+      15_000,
+      fresh,
+    );
+    if (!agg4h) {
+      return { colour: null, error: "aggregated_futures_volume_unavailable" };
+    }
+    const spot4h = await getAggSpotVolumeByInterval(
+      symbol,
+      "4h",
+      LUCY_LONG_BARS + 20,
+    );
+    return {
+      colour: neonBreakoutColour(candles, agg4h, spot4h),
+      error: null,
+    };
+  } catch (error) {
+    return { colour: null, error: compactNeonLevelError(error) };
+  }
+}
+
+/** Durable volume retries survive process restarts and are claimed across workers. */
+async function runStealthNeonRecheck(now = Date.now()): Promise<void> {
+  if (!STEALTH_NEON_LEVEL_LIVE) return;
+  const due = await listDueStealthNeonLevelVolumeChecks(now, 100);
+  for (const candidate of due) {
+    const event = candidate.event;
+    if (!event) {
+      await blockNeonLevelQueueCandidate(
+        candidate.id,
+        candidate.symbol,
+        "stealth_neon_level_queue_payload_invalid",
+      );
+      continue;
+    }
+    const closeAt = stealthNeonLevelEventCloseAt(event);
+    if (now > closeAt + STEALTH_NEON_LEVEL_EVENT_TTL_MS) {
+      await blockNeonLevelQueueCandidate(
+        candidate.id,
+        candidate.symbol,
+        "stealth_neon_level_event_expired_before_volume",
+      );
+      continue;
+    }
+    if (candidate.volumeReadCount >= NEON_RECHECK_TRIES + 1) {
+      await blockNeonLevelQueueCandidate(
+        candidate.id,
+        candidate.symbol,
+        `stealth_neon_level_volume_not_bright_after_${NEON_RECHECK_TRIES}_rereads:` +
+          `colour=${candidate.lastVolumeColour ?? "unavailable"}`,
+      );
+      continue;
+    }
+
+    const claim = await claimStealthNeonLevelVolumeCheck(candidate, now);
+    if (!claim) continue;
+    const claimed = claim.candidate;
+    const claimedEvent = claimed.event;
+    if (!claimedEvent) {
+      await blockNeonLevelQueueCandidate(
+        claimed.id,
+        claimed.symbol,
+        "stealth_neon_level_queue_payload_invalid",
+      );
+      continue;
+    }
+
+    const nextReadCount = claimed.volumeReadCount + 1;
+    let candles: NlCandle[] = [];
+    let colour: string | null = null;
+    let readError: string | null = null;
+    try {
+      candles = await neonLevel4hCandles(
+        claimed.symbol,
+        claimedEvent.candleTime,
+      );
+      if (!candles.some((candle) => candle.time === claimedEvent.candleTime)) {
+        throw new Error("breakout_candle_unavailable_for_volume_read");
+      }
+      const read = await readNeonLevelVolumeColour(
+        claimed.symbol,
+        candles,
+        true,
+      );
+      colour = read.colour;
+      readError = read.error;
+    } catch (error) {
+      readError = compactNeonLevelError(error);
+    }
+
+    const updatedEvent: StealthNeonLevelQueueEvent = {
+      ...claimedEvent,
+      volumeColour: colour,
+    };
+    const bright = isNeonVsaBright(colour);
+    if (readError) {
+      await recordNeonLevelReject(
+        claimed.symbol,
+        `stealth_neon_level_volume_read_error:${readError}`,
+      );
+    }
+
+    if (!bright && nextReadCount >= NEON_RECHECK_TRIES + 1) {
+      const reason =
+        `stealth_neon_level_volume_not_bright_after_${NEON_RECHECK_TRIES}_rereads:` +
+        `colour=${colour ?? "unavailable"}`;
+      const saved = await updateStealthNeonLevelVolumeState({
+        candidate: claimed,
+        event: updatedEvent,
+        readyToFire: false,
+        volumeReadCount: nextReadCount,
+        nextVolumeCheckAtMs: null,
+        lastVolumeColour: colour,
+        claimToken: claim.claimToken,
+      });
+      if (saved) {
+        await blockNeonLevelQueueCandidate(
+          claimed.id,
+          claimed.symbol,
+          reason,
+        );
+      }
+      continue;
+    }
+
+    const nextCheck = bright
+      ? null
+      : nextNeonLevelVolumeCheckAt(updatedEvent, nextReadCount, Date.now());
+    const saved = await updateStealthNeonLevelVolumeState({
+      candidate: claimed,
+      event: updatedEvent,
+      readyToFire: bright,
+      volumeReadCount: nextReadCount,
+      nextVolumeCheckAtMs: nextCheck,
+      lastVolumeColour: colour,
+      claimToken: claim.claimToken,
+    });
+    if (!saved) {
+      logger.warn(
+        { symbol: claimed.symbol, candidateId: claimed.id },
+        "Stealth ABNeon volume check lost its database claim",
+      );
+      continue;
+    }
+    if (bright) {
+      rememberNeonLevelBreakout(updatedEvent);
+      logger.info(
+        {
+          symbol: claimed.symbol,
+          colour,
+          readCount: nextReadCount,
+          candidateId: claimed.id,
+        },
+        "Stealth ABNeon level breakout: bright after the persisted volume re-read",
+      );
+    }
+  }
+}
+
+/** Check every closed 4H candle from the last 24h; per-symbol progress retries failures. */
 async function runStealthNeonLevel(now = Date.now()): Promise<void> {
   if (!STEALTH_NEON_LEVEL_LIVE || stealthNeonLevelRunning) return;
-  const h4Start = Math.floor(now / NL_H4_MS) * NL_H4_MS - NL_H4_MS;
-  const closeAt = h4Start + NL_H4_MS;
-  if (h4Start <= stealthNeonLevelLastCandle) return;
-  if (now < closeAt + STEALTH_FH_SCAN_DELAY_MS) return;
+  const latestH4Start = Math.floor(now / NL_H4_MS) * NL_H4_MS - NL_H4_MS;
+  if (now < latestH4Start + NL_H4_MS + STEALTH_FH_SCAN_DELAY_MS) return;
+  if (
+    latestH4Start <= stealthNeonLevelLastCompletedCandle &&
+    neonLevelRetrySymbols.size === 0
+  ) {
+    return;
+  }
   stealthNeonLevelRunning = true;
-  const stats: Record<string, number> = { symbols: 0, errors: 0, cached: 0 };
+  const stats: Record<string, number> = {
+    symbols: 0,
+    errors: 0,
+    cached: 0,
+    candlesChecked: 0,
+    breakoutsQueued: 0,
+    notBright: 0,
+  };
   const passes: string[] = [];
   try {
     const tickers = await getFutureTickers();
     const symbols = tickers
       .filter(
-        (t) =>
-          t.symbol.endsWith("-USDT") &&
-          t.symbol !== "BTC-USDT" &&
-          !isAnalysisBlockedSymbol(t.symbol) &&
-          !isSignalSymbolExcluded(t.symbol),
+        (ticker) =>
+          ticker.symbol.endsWith("-USDT") &&
+          ticker.symbol !== "BTC-USDT" &&
+          !isAnalysisBlockedSymbol(ticker.symbol) &&
+          !isSignalSymbolExcluded(ticker.symbol),
       )
-      .map((t) => ({ symbol: t.symbol, qv: Number.parseFloat(t.quoteVolume) }));
+      .map((ticker) => ({
+        symbol: ticker.symbol,
+        qv: Number.parseFloat(ticker.quoteVolume),
+      }));
     if (symbols.length === 0) throw new Error("no BingX tickers");
     stats.symbols = symbols.length;
-    // Late scan (e.g. after a restart): ABNeon level events remain eligible for 24h after candle close.
-    const fire = now <= closeAt + STEALTH_NEON_LEVEL_EVENT_TTL_MS;
+    const earliestH4Start =
+      Math.ceil(
+        (now - STEALTH_NEON_LEVEL_EVENT_TTL_MS - NL_H4_MS) / NL_H4_MS,
+      ) * NL_H4_MS;
     let next = 0;
     const worker = async () => {
       while (next < symbols.length) {
         const { symbol, qv } = symbols[next++]!;
-        try {
-          if (neonLevelCandles.has(symbol)) stats.cached!++;
-          const candles = await neonLevel4hCandles(symbol, h4Start);
-          // Owner 2026-11-14: the levels are the DAILY ABNeon zones; the breakout stays the closed 4H candle.
-          const zoneDays = await abneonZoneDays(symbol, closeAt);
-          const dayZones = computeSupportZones(zoneDays);
-          const lastBar = candles.at(-1);
-          if (lastBar && lastBar.time === h4Start) {
-            const zones = dayZones;
-            const nearest = zones
-              .filter((z) => z.top > lastBar.close)
+        let symbolFailed = false;
+        let lastComplete = neonLevelSymbolLastCandle.get(symbol);
+        if (lastComplete === undefined) {
+          lastComplete = earliestH4Start - NL_H4_MS;
+          neonLevelSymbolLastCandle.set(symbol, lastComplete);
+        }
+        let firstStart = lastComplete + NL_H4_MS;
+        while (firstStart < earliestH4Start) {
+          const expiredCloseAt = firstStart + NL_H4_MS;
+          await recordNeonLevelReject(
+            symbol,
+            `stealth_neon_level_scan_retry_expired_after_24h:candle=${new Date(firstStart).toISOString()}`,
+          );
+          neonLevelSymbolLastCandle.set(symbol, firstStart);
+          lastComplete = firstStart;
+          firstStart = lastComplete + NL_H4_MS;
+          if (Date.now() <= expiredCloseAt + STEALTH_NEON_LEVEL_EVENT_TTL_MS) {
+            // The aligned lookback normally makes this unreachable; preserve
+            // the candle cursor if clock rounding ever places it inside TTL.
+            neonLevelSymbolLastCandle.set(symbol, lastComplete - NL_H4_MS);
+            break;
+          }
+        }
+        for (
+          let h4Start = firstStart;
+          h4Start <= latestH4Start;
+          h4Start += NL_H4_MS
+        ) {
+          const closeAt = h4Start + NL_H4_MS;
+          if (now > closeAt + STEALTH_NEON_LEVEL_EVENT_TTL_MS) {
+            await recordNeonLevelReject(
+              symbol,
+              `stealth_neon_level_scan_retry_expired_after_24h:candle=${new Date(h4Start).toISOString()}`,
+            );
+            neonLevelSymbolLastCandle.set(symbol, h4Start);
+            continue;
+          }
+          try {
+            if (neonLevelCandles.has(symbol)) stats.cached++;
+            const candles = await neonLevel4hCandles(symbol, h4Start);
+            const lastBar = candles.find((candle) => candle.time === h4Start);
+            if (!lastBar) throw new Error("closed_4h_candle_unavailable");
+
+            // ABNeon daily zones are evaluated as they stood when this 4H candle closed.
+            const zoneDays = await abneonZoneDays(symbol, closeAt);
+            const dayZones = computeSupportZones(zoneDays);
+            const nearest = dayZones
+              .filter((zone) => zone.top > lastBar.close)
               .sort((a, b) => a.top - b.top)[0];
-            const dist = nearest ? ((nearest.top - lastBar.close) / lastBar.close) * 100 : Infinity;
-            if (nearest && dist <= NEON_LEVEL_CANDIDATE_PCT) {
+            const distance = nearest
+              ? ((nearest.top - lastBar.close) / lastBar.close) * 100
+              : Infinity;
+            if (nearest && distance <= NEON_LEVEL_CANDIDATE_PCT) {
               neonLevelCandidates.set(symbol, {
                 symbol,
                 levelTop: nearest.top,
@@ -843,44 +1094,127 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
                 levelPivots: nearest.count,
                 candleClose: lastBar.close,
                 candleOpenAt: h4Start,
-                distancePct: dist,
-                updatedAt: Date.now(),
+                distancePct: distance,
+                updatedAt: now,
                 breakout: null,
               });
-            } else neonLevelCandidates.delete(symbol);
+            } else {
+              neonLevelCandidates.delete(symbol);
+            }
+
+            const cross = neonLevelCrossing4h(candles, h4Start, dayZones);
+            if (cross) {
+              const event: StealthNeonLevelQueueEvent = {
+                ...cross,
+                symbol,
+                detectedAt: now,
+                quoteVolume24h: Number.isFinite(qv) ? qv : null,
+                volumeColour: null,
+              };
+              rememberNeonLevelBreakout(event);
+              const queued = await persistStealthNeonLevelEvent({
+                event,
+                nowMs: now,
+              });
+              if (queued.status === "queued") {
+                stats.breakoutsQueued++;
+                if (
+                  !queued.readyToFire &&
+                  queued.volumeReadCount === 0 &&
+                  queued.event
+                ) {
+                  const read = await readNeonLevelVolumeColour(
+                    symbol,
+                    candles,
+                    false,
+                  );
+                  if (read.error) {
+                    await recordNeonLevelReject(
+                      symbol,
+                      `stealth_neon_level_initial_volume_read_error:${read.error}`,
+                    );
+                  }
+                  const volumeEvent: StealthNeonLevelQueueEvent = {
+                    ...queued.event,
+                    volumeColour: read.colour,
+                  };
+                  const bright = isNeonVsaBright(read.colour);
+                  const saved = await updateStealthNeonLevelVolumeState({
+                    candidate: queued,
+                    event: volumeEvent,
+                    readyToFire: bright,
+                    volumeReadCount: 1,
+                    nextVolumeCheckAtMs: bright
+                      ? null
+                      : nextNeonLevelVolumeCheckAt(
+                          volumeEvent,
+                          1,
+                          Date.now(),
+                        ),
+                    lastVolumeColour: read.colour,
+                  });
+                  if (!saved) {
+                    throw new Error("initial_volume_state_not_persisted");
+                  }
+                  if (bright) {
+                    rememberNeonLevelBreakout(volumeEvent);
+                    passes.push(`${symbol}:${cross.tf}:${read.colour}`);
+                  } else {
+                    stats.notBright++;
+                  }
+                } else if (queued.readyToFire) {
+                  passes.push(
+                    `${symbol}:${queued.event?.tf ?? cross.tf}:${queued.event?.volumeColour ?? "bright"}`,
+                  );
+                }
+              }
+            }
+            stats.candlesChecked++;
+            neonLevelSymbolLastCandle.set(symbol, h4Start);
+          } catch (error) {
+            stats.errors++;
+            const reason =
+              `stealth_neon_level_symbol_scan_error:${compactNeonLevelError(error)}`;
+            await recordNeonLevelReject(symbol, reason);
+            logger.warn(
+              { err: error, symbol, candle: new Date(h4Start).toISOString() },
+              "Stealth ABNeon level candle failed; this symbol/candle will retry",
+            );
+            // Do not advance this symbol's cursor. The next pass retries this same candle.
+            symbolFailed = true;
+            break;
           }
-          if (!fire) continue;
-          // Owner 2026-11-11: Stealth = the closed 4H candle closes above an ABNeon zone top on M/W
-          // aggregated futures volume. Aggregated volume is requested only for a price crossing.
-          const cross = neonLevelCrossing4h(candles, h4Start, dayZones);
-          if (!cross) continue;
-          // Owner 2026-11-15: Lucy's VSA as the indicator — futures + spot, 120 bars (was futures, 60 bars).
-          const agg4h = await getAggFuturesVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 20).catch(() => null);
-          const spot4h = agg4h ? await getAggSpotVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 20).catch(() => null) : null;
-          const colour = agg4h ? neonBreakoutColour(candles, agg4h, spot4h) : null;
-          if (!isNeonVsaBright(colour)) {
-            stats.notBright = (stats.notBright ?? 0) + 1;
-            stealthNeonRecheck.set(`${symbol}:${h4Start}`, { symbol, h4Start, cross, candles, qv, tries: 0, next: closeAt + NEON_RECHECK_MS });
-            continue;
-          }
-          queueNeonLevelEvent(symbol, cross, colour, qv);
-          passes.push(`${symbol}:${cross.tf}`);
-        } catch {
-          stats.errors!++;
         }
+        if (symbolFailed) neonLevelRetrySymbols.add(symbol);
+        else neonLevelRetrySymbols.delete(symbol);
       }
     };
     await Promise.all(Array.from({ length: 6 }, () => worker()));
-    stealthNeonLevelLastCandle = h4Start;
+    stealthNeonLevelLastCompletedCandle = latestH4Start;
     logger.info(
-      { candle: new Date(h4Start).toISOString(), stats, passes, fired: fire, durationMs: Date.now() - now },
+      {
+        candle: new Date(latestH4Start).toISOString(),
+        lookbackFrom: new Date(earliestH4Start).toISOString(),
+        stats,
+        passes,
+        durationMs: Date.now() - now,
+      },
       "Stealth ABNeon level breakout scan done (4H / 1D)",
     );
-  } catch (err) {
-    logger.warn({ err, candle: new Date(h4Start).toISOString() }, "Stealth ABNeon level breakout scan failed; retrying");
+  } catch (error) {
+    logger.warn(
+      { err: error, candle: new Date(latestH4Start).toISOString() },
+      "Stealth 4H/1D ABNeon level scan failed; retrying",
+    );
   } finally {
     stealthNeonLevelRunning = false;
   }
+}
+
+async function runStealthNeonLevelWork(now = Date.now()): Promise<void> {
+  if (!STEALTH_NEON_LEVEL_LIVE) return;
+  await runStealthNeonLevel(now);
+  await runStealthNeonRecheck(now);
 }
 const STEALTH_FH_SCAN_DELAY_MS = 45_000;
 const STEALTH_FH_HOUR_MS = 60 * 60_000;
@@ -8010,6 +8344,35 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         if (confirmedFireSet.has(res.symbol)) {
           let neonSupportClaim: { id: number; token: string } | null = null;
           let firedSignalRowId: number | null = null;
+          const neonLevelCandidateId = neonLevelQueueCandidateId(
+            res.decisionMetrics,
+          );
+          let neonLevelBroadcastQueued = false;
+          const blockNeonLevelCandidate = async (reason: string) => {
+            if (neonLevelCandidateId === null) return;
+            const updated = await finishStealthNeonLevelCandidate({
+              id: neonLevelCandidateId,
+              status: "blocked",
+              reason,
+            }).catch((error) => {
+              logger.error(
+                {
+                  err: error,
+                  symbol: res.symbol,
+                  candidateId: neonLevelCandidateId,
+                  reason,
+                },
+                "Stealth ABNeon queue block transition failed",
+              );
+              return false;
+            });
+            if (!updated) {
+              logger.warn(
+                { symbol: res.symbol, candidateId: neonLevelCandidateId, reason },
+                "Stealth ABNeon queue row was not transitioned to blocked",
+              );
+            }
+          };
           try {
             // ── Spot volume gate ─────────────────────────────────────────────────
             // Основной: спот-объём >= 1% MCap (универсальный гейт, везде без исключений).
@@ -8325,6 +8688,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             // Bullish Accumulation row, including future fallback/confirmation
             // paths added independently of the main detector.
             if (isPreservedDecommissionedPattern(res.sentimentKey)) {
+              await blockNeonLevelCandidate("pattern_decommissioned");
               if (res.sentimentKey !== "balanced_grind")
                 _symRej(
                   res.symbol,
@@ -8382,12 +8746,15 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 !(canonicalFire.entryPrice * 0.997 > _fhStop)
               ) {
                 skipCount.noConfirming++;
+                const stopReason =
+                  _fhStop === null
+                    ? "stealth_fh_stop_missing"
+                    : "stealth_fh_price_at_or_below_stop";
+                await blockNeonLevelCandidate(stopReason);
                 _symRej(
                   res.symbol,
                   "stealth_breakout",
-                  _fhStop === null
-                    ? "stealth_fh_stop_missing"
-                    : "stealth_fh_price_at_or_below_stop",
+                  stopReason,
                   res.globalOiChange ?? null,
                   res.volumeMultiplier ?? null,
                   res.price24hChange ?? null,
@@ -8505,7 +8872,10 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               // broadcast_window_key: уникальный ключ "symbol:30min_bucket" — ON CONFLICT DO NOTHING
               // гарантирует что только один сигнал для данной монеты попадёт в БД за 30 минут,
               // даже если scanner + watcher + два PID гонятся одновременно.
-              const _bwKey = `${res.symbol}:${Math.floor(Date.now() / (30 * 60 * 1000))}`;
+              const _bwKey =
+                neonLevelCandidateId !== null
+                  ? `${res.symbol}:stealth-neon-level:${neonLevelCandidateId}`
+                  : `${res.symbol}:${Math.floor(Date.now() / (30 * 60 * 1000))}`;
               let _rows = await dbWriteStrict(
                 "signals/confirmed-fire-insert",
                 () =>
@@ -8578,6 +8948,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   prescanTracker.get(res.symbol)?.cycleCount ?? null,
                   "blocked",
                 );
+                await blockNeonLevelCandidate("broadcast_window_duplicate");
 
                 if (neonSupportClaim !== null) {
                   await terminalizeAbneonSupportBounceClaim({
@@ -8614,6 +8985,11 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             }
             if (!inserted) {
               skipCount.noConfirming++;
+              if (signalInsertFailure === "nonretryable") {
+                await blockNeonLevelCandidate(
+                  `signal_insert_failed:${signalInsertErrMsg}`,
+                );
+              }
               _symRej(
                 res.symbol,
                 res.sentimentKey,
@@ -8698,6 +9074,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               sentiment: res.sentiment,
               sentimentKey: res.sentimentKey,
               stealthDetectionMethod: res.stealthDetectionMethod ?? null,
+              allowConcurrentOtherPatternSameSymbol:
+                neonLevelCandidateId !== null,
               alphaScore: res.alphaScore,
               entrySource:
                 res.sentimentKey === "neon_support_bounce"
@@ -8843,6 +9221,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 prescanTracker.get(res.symbol)?.cycleCount ?? null,
                 "blocked",
               );
+              await blockNeonLevelCandidate(
+                "confirmed_fire_duplicate_or_post_pump",
+              );
               return;
             }
             if (tracked !== "reentry") {
@@ -8941,7 +9322,37 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                   reason: "telegram_enqueue_retryable_failure",
                 }).catch(() => false);
               }
+              if (neonLevelCandidateId !== null) {
+                _symRej(
+                  res.symbol,
+                  "stealth_breakout",
+                  "stealth_neon_level_telegram_enqueue_failed",
+                  res.globalOiChange ?? null,
+                  res.volumeMultiplier ?? null,
+                  res.price24hChange ?? null,
+                  prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                  "deferred",
+                );
+              }
               return;
+            }
+            if (neonLevelCandidateId !== null) {
+              neonLevelBroadcastQueued = true;
+              const markedFired = await finishStealthNeonLevelCandidate({
+                id: neonLevelCandidateId,
+                status: "fired",
+                reason: `signal:${inserted.id}:telegram_outbox_queued`,
+              });
+              if (!markedFired) {
+                logger.error(
+                  {
+                    symbol: res.symbol,
+                    candidateId: neonLevelCandidateId,
+                    signalId: inserted.id,
+                  },
+                  "Stealth ABNeon signal queued but durable event did not transition to fired",
+                );
+              }
             }
             await dbWriteStrict("signals/alert-queued", () =>
               db
@@ -8988,6 +9399,36 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
               "✅ CONFIRMED FIRE: сигнал выдан напрямую (без watching-очереди)",
             );
           } catch (err) {
+            if (neonLevelCandidateId !== null) {
+              const fireErrorReason =
+                `stealth_neon_level_fire_exception:${compactNeonLevelError(err)}`;
+              if (neonLevelBroadcastQueued && firedSignalRowId !== null) {
+                await finishStealthNeonLevelCandidate({
+                  id: neonLevelCandidateId,
+                  status: "fired",
+                  reason: `signal:${firedSignalRowId}:telegram_outbox_queued`,
+                }).catch((markError) =>
+                  logger.error(
+                    {
+                      err: markError,
+                      symbol: res.symbol,
+                      candidateId: neonLevelCandidateId,
+                    },
+                    "Stealth ABNeon fired state recovery failed",
+                  ),
+                );
+              }
+              _symRej(
+                res.symbol,
+                "stealth_breakout",
+                fireErrorReason,
+                res.globalOiChange ?? null,
+                res.volumeMultiplier ?? null,
+                res.price24hChange ?? null,
+                prescanTracker.get(res.symbol)?.cycleCount ?? null,
+                "deferred",
+              );
+            }
             if (neonSupportClaim !== null) {
               await releaseAbneonSupportBounceClaim({
                 ...neonSupportClaim,
@@ -15215,34 +15656,144 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     }
   }
   // ── Stealth = ABNeon resistance breakout on closed 4H / 1D (owner 2026-11-06) ──────────────────
-  if (STEALTH_NEON_LEVEL_LIVE && stealthNeonLevelQueue.size > 0) {
-    const _nlNow = Date.now();
-    const _nlEvents = [...stealthNeonLevelQueue.entries()];
-    stealthNeonLevelQueue.clear();
-    for (const [key, ev] of _nlEvents) {
-      const closeAt = ev.tf === "4h" ? ev.candleTime + NL_H4_MS : ev.candleTime + 24 * 60 * 60_000;
-      if (_nlNow - closeAt > STEALTH_NEON_LEVEL_EVENT_TTL_MS) {
-        _symRej(ev.symbol, "stealth_breakout", "stealth_neon_level_event_expired_before_fire", null, null, null, null, "blocked");
+  if (STEALTH_NEON_LEVEL_LIVE) {
+    const neonLevelSymbolsQueuedThisCycle = new Set<string>();
+    let queuedEvents: PersistedStealthNeonLevelEvent[];
+    try {
+      queuedEvents = await listReadyStealthNeonLevelEvents(100);
+    } catch (error) {
+      logger.error(
+        { err: error },
+        "Stealth ABNeon database queue read failed; queued events remain durable",
+      );
+      queuedEvents = [];
+    }
+    for (const queued of queuedEvents) {
+      const ev = queued.event;
+      if (!ev) {
+        const reason = "stealth_neon_level_queue_payload_invalid";
+        await finishStealthNeonLevelCandidate({
+          id: queued.id,
+          status: "blocked",
+          reason,
+        }).catch((error) =>
+          logger.error(
+            { err: error, candidateId: queued.id },
+            "Stealth ABNeon invalid queue row could not be blocked",
+          ),
+        );
+        _symRej(
+          queued.symbol,
+          "stealth_breakout",
+          reason,
+          null,
+          null,
+          null,
+          null,
+          "blocked",
+        );
         continue;
       }
+      const closeAt = stealthNeonLevelEventCloseAt(ev);
+      if (Date.now() > closeAt + STEALTH_NEON_LEVEL_EVENT_TTL_MS) {
+        const reason = "stealth_neon_level_event_expired_before_fire";
+        await finishStealthNeonLevelCandidate({
+          id: queued.id,
+          status: "blocked",
+          reason,
+        }).catch((error) =>
+          logger.error(
+            { err: error, symbol: ev.symbol, candidateId: queued.id },
+            "Expired Stealth ABNeon queue row could not be blocked",
+          ),
+        );
+        _symRej(
+          ev.symbol,
+          "stealth_breakout",
+          reason,
+          null,
+          null,
+          null,
+          null,
+          "blocked",
+        );
+        continue;
+      }
+      if (neonLevelSymbolsQueuedThisCycle.has(ev.symbol)) continue;
       try {
-        const already = await db
-          .select({ id: trackedSignalsTable.id })
+        const activeStealth = await db
+          .select({
+            id: trackedSignalsTable.id,
+            decisionMetrics: trackedSignalsTable.decisionMetrics,
+          })
           .from(trackedSignalsTable)
           .where(
             and(
               eq(trackedSignalsTable.symbol, ev.symbol),
               eq(trackedSignalsTable.sentimentKey, "stealth_breakout"),
-              gte(trackedSignalsTable.detectedAt, new Date(closeAt)),
+              inArray(trackedSignalsTable.status, ["active", "in_run"]),
             ),
           )
-          .limit(1);
-        if (already.length > 0) continue;
-      } catch (err) {
-        logger.warn({ err, symbol: ev.symbol }, "Stealth ABNeon level duplicate check failed; event re-queued");
-        stealthNeonLevelQueue.set(key, ev);
+          .limit(20);
+        if (activeStealth.length > 0) {
+          const alreadyThisCandidate = activeStealth.some((signal) => {
+            const metrics = signal.decisionMetrics;
+            if (!metrics || typeof metrics !== "object") return false;
+            const level = (metrics as Record<string, unknown>)
+              .stealthNeonLevel;
+            return (
+              !!level &&
+              typeof level === "object" &&
+              (level as Record<string, unknown>).queueCandidateKey ===
+                queued.candidateKey
+            );
+          });
+          if (alreadyThisCandidate) {
+            await finishStealthNeonLevelCandidate({
+              id: queued.id,
+              status: "fired",
+              reason: "recovered_active_signal_for_same_candidate",
+            });
+            continue;
+          }
+          const reason = "stealth_neon_level_active_stealth_duplicate";
+          await finishStealthNeonLevelCandidate({
+            id: queued.id,
+            status: "blocked",
+            reason,
+          });
+          _symRej(
+            ev.symbol,
+            "stealth_breakout",
+            reason,
+            null,
+            null,
+            null,
+            null,
+            "blocked",
+          );
+          continue;
+        }
+      } catch (error) {
+        const reason =
+          `stealth_neon_level_duplicate_check_error:${compactNeonLevelError(error)}`;
+        logger.warn(
+          { err: error, symbol: ev.symbol, candidateId: queued.id },
+          "Stealth ABNeon active-duplicate check failed; event remains queued",
+        );
+        _symRej(
+          ev.symbol,
+          "stealth_breakout",
+          reason,
+          null,
+          null,
+          null,
+          null,
+          "deferred",
+        );
         continue;
       }
+      neonLevelSymbolsQueuedThisCycle.add(ev.symbol);
       const tfLabel = neonLevelTfLabel(ev.tf);
       const p = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? "—" : v.toPrecision(6));
       const _nlOi = coinglassOIMap.get(ev.symbol) ?? null;
@@ -15309,6 +15860,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             zones: ev.zones,
             stopPrice: ev.stopPrice,
             detectedAt: new Date(ev.detectedAt).toISOString(),
+            queueCandidateId: queued.id,
+            queueCandidateKey: queued.candidateKey,
           },
         },
       });
@@ -16156,8 +16709,21 @@ export async function startScanner(): Promise<void> {
   }
   if (STEALTH_NEON_LEVEL_LIVE && !stealthNeonLevelTimer) {
     stealthNeonLevelTimer = setInterval(() => {
-      void runStealthNeonLevel();
-      void runStealthNeonRecheck();
+      void withSchedulerLease(
+        STEALTH_NEON_LEVEL_DISCOVERY_LEASE,
+        "stealth-neon-level-discovery",
+        async () => runStealthNeonLevelWork(Date.now()),
+        {
+          ttlMs: 4 * 60_000,
+          heartbeatMs: 20_000,
+          releaseTimeoutMs: 3_000,
+        },
+      ).catch((error) => {
+        logger.warn(
+          { err: error },
+          "Stealth ABNeon level discovery lease failed; retrying",
+        );
+      });
     }, 30_000);
     stealthNeonLevelTimer.unref();
   }
