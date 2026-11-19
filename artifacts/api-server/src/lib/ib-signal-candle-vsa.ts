@@ -41,16 +41,22 @@ export function lucyVsa30m(
   fut15: ReadonlyMap<number, number>,
   spot15: ReadonlyMap<number, number> | null,
   candleStart: number,
-): { colour: string | null; volAvg120: number | null } {
+): { colour: string | null; volAvg120: number | null; reason: string | null } {
   const vol: number[] = [];
   for (let k = LUCY_LONG_BARS - 1; k >= 0; k--) {
     const v = bar30(fut15, spot15, candleStart - k * M30);
-    if (v === null) return { colour: null, volAvg120: null };
+    if (v === null) return { colour: null, volAvg120: null, reason: "short_aggregated_history" };
     vol.push(v);
   }
   const mean = vol.reduce((sum, value) => sum + value, 0) / vol.length;
-  const volAvg120 = Number.isFinite(mean) && mean > 0 ? vol[vol.length - 1]! / mean : null;
-  return { colour: lucyColour(vol, vol.length - 1), volAvg120 };
+  if (!Number.isFinite(mean) || mean <= 0) {
+    return { colour: null, volAvg120: null, reason: "zero_aggregated_volume_baseline" };
+  }
+  return {
+    colour: lucyColour(vol, vol.length - 1),
+    volAvg120: vol[vol.length - 1]! / mean,
+    reason: null,
+  };
 }
 
 /** Backward-compatible colour-only helper. */
@@ -78,7 +84,13 @@ export function ibSignalCandleVsaFromAggregatedVolume(
 ): IbCandleVsa {
   const reading = lucyVsa30m(fut15, spot15, candleStart);
   if (reading.colour === null) {
-    return { colour: null, climax: false, volAvg120: null, lowVolume: false, reason: "short_aggregated_history" };
+    return {
+      colour: null,
+      climax: false,
+      volAvg120: null,
+      lowVolume: false,
+      reason: reading.reason ?? "short_aggregated_history",
+    };
   }
   return {
     colour: reading.colour,
