@@ -595,6 +595,8 @@ const STEALTH_FH_EVENT_TTL_MS = 30 * 60_000;
 // ── Stealth = ABNeon resistance breakout on closed 4H / 1D (owner 2026-11-06) ──────────────────────
 // Own timer, own candle cache: the main scan cycle is not touched and does not get longer.
 const STEALTH_NEON_LEVEL_LIVE = true as boolean;
+/** ABNeon level breakouts remain eligible for firing for 24h after the breakout candle closes. */
+const STEALTH_NEON_LEVEL_EVENT_TTL_MS = 24 * 60 * 60_000;
 // Owner 2026-11-11: the live event is the 4H ABNeon-zone breakout on M/W aggregated volume (no Auto Range).
 type NeonLevelEvent = NeonLevelBreakout & {
   range?: NeonRangeBreakout["range"];
@@ -762,7 +764,13 @@ async function runStealthNeonRecheck(now = Date.now()): Promise<void> {
   const fired: string[] = [];
   try {
     for (const [key, r] of [...stealthNeonRecheck]) {
-      if (now - (r.h4Start + NL_H4_MS) > STEALTH_FH_EVENT_TTL_MS) { stealthNeonRecheck.delete(key); continue; }
+      if (
+        now - (r.h4Start + NL_H4_MS) >
+        STEALTH_NEON_LEVEL_EVENT_TTL_MS
+      ) {
+        stealthNeonRecheck.delete(key);
+        continue;
+      }
       if (now < r.next) continue;
       r.tries++;
       r.next += NEON_RECHECK_MS;
@@ -808,8 +816,8 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
       .map((t) => ({ symbol: t.symbol, qv: Number.parseFloat(t.quoteVolume) }));
     if (symbols.length === 0) throw new Error("no BingX tickers");
     stats.symbols = symbols.length;
-    // Late scan (e.g. after a restart): history is still cached, but events would be stale.
-    const fire = now <= closeAt + STEALTH_FH_EVENT_TTL_MS;
+    // Late scan (e.g. after a restart): ABNeon level events remain eligible for 24h after candle close.
+    const fire = now <= closeAt + STEALTH_NEON_LEVEL_EVENT_TTL_MS;
     let next = 0;
     const worker = async () => {
       while (next < symbols.length) {
@@ -15194,7 +15202,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
     stealthNeonLevelQueue.clear();
     for (const [key, ev] of _nlEvents) {
       const closeAt = ev.tf === "4h" ? ev.candleTime + NL_H4_MS : ev.candleTime + 24 * 60 * 60_000;
-      if (_nlNow - closeAt > STEALTH_FH_EVENT_TTL_MS) {
+      if (_nlNow - closeAt > STEALTH_NEON_LEVEL_EVENT_TTL_MS) {
         _symRej(ev.symbol, "stealth_breakout", "stealth_neon_level_event_expired_before_fire", null, null, null, null, "blocked");
         continue;
       }
