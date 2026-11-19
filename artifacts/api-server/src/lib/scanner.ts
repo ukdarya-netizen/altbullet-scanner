@@ -1,5 +1,5 @@
-import { LUCY_LONG_BARS, touchVolumeNotGrey } from "./abneon-volume-gate.js";
-import { ABNEON_LOW_BOUNCE_LIVE, ABNEON_RULE_VERSION, entryReadings, resistancesAbove, ruleEntryOnArm } from "./abneon-rule-entry.js";
+import { LUCY_LONG_BARS, lucyBuyerAt4hCandle, touchVolumeNotGrey } from "./abneon-volume-gate.js";
+import { ABNEON_ARM_WINDOW_H, ABNEON_LOW_BOUNCE_LIVE, ABNEON_RULE_VERSION, entryReadings, resistancesAbove, ruleEntryOnArm } from "./abneon-rule-entry.js";
 import { abneonStop, findLowBounce, lowBouncePriceCandidate } from "./abneon-low-bounce.js";
 import {
   getStealthOi4hAtBreakout,
@@ -6858,11 +6858,10 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           support = runSupport(volumed1h);
         }
       }
-      // Owner 2026-11-12: ABNeon entry by the trading rules of a bounce (R8, lib/abneon-rule-entry.ts) — replaces the
-      // detector's own trigger, the 1%-above-the-zone limit and the pre-touch count. On an armed zone: the test
-      // (1H low to the zone top +2%), the entry on the first green 1H close at or above the zone bottom within 8 h of
-      // the test low, Lucy's VSA on the touch (futures + spot); void on a 4H close under the zone or 48 h after the
-      // arm. A signal only on the 1H candle that just closed (no late entries).
+      // ABNeon R8 v2: wait up to 14 days from arm. Lucy buyer = any closed 4H candle from the touch onward that is
+      // non-grey and closes above its midpoint; entry = a green closed 1H candle at/above the zone bottom, no earlier
+      // than the buyer close. If an eligible 1H candle is stale, wait for the next eligible one. A 4H close below
+      // the zone still voids the setup.
       const detectorSupport = support;
       const r8Arm =
         arm != null
@@ -6874,28 +6873,43 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             : null;
       if (r8Arm) {
         const r8Zone = resolveFrozenZone(zoneDays, r8Arm.armedAt, r8Arm.level, ABNEON_D1_MS);
+        let r8Candles1h = closed1h;
+        const r8Deadline = r8Arm.armedAt + ABNEON_ARM_WINDOW_H * 3_600_000;
+        if (
+          Date.now() <= r8Deadline &&
+          (r8Candles1h.length === 0 || r8Candles1h[0]!.time > r8Arm.armedAt)
+        ) {
+          const extendedRows = await getKlines(
+            symbol,
+            "1h",
+            ABNEON_ARM_WINDOW_H + 24,
+          ).catch(() => []);
+          const extended = normalizeClosedBreakoutCandles(extendedRows);
+          if (extended.length) {
+            const byTime = new Map([...r8Candles1h, ...extended].map((c) => [c.time, c]));
+            r8Candles1h = [...byTime.values()].sort((a, b) => a.time - b.time);
+          }
+        }
         let lucyVol: Promise<[Map<number, number> | null, Map<number, number> | null]> | null = null;
         const rule = await ruleEntryOnArm({
-          candles1h: closed1h,
+          candles1h: r8Candles1h,
           candles4h: closed4h,
           zone: { bottom: r8Zone.bottom, top: r8Zone.top },
           armTime: r8Arm.armedAt,
           nowMs: Date.now(),
-          lucy: async (triggerCandleTime, closeAt) => {
+          lucy: async (buyer4hCandleTime, closeAt) => {
+            const historyBars = LUCY_LONG_BARS + Math.ceil(ABNEON_ARM_WINDOW_H / 4) + 4;
             lucyVol ??= Promise.all([
-              getAggFuturesVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
-              getAggSpotVolumeByInterval(symbol, "4h", LUCY_LONG_BARS + 40).catch(() => null),
+              getAggFuturesVolumeByInterval(symbol, "4h", historyBars).catch(() => null),
+              getAggSpotVolumeByInterval(symbol, "4h", historyBars).catch(() => null),
             ]);
             const [agg4h, spot4h] = await lucyVol;
             return agg4h
-              ? touchVolumeNotGrey({
-                  candles1h: closed1h,
+              ? lucyBuyerAt4hCandle({
                   candles4h: closed4h,
                   agg4hUsdByTime: agg4h,
                   spot4hUsdByTime: spot4h,
-                  armCandleTime: r8Arm.armedAt,
-                  triggerCandleTime,
-                  zoneTop: r8Arm.level,
+                  candleOpenTime: buyer4hCandleTime,
                   nowMs: closeAt,
                 })
               : { ok: false, reason: "no_aggregated_volume", colours: [] };
@@ -6907,7 +6921,7 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           detectorStatus: detectorSupport.status,
           detectorReason: detectorSupport.reason,
         };
-        const lastClosed1h = closed1h[closed1h.length - 1]?.time ?? null;
+        const lastClosed1h = r8Candles1h[r8Candles1h.length - 1]?.time ?? null;
         if (rule.status === "entry" && rule.candleTime === lastClosed1h) {
           // Readings for sorting later by takers, delta and open interest (owner): recorded only.
           const [futTk, spotTk, oiHist] = await Promise.all([
@@ -6930,6 +6944,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
             entryAboveTopPct: Math.round(((rule.entry / r8Zone.top - 1) * 100) * 100) / 100,
             testTime: rule.testTime,
             testLow: rule.testLow,
+            buyerCandleTime: rule.buyerCandleTime,
+            buyerCloseAt: rule.buyerCloseAt,
             hoursFromTestLow: (rule.closeAt - rule.testLowAt) / 3_600_000,
             touchColours: rule.touch.colours.join(""),
             readings,
@@ -6952,6 +6968,8 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
                 testTime: rule.testTime,
                 testLow: rule.testLow,
                 testLowAt: rule.testLowAt,
+                buyerCandleTime: rule.buyerCandleTime,
+                buyerCloseAt: rule.buyerCloseAt,
                 hoursFromTestLow: (rule.closeAt - rule.testLowAt) / 3_600_000,
                 readings,
               },
@@ -6960,11 +6978,12 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
         } else if (rule.status === "entry") {
           support = {
             ...support,
-            status: "terminal",
-            reason: "rule_entry_passed",
+            status: "armed",
+            reason: "rule_waiting_entry_not_fresh",
             frozenLevel: r8Arm.level,
             armCandleTime: r8Arm.armedAt,
-            evidence: { ...(support.evidence ?? {}), ruleEntry: { ...ruleBase, passedEntryCandle: rule.candleTime } },
+            triggerCandleTime: null,
+            evidence: { ...(support.evidence ?? {}), ruleEntry: { ...ruleBase, waiting: "entry_not_fresh", skippedEntryCandle: rule.candleTime, buyerCandleTime: rule.buyerCandleTime, buyerCloseAt: rule.buyerCloseAt } },
           };
         } else if (rule.status === "void") {
           support = {

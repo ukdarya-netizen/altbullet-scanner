@@ -64,10 +64,8 @@ export function preTouchBlueCount(input: {
 
 /**
  * Owner 2026-11-12: colours by Lucy's VSA rule (lucyColour) on futures + spot — see below.
- * ABNeon touch volume (owner 2026-11-10, replaces the pre-touch gate as the blocking rule): the 4H candle
- * of the first touch of the zone or one of the next two 4H candles — only those already closed — is not
- * grey on Welkin VSA (volume above its 20-bar average, or ≥ 1.25× the previous bar), on CoinGlass
- * aggregated futures volume. No aggregated volume for those bars → no signal (aggregated data only).
+ * Legacy finite-window touch check used by research/reconciliation callers. Live R8 uses
+ * `lucyBuyerAt4hCandle` below so it can keep waiting for any later closed 4H buyer candle.
  * Welkin colours as on the owner's charts: W > avg+4σ, M > +3σ, O > +2σ, A > avg, Y ≥ 1.25× previous, N grey.
  */
 const H4 = 4 * H1;
@@ -132,6 +130,41 @@ export function totalUsd(fut: ReadonlyMap<number, number>, spot: ReadonlyMap<num
   if (!(f != null && f > 0)) return null;
   const s = spot?.get(time);
   return f + (s != null && s > 0 ? s : 0);
+}
+
+/** Lucy's VSA check for one exact closed 4H buyer candle; missing aggregate data is a wait, not a rejection. */
+export function lucyBuyerAt4hCandle(input: {
+  candles4h: readonly { time: number; open: number; high: number; low: number; close: number }[];
+  agg4hUsdByTime: ReadonlyMap<number, number>;
+  spot4hUsdByTime?: ReadonlyMap<number, number> | null;
+  candleOpenTime: number;
+  nowMs: number;
+}): TouchVolume {
+  const candles = [...input.candles4h].sort((a, b) => a.time - b.time);
+  const index = candles.findIndex((c) => c.time === input.candleOpenTime);
+  if (index < 0) return { ok: false, reason: "no_trigger", colours: [] };
+  const candle = candles[index]!;
+  if (candle.time + H4 > input.nowMs) return { ok: false, reason: "touch_bar_not_closed", colours: [] };
+  const first = index - (LUCY_LONG_BARS - 1);
+  if (first < 0) return { ok: false, reason: "short_history", colours: [] };
+  const volume: number[] = [];
+  for (let j = first; j <= index; j++) {
+    const current = candles[j]!;
+    if (j > first && current.time - candles[j - 1]!.time !== H4) {
+      return { ok: false, reason: "short_history", colours: [] };
+    }
+    const usd = totalUsd(input.agg4hUsdByTime, input.spot4hUsdByTime, current.time);
+    if (!(usd != null && current.close > 0)) {
+      return { ok: false, reason: "no_aggregated_volume", colours: [] };
+    }
+    volume.push(usd);
+  }
+  const colour = lucyColour(volume, volume.length - 1);
+  if (colour === "N") return { ok: false, reason: "touch_volume_grey", colours: [colour] };
+  if (!closesAboveMiddle(candle)) {
+    return { ok: false, reason: "touch_volume_no_buying", colours: [colour] };
+  }
+  return { ok: true, colours: [colour], firstTouchTime: candle.time };
 }
 
 export function touchVolumeNotGrey(input: {

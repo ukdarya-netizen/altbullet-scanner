@@ -1,6 +1,6 @@
 import { pool } from "@workspace/db";
-import { LUCY_LONG_BARS, touchVolumeNotGrey } from "./abneon-volume-gate.js";
-import { ABNEON_RULE_VERSION, resistancesAbove, ruleEntryOnArm } from "./abneon-rule-entry.js";
+import { LUCY_LONG_BARS, lucyBuyerAt4hCandle } from "./abneon-volume-gate.js";
+import { ABNEON_ARM_WINDOW_H, ABNEON_RULE_VERSION, resistancesAbove, ruleEntryOnArm } from "./abneon-rule-entry.js";
 import { computeSupportZones, resolveFrozenZone } from "./stealth-abneon-detectors.js";
 import { getKlinesRange } from "./bingx.js";
 import { getAggFuturesVolumeByInterval } from "./coinglass_taker.js";
@@ -60,7 +60,7 @@ async function verdictFor(symbol: string, detectedAt: Date, lowBounceRow: boolea
   if (e.low_bounce) return { verdict: "close", detail: "bounce from a fresh low (not in the new rules)", r8EntryAt: null, resistances: null };
   const arm = new Date(e.armed_at).getTime();
   const level = Number(e.frozen_level);
-  const end = Math.min(Date.now(), arm + 50 * H1);
+  const end = Math.min(Date.now(), arm + ABNEON_ARM_WINDOW_H * H1);
   const start4h = arm - 700 * H4;
   const bars4h = Math.min(4500, Math.ceil((Date.now() - (arm - (LUCY_LONG_BARS + 20) * H4)) / H4) + 5);
   const [k4, k1, fut, spot] = await Promise.all([
@@ -80,9 +80,9 @@ async function verdictFor(symbol: string, detectedAt: Date, lowBounceRow: boolea
     zone: { bottom: zone.bottom, top: zone.top },
     armTime: arm,
     nowMs: end,
-    lucy: async (triggerCandleTime, closeAt) => touchVolumeNotGrey({
-      candles1h: c1, candles4h: c4, agg4hUsdByTime: fut, spot4hUsdByTime: spot,
-      armCandleTime: arm, triggerCandleTime, zoneTop: level, nowMs: closeAt,
+    lucy: async (buyer4hCandleTime, closeAt) => lucyBuyerAt4hCandle({
+      candles4h: c4, agg4hUsdByTime: fut, spot4hUsdByTime: spot,
+      candleOpenTime: buyer4hCandleTime, nowMs: closeAt,
     }),
   });
   if (rule.status === "waiting") {

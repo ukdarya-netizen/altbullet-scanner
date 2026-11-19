@@ -6,13 +6,13 @@
  * On an armed ABNeon zone (the detector's frozen level, the zone resolved as the detector holds it):
  *   - the test: a closed 1H candle after the arm whose low reaches the zone top +2% (a sweep under the zone is
  *     allowed — liquidity grab);
- *   - the entry: the FIRST closed green 1H candle that closes at or above the zone bottom, at most 8 hours after the
- *     lowest low of the test (a later lower low is a new test); no limit on how far above the zone it closes;
- *   - Lucy's VSA on the touch: the touch 4H candle or one of the next two not grey and closing above its middle
- *     (buying; futures + spot). Owner 2026-11-15 («ожидание до появления объёмов»): while any of the three 4H candles
- *     is still open and no buying has shown yet, the setup WAITS — the next green 1H candle is checked again; only when
- *     all three have closed without buying is the setup void;
- *   - void: a closed 4H candle under the zone bottom, or 48 h after the arm without an entry.
+ *   - buyer: the touch 4H candle, if it closes after the touch, or any later closed 4H candle whose Lucy VSA
+ *     colour is not grey and whose close is above the candle midpoint (futures + spot);
+ *   - entry: the first closed green 1H candle closing at or above the zone bottom and no earlier than the buyer
+ *     candle's close; only the latest closed 1H candle may fire, so a missed eligible candle is followed by a wait
+ *     for the next eligible candle;
+ *   - void: a closed 4H candle under the zone bottom, or 14 days after the arm without an entry. Missing 4H
+ *     aggregate volume skips that buyer candle and keeps the setup waiting.
  * Exit (owner, variant B): take at the nearest resistance — the bottom of the nearest ABNeon zone above the entry;
  *   no zone above → the usual ABNeon exit (B.U. +10%, trailing from +20% at 20 p.p.). Stop −6% from the entry and
  *   the cancel on a 4H close under the zone stay.
@@ -22,23 +22,29 @@ import type { TouchVolume } from "./abneon-volume-gate.js";
 
 const H1 = 3_600_000;
 const H4 = 4 * H1;
-export const ABNEON_RULE_VERSION = "abneon-r8-v1";
-export const ABNEON_REACTION_WINDOW_H = 8;
-export const ABNEON_ARM_WINDOW_H = 48;
+export const ABNEON_RULE_VERSION = "abneon-r8-v2";
+export const ABNEON_ARM_WINDOW_H = 14 * 24;
 export const ABNEON_TOUCH_ABOVE_TOP = 1.02;
 /** Owner 2026-11-12: the bounce from a fresh low is off with R8. */
 export const ABNEON_LOW_BOUNCE_LIVE = false;
 
 type Bar = { time: number; open: number; high: number; low: number; close: number };
+type RuleWaitingReason =
+  | "no_test_yet"
+  | "waiting_for_buyer"
+  | "awaiting_buyer_data"
+  | "no_reaction_yet"
+  | "awaiting_touch_4h_close"
+  | "entry_not_fresh";
 
 export type RuleEntryResult =
-  | { status: "entry"; candleTime: number; closeAt: number; entry: number; testTime: number; testLow: number; testLowAt: number; touch: TouchVolume & { ok: true } }
+  | { status: "entry"; candleTime: number; closeAt: number; entry: number; testTime: number; testLow: number; testLowAt: number; buyerCandleTime: number; buyerCloseAt: number; touch: TouchVolume & { ok: true } }
   | { status: "void"; reason: string; colours?: string[] }
-  | { status: "waiting"; reason: "no_test_yet" | "no_reaction_yet" | "awaiting_touch_4h_close" | "awaiting_touch_volume" };
+  | { status: "waiting"; reason: RuleWaitingReason };
 
 /**
- * The R8 entry on one armed zone, from closed candles (oldest first). `lucy(triggerCandleTime, closeAt)` = Lucy's
- * VSA on the touch for that trigger (touchVolumeNotGrey); asked only for a price trigger.
+ * The R8 entry on one armed zone, from closed candles (oldest first). `lucy(buyer4hCandleTime, closeAt)` checks
+ * exactly that closed 4H candle against Lucy's aggregated-volume rule.
  */
 export async function ruleEntryOnArm(input: {
   candles1h: readonly Bar[];
@@ -46,35 +52,78 @@ export async function ruleEntryOnArm(input: {
   zone: { bottom: number; top: number };
   armTime: number;
   nowMs: number;
-  lucy: (triggerCandleTime: number, closeAt: number) => Promise<TouchVolume>;
+  lucy: (buyer4hCandleTime: number, closeAt: number) => Promise<TouchVolume>;
 }): Promise<RuleEntryResult> {
   const { bottom, top } = input.zone;
-  const h4close = new Map(input.candles4h.map((c) => [c.time + H4, c.close]));
-  let touched = false, testTime = 0, low = Infinity, lowAt = 0;
-  let waiting = "no_test_yet" as "no_test_yet" | "no_reaction_yet" | "awaiting_touch_4h_close" | "awaiting_touch_volume";
-  for (const c of input.candles1h) {
+  const candles1h = [...input.candles1h].sort((a, b) => a.time - b.time);
+  const candles4h = [...input.candles4h].sort((a, b) => a.time - b.time);
+  const h4close = new Map(candles4h.map((c) => [c.time + H4, c.close]));
+  const latestClosed1hTime = [...candles1h].reverse().find((c) => c.time + H1 <= input.nowMs)?.time ?? null;
+  const deadline = input.armTime + ABNEON_ARM_WINDOW_H * H1;
+  let touched = false, testTime = 0, touchCloseAt = 0, low = Infinity, lowAt = 0;
+  let nextBuyerIndex = 0;
+  let buyer: { candleTime: number; closeAt: number; touch: TouchVolume & { ok: true } } | null = null;
+  let waiting: RuleWaitingReason = "no_test_yet";
+  for (const c of candles1h) {
     if (c.time < input.armTime) continue;
     const closeAt = c.time + H1;
     if (closeAt > input.nowMs) break;
-    if (closeAt > input.armTime + ABNEON_ARM_WINDOW_H * H1) return { status: "void", reason: "arm_window_over" };
+    if (closeAt > deadline) return { status: "void", reason: "arm_window_over" };
     if (closeAt % H4 === 0) {
       const c4 = h4close.get(closeAt);
       if (c4 !== undefined && c4 < bottom) return { status: "void", reason: "closed_4h_under_zone" };
     }
-    if (!touched && c.low <= top * ABNEON_TOUCH_ABOVE_TOP) { touched = true; testTime = c.time; }
+    if (!touched && c.low <= top * ABNEON_TOUCH_ABOVE_TOP) {
+      touched = true;
+      testTime = c.time;
+      touchCloseAt = closeAt;
+      nextBuyerIndex = candles4h.findIndex((c4) => c4.time + H4 >= touchCloseAt);
+      if (nextBuyerIndex < 0) nextBuyerIndex = candles4h.length;
+      waiting = "awaiting_touch_4h_close";
+    }
     if (!touched) continue;
-    waiting = waiting === "awaiting_touch_4h_close" || waiting === "awaiting_touch_volume" ? waiting : "no_reaction_yet";
     if (c.low < low) { low = c.low; lowAt = closeAt; }
+    while (buyer === null && nextBuyerIndex < candles4h.length) {
+      const candidate = candles4h[nextBuyerIndex]!;
+      const candidateCloseAt = candidate.time + H4;
+      if (candidateCloseAt < touchCloseAt) { nextBuyerIndex++; continue; }
+      if (candidateCloseAt > closeAt || candidateCloseAt > input.nowMs) break;
+      nextBuyerIndex++;
+      const tv = await input.lucy(candidate.time, candidateCloseAt);
+      if (tv.ok) {
+        buyer = {
+          candleTime: candidate.time,
+          closeAt: candidateCloseAt,
+          touch: { ...tv, firstTouchTime: testTime },
+        };
+        waiting = "no_reaction_yet";
+        break;
+      }
+      // Missing volume/history means this 4H candle cannot be classified; skip it and keep waiting.
+      waiting = tv.reason === "no_aggregated_volume" || tv.reason === "short_history"
+        ? "awaiting_buyer_data"
+        : tv.reason === "touch_bar_not_closed"
+          ? "awaiting_touch_4h_close"
+          : "waiting_for_buyer";
+    }
+    if (!buyer || closeAt < buyer.closeAt) continue;
     if (!(c.close > c.open && c.close >= bottom)) continue;
-    if (closeAt - lowAt > ABNEON_REACTION_WINDOW_H * H1) continue;
-    const tv = await input.lucy(c.time, closeAt);
-    if (!tv.ok && tv.reason === "touch_bar_not_closed") { waiting = "awaiting_touch_4h_close"; continue; }
-    // No buying yet but not all three touch 4H candles have closed: wait for the volume (next green 1H candle).
-    if (!tv.ok && (tv.reason === "touch_volume_grey" || tv.reason === "touch_volume_no_buying") && tv.colours.length < 3) { waiting = "awaiting_touch_volume"; continue; }
-    if (!tv.ok) return { status: "void", reason: tv.reason === "touch_volume_grey" || tv.reason === "touch_volume_no_buying" ? `${tv.reason}_${tv.colours.join("")}` : `touch_${tv.reason}`, colours: tv.colours };
-    return { status: "entry", candleTime: c.time, closeAt, entry: c.close, testTime, testLow: low, testLowAt: lowAt, touch: tv };
+    // Never fire on an old H1 candle after a scan gap; wait for a new eligible close instead.
+    if (c.time !== latestClosed1hTime) { waiting = "entry_not_fresh"; continue; }
+    return {
+      status: "entry",
+      candleTime: c.time,
+      closeAt,
+      entry: c.close,
+      testTime,
+      testLow: low,
+      testLowAt: lowAt,
+      buyerCandleTime: buyer.candleTime,
+      buyerCloseAt: buyer.closeAt,
+      touch: buyer.touch,
+    };
   }
-  if (input.nowMs > input.armTime + ABNEON_ARM_WINDOW_H * H1) return { status: "void", reason: "arm_window_over" };
+  if (input.nowMs > deadline) return { status: "void", reason: "arm_window_over" };
   return { status: "waiting", reason: waiting };
 }
 
