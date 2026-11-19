@@ -1,0 +1,87 @@
+{
+  "window": {
+    "from": "2026-11-14T00:00:00.000Z",
+    "to": "2026-11-19T12:00:00.000Z"
+  },
+  "symbols": [
+    "FTR-USDT",
+    "IRYS-USDT",
+    "LUNC-USDT",
+    "PIPPIN-USDT",
+    "SENT-USDT",
+    "VELVET-USDT"
+  ],
+  "prescan_snapshots": 650,
+  "prescan_history": 650,
+  "shadow_candidate_rows": 73,
+  "abneon_candidates": 70,
+  "pattern_decision_rows": 578,
+  "tracked_signal_rows_all_time": 19,
+  "stealth_4h_candles": 96,
+  "daily_zone_rows": 79,
+  "price_crosses": 7,
+  "unique_abneon_touch_events": 67,
+  "hypothetical_96h_rows": 67,
+  "abneon_touch_4h_rows": 1254,
+  "tracked_signals_in_window": 2,
+  "same_symbol_events": 9,
+  "volume_reconstruction": "CoinGlass aggregate 1h USD bars summed into 4h buckets; CoinGlass spot missing is treated as 0, futures coverage is required.",
+  "data_coverage": [
+    {
+      "symbol": "FTR-USDT",
+      "h1_price_last_open": "2026-11-19T11:00:00.000Z",
+      "h4_price_last_open": "2026-11-19T08:00:00.000Z",
+      "cg_futures_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_1h_last_open": "",
+      "cg_spot_cache_empty": true,
+      "cg_oi15m_last_open": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "IRYS-USDT",
+      "h1_price_last_open": "2026-11-19T11:00:00.000Z",
+      "h4_price_last_open": "2026-11-19T08:00:00.000Z",
+      "cg_futures_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_cache_empty": false,
+      "cg_oi15m_last_open": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "LUNC-USDT",
+      "h1_price_last_open": "2026-11-19T11:00:00.000Z",
+      "h4_price_last_open": "2026-11-19T08:00:00.000Z",
+      "cg_futures_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_cache_empty": false,
+      "cg_oi15m_last_open": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "PIPPIN-USDT",
+      "h1_price_last_open": "2026-11-19T11:00:00.000Z",
+      "h4_price_last_open": "2026-11-19T08:00:00.000Z",
+      "cg_futures_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_cache_empty": false,
+      "cg_oi15m_last_open": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "SENT-USDT",
+      "h1_price_last_open": "2026-11-19T11:00:00.000Z",
+      "h4_price_last_open": "2026-11-19T08:00:00.000Z",
+      "cg_futures_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_cache_empty": false,
+      "cg_oi15m_last_open": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "VELVET-USDT",
+      "h1_price_last_open": "2026-11-19T11:00:00.000Z",
+      "h4_price_last_open": "2026-11-19T08:00:00.000Z",
+      "cg_futures_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_1h_last_open": "2026-11-19T11:00:00.000Z",
+      "cg_spot_cache_empty": false,
+      "cg_oi15m_last_open": "2026-11-19T12:45:00.000Z"
+    }
+  ],
+  "historical_deployment_logs_found": false,
+  "historical_rechecks": "No timestamped durable DB table found; deployment log lookups returned no rows."
+}

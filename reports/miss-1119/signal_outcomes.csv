@@ -1,0 +1,3 @@
+id,symbol,pattern,detected_at,status,outcome_before_neutral,entry_price,exit_price,pnl_percent,peak_price,closed_at,cancel_reason
+3960,PIPPIN-USDT,stealth_breakout,2026-11-18T12:04:55.12,stop_loss,,0.01909,0.018262,-4.3373494,0.01954,2026-11-18T14:10:51.201,
+3920,VELVET-USDT,neon_support_bounce,2026-11-15T02:07:38.366,profit,,0.04656,0.068298,46.688137,0.07761,2026-11-19T00:01:18.576,

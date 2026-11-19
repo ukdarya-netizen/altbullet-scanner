@@ -1,0 +1,48 @@
+{
+  "requests": 6,
+  "retries429": 0,
+  "manifest": [
+    {
+      "symbol": "FTR-USDT",
+      "result": "fetched",
+      "points": 600,
+      "first": "2026-11-13T07:00:00.000Z",
+      "last": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "IRYS-USDT",
+      "result": "fetched",
+      "points": 596,
+      "first": "2026-11-13T07:00:00.000Z",
+      "last": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "LUNC-USDT",
+      "result": "fetched",
+      "points": 596,
+      "first": "2026-11-13T07:00:00.000Z",
+      "last": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "PIPPIN-USDT",
+      "result": "fetched",
+      "points": 600,
+      "first": "2026-11-13T07:00:00.000Z",
+      "last": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "SENT-USDT",
+      "result": "fetched",
+      "points": 600,
+      "first": "2026-11-13T07:00:00.000Z",
+      "last": "2026-11-19T12:45:00.000Z"
+    },
+    {
+      "symbol": "VELVET-USDT",
+      "result": "fetched",
+      "points": 778,
+      "first": "2026-11-11T10:30:00.000Z",
+      "last": "2026-11-19T12:45:00.000Z"
+    }
+  ]
+}

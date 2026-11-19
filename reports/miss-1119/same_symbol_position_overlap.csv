@@ -1,0 +1,10 @@
+symbol,event_type,event_at,linked_signal_id,overlapping_position_count,overlapping_positions,source_rule
+IRYS-USDT,stealth_price_cross,2026-11-19T04:00:00.000Z,,0,[],"trackSignal selects same symbol with status active/in_run; then returns skip at watcher.ts:2460-2474, 2581-2615."
+PIPPIN-USDT,stealth_price_cross,2026-11-18T08:00:00.000Z,,0,[],"trackSignal selects same symbol with status active/in_run; then returns skip at watcher.ts:2460-2474, 2581-2615."
+PIPPIN-USDT,stealth_price_cross,2026-11-18T12:00:00.000Z,,0,[],"trackSignal selects same symbol with status active/in_run; then returns skip at watcher.ts:2460-2474, 2581-2615."
+SENT-USDT,stealth_price_cross,2026-11-18T00:00:00.000Z,,0,[],"trackSignal selects same symbol with status active/in_run; then returns skip at watcher.ts:2460-2474, 2581-2615."
+SENT-USDT,stealth_price_cross,2026-11-19T04:00:00.000Z,,0,[],"trackSignal selects same symbol with status active/in_run; then returns skip at watcher.ts:2460-2474, 2581-2615."
+VELVET-USDT,stealth_price_cross,2026-11-18T16:00:00.000Z,,1,"[{""id"":3920,""pattern"":""neon_support_bounce"",""detected_at"":""2026-11-15T02:07:38.366"",""status"":""profit"",""end_at"":""2026-11-19T00:01:18.576"",""cancel_reason"":null}]","trackSignal selects same symbol with status active/in_run; then returns skip at watcher.ts:2460-2474, 2581-2615."
+VELVET-USDT,stealth_price_cross,2026-11-19T00:00:00.000Z,,1,"[{""id"":3920,""pattern"":""neon_support_bounce"",""detected_at"":""2026-11-15T02:07:38.366"",""status"":""profit"",""end_at"":""2026-11-19T00:01:18.576"",""cancel_reason"":null}]","trackSignal selects same symbol with status active/in_run; then returns skip at watcher.ts:2460-2474, 2581-2615."
+PIPPIN-USDT,tracked_signal_T0,2026-11-18T12:04:55.12,3960,0,[],"trackSignal selects same symbol with status active/in_run; then returns skip at watcher.ts:2460-2474, 2581-2615."
+VELVET-USDT,tracked_signal_T0,2026-11-15T02:07:38.366,3920,0,[],"trackSignal selects same symbol with status active/in_run; then returns skip at watcher.ts:2460-2474, 2581-2615."
