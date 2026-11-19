@@ -1504,7 +1504,7 @@ const report = [];
 report.push("# ABNeon R8: вход, отказы и исходы с 12 ноября 2026");
 report.push("");
 report.push("## Метод и ограничения");
-report.push(`- Источники: production SELECT-only выгрузки из \`source/\`; кэш только из \`reports/.cache\`; режим \`STUDY_OFFLINE=1\`. Скрипт не содержит сетевого клиента.`);
+report.push(`- Входы: локальные SELECT-only выгрузки production и кэш только из \`reports/.cache\`; режим \`STUDY_OFFLINE=1\`. В GitHub отправлены SQL и manifest, но не сырые production JSONL-выгрузки.`);
 report.push("- Период A/B: от 2026-11-12 00:00 UTC до выгрузки 2026-11-19 07:28 UTC. Символ, дата UTC, ID сохранены в events.csv.");
 report.push("- A: все 145 tracked_signals без фильтра по статусу. C: 8 исторических эталонов из старых reports/abneon-*; исходный файл записан в events.csv.");
 report.push("- B включает все 3 799 shadow-кандидатов со status <> fired и 99 сырых отказов OI15m; OI-решения дедуплицируются по symbol+frozenLevel+triggerCandleTime, сырой счётчик и ID остаются в events.csv.");
@@ -1598,7 +1598,7 @@ report.push("## Созданные файлы");
 report.push("- events.csv — 4 когорты: A actual, B non-fired shadow, B OI rejects, C references; полный набор доступных признаков и cache/errors.");
 report.push("- snapshots_t0.csv — 145 строк с отсутствием снимков без реконструкции.");
 report.push("- entry-variants.csv, disqualification.csv, volume-timing.csv, management-horizon.csv — окна ожидания, дисквалификация, задержка Lucy и 4/7-дневное сопровождение.");
-report.push("- source/ — production SELECT выгрузки и источники 8 эталонов; source/sql_used.txt содержит SQL.");
+report.push("- source/sql_used.txt и source/manifest.json — запросы, объёмы и дата выгрузки; сырые production JSONL остаются локально и не публикуются.");
 report.push("- study.mjs, run.log, errors.json.");
 fs.writeFileSync(path.join(HERE, "summary.md"), `${report.join("\n")}\n`);
 

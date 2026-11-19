@@ -1,7 +1,7 @@
 # ABNeon R8: вход, отказы и исходы с 12 ноября 2026
 
 ## Метод и ограничения
-- Источники: production SELECT-only выгрузки из `source/`; кэш только из `reports/.cache`; режим `STUDY_OFFLINE=1`. Скрипт не содержит сетевого клиента.
+- Входы: локальные SELECT-only выгрузки production и кэш только из `reports/.cache`; режим `STUDY_OFFLINE=1`. В GitHub отправлены SQL и manifest, но не сырые production JSONL-выгрузки.
 - Период A/B: от 2026-11-12 00:00 UTC до выгрузки 2026-11-19 07:28 UTC. Символ, дата UTC, ID сохранены в events.csv.
 - A: все 145 tracked_signals без фильтра по статусу. C: 8 исторических эталонов из старых reports/abneon-*; исходный файл записан в events.csv.
 - B включает все 3 799 shadow-кандидатов со status <> fired и 99 сырых отказов OI15m; OI-решения дедуплицируются по symbol+frozenLevel+triggerCandleTime, сырой счётчик и ID остаются в events.csv.
@@ -1561,5 +1561,5 @@ R8 replay — по кэшированным 1H/4H, 48ч, зона +2%, перв�
 - events.csv — 4 когорты: A actual, B non-fired shadow, B OI rejects, C references; полный набор доступных признаков и cache/errors.
 - snapshots_t0.csv — 145 строк с отсутствием снимков без реконструкции.
 - entry-variants.csv, disqualification.csv, volume-timing.csv, management-horizon.csv — окна ожидания, дисквалификация, задержка Lucy и 4/7-дневное сопровождение.
-- source/ — production SELECT выгрузки и источники 8 эталонов; source/sql_used.txt содержит SQL.
+- source/sql_used.txt и source/manifest.json — запросы, объёмы и дата выгрузки; сырые production JSONL остаются локально и не публикуются.
 - study.mjs, run.log, errors.json.
