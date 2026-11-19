@@ -1,0 +1,2295 @@
+{
+  "ZIL-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "CP-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "MARSCOIN-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "STONK-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "DNA-USDT": [
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979"
+  ],
+  "BTW-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "MORPHO-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.833",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.292"
+  ],
+  "W-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.677",
+    "cache_or_time_coverage_0.573",
+    "cache_or_time_coverage_0.177",
+    "cache_or_time_coverage_0.167",
+    "cache_or_time_coverage_0.135",
+    "cache_or_time_coverage_0.042",
+    "no_15m_bars_after_entry"
+  ],
+  "GTC-USDT": [
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ZEST-USDT": [
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "GRVT-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "SXT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "APE-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BARD-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.510",
+    "no_reference_time_or_price"
+  ],
+  "RE-USDT": [
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "FIL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "WLD-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833"
+  ],
+  "ADA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.708",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.448"
+  ],
+  "EGLD-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875"
+  ],
+  "WAL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ROBO-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "GUA-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "VELVET-USDT": [
+    "cache_or_time_coverage_0.854",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.917",
+    "cache_or_time_coverage_0.875"
+  ],
+  "GMT-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "PENGU-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "OP-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "WAXP-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ONDO-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.823",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.448",
+    "cache_or_time_coverage_0.083",
+    "no_15m_bars_after_entry"
+  ],
+  "FET-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "XAUT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.500"
+  ],
+  "NES-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "no_15m_bars_after_entry",
+    "no_reference_time_or_price"
+  ],
+  "SAND-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.448"
+  ],
+  "LDO-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.083",
+    "no_15m_bars_after_entry"
+  ],
+  "1000BONK-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "CC-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "RVN-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "APEX-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ARIA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.677",
+    "cache_or_time_coverage_0.698"
+  ],
+  "AR-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979"
+  ],
+  "DOT-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.542"
+  ],
+  "XRP-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "1000PEPE-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.833",
+    "no_reference_time_or_price"
+  ],
+  "DEXE-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "YGG-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896"
+  ],
+  "KNC-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "HIVE-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.667"
+  ],
+  "LAB-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ENA-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "SPX-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.927",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.156",
+    "no_15m_bars_after_entry"
+  ],
+  "PONS-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "SUI-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.708",
+    "no_15m_bars_after_entry"
+  ],
+  "RENDER-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.969",
+    "cache_or_time_coverage_0.844"
+  ],
+  "PRL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BLUAI-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "TRB-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.844",
+    "no_15m_bars_after_entry"
+  ],
+  "MUBARAK-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "POL-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.625",
+    "no_15m_bars_after_entry"
+  ],
+  "JST-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "IMX-USDT": [
+    "cache_or_time_coverage_0.875",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.854",
+    "no_reference_time_or_price"
+  ],
+  "BILL-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.948"
+  ],
+  "USELESS-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "XLM-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "SEI-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.292",
+    "cache_or_time_coverage_0.188",
+    "no_15m_bars_after_entry"
+  ],
+  "KAS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.844"
+  ],
+  "ENS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.698",
+    "no_15m_bars_after_entry"
+  ],
+  "HOME-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "SNX-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "TRIA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.917",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.531",
+    "cache_or_time_coverage_0.313"
+  ],
+  "XMR-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.125",
+    "no_reference_time_or_price"
+  ],
+  "LPT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979"
+  ],
+  "ZORA-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "GRT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "no_reference_time_or_price"
+  ],
+  "EIGEN-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "MEGA-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "SUSHI-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.802",
+    "no_reference_time_or_price"
+  ],
+  "XVG-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ZBT-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "NEAR-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "APT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "TIA-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.250"
+  ],
+  "PAXG-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.500",
+    "cache_or_time_coverage_0.333",
+    "cache_or_time_coverage_0.208"
+  ],
+  "PIEVERSE-USDT": [
+    "cache_or_time_coverage_0.123",
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.458",
+    "cache_or_time_coverage_0.250",
+    "cache_or_time_coverage_0.208",
+    "cache_or_time_coverage_0.115"
+  ],
+  "ARX-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.948",
+    "cache_or_time_coverage_0.906",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.594",
+    "cache_or_time_coverage_0.458",
+    "cache_or_time_coverage_0.333"
+  ],
+  "RIVER-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "HYPE-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "VIRTUAL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ZK-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.354",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.083",
+    "cache_or_time_coverage_0.021"
+  ],
+  "UB-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.990",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.750",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.479"
+  ],
+  "ARKM-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ORCA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.781",
+    "no_reference_time_or_price"
+  ],
+  "STX-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.479",
+    "no_reference_time_or_price",
+    "no_15m_bars_after_entry"
+  ],
+  "CNPY-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938"
+  ],
+  "FOLKS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.969",
+    "cache_or_time_coverage_0.958"
+  ],
+  "GUN-USDT": [
+    "cache_or_time_coverage_1.000"
+  ],
+  "QNT-USDT": [
+    "cache_or_time_coverage_0.854",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ATOM-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only"
+  ],
+  "JTO-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only",
+    "no_15m_bars_after_entry"
+  ],
+  "TAO-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.417",
+    "cache_or_time_coverage_0.271"
+  ],
+  "GRASS-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.667",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.375",
+    "cache_or_time_coverage_0.250",
+    "cache_or_time_coverage_0.167"
+  ],
+  "VET-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.083"
+  ],
+  "IO-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.510",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.250",
+    "cache_or_time_coverage_0.031",
+    "no_15m_bars_after_entry"
+  ],
+  "KERNEL-USDT": [
+    "cache_or_time_coverage_0.843",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.813",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.063"
+  ],
+  "MELANIA-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.823",
+    "no_reference_time_or_price"
+  ],
+  "XNY-USDT": [
+    "cache_or_time_coverage_0.843",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "no_fired_entry; reference price is context only"
+  ],
+  "SPK-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only"
+  ],
+  "GWEI-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "ZRX-USDT": [
+    "cache_or_time_coverage_0.843"
+  ],
+  "ARPA-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.125"
+  ],
+  "ZEREBRO-USDT": [
+    "cache_or_time_coverage_0.843",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875"
+  ],
+  "ALICE-USDT": [
+    "cache_or_time_coverage_0.843",
+    "no_fired_entry; reference price is context only"
+  ],
+  "HEI-USDT": [
+    "cache_or_time_coverage_0.441",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.594",
+    "cache_or_time_coverage_0.448",
+    "cache_or_time_coverage_0.354",
+    "cache_or_time_coverage_0.344",
+    "cache_or_time_coverage_0.250",
+    "cache_or_time_coverage_0.167",
+    "cache_or_time_coverage_0.021"
+  ],
+  "MMT-USDT": [
+    "cache_or_time_coverage_0.222",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.375",
+    "cache_or_time_coverage_0.354",
+    "cache_or_time_coverage_0.344",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.250"
+  ],
+  "GALA-USDT": [
+    "cache_or_time_coverage_0.154",
+    "no_15m_bars_after_entry",
+    "no_reference_time_or_price"
+  ],
+  "EVAA-USDT": [
+    "cache_or_time_coverage_0.123",
+    "no_fired_entry; reference price is context only"
+  ],
+  "TAIKO-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "HOOKED-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "cache_or_time_coverage_0.003"
+  ],
+  "WAVES-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "AERO-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.927",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.448",
+    "no_reference_time_or_price"
+  ],
+  "OKB-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "BIRB-USDT": [
+    "no_reference_time_or_price"
+  ],
+  "PHA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "no_reference_time_or_price"
+  ],
+  "NIL-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars",
+    "cache_or_time_coverage_0.281",
+    "no_reference_time_or_price"
+  ],
+  "ESPORTS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.938"
+  ],
+  "RLS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "FLOCK-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "CORE-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "CAP-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "FARTCOIN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979",
+    "no_reference_time_or_price"
+  ],
+  "ICNT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.719"
+  ],
+  "DGAI-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price"
+  ],
+  "MNT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.938"
+  ],
+  "2Z-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "GIGGLE-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "IOTX-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "BICO-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.667",
+    "cache_or_time_coverage_0.521",
+    "cache_or_time_coverage_0.083",
+    "no_15m_bars_after_entry"
+  ],
+  "ID-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "OPN-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "BEAT-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.854",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.458",
+    "cache_or_time_coverage_0.375",
+    "cache_or_time_coverage_0.260",
+    "cache_or_time_coverage_0.250"
+  ],
+  "IDOL-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "CYBER-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "LTC-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.917",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.552",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.333",
+    "cache_or_time_coverage_0.250",
+    "cache_or_time_coverage_0.167",
+    "no_15m_bars_after_entry"
+  ],
+  "PUMP-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "HBAR-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ETC-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "AIN-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "1000SHIB-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "ALGO-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.500"
+  ],
+  "DOS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.875"
+  ],
+  "BOME-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.667",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.188",
+    "cache_or_time_coverage_0.167",
+    "cache_or_time_coverage_0.083"
+  ],
+  "JASMY-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "BULLA-USDT": [
+    "no_reference_time_or_price",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "SOON-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.667"
+  ],
+  "REZ-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "IOST-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.708",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.344"
+  ],
+  "CLANKER-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.885",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833"
+  ],
+  "AT-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.510",
+    "cache_or_time_coverage_0.344"
+  ],
+  "MERL-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "AAVE-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "HOT-USDT": [
+    "no_reference_time_or_price",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ZAMA-USDT": [
+    "no_reference_time_or_price"
+  ],
+  "CAKE-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "FTR-USDT": [
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.969",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.781",
+    "cache_or_time_coverage_0.771",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.646",
+    "cache_or_time_coverage_0.635",
+    "cache_or_time_coverage_0.552",
+    "cache_or_time_coverage_0.313",
+    "cache_or_time_coverage_0.250",
+    "cache_or_time_coverage_0.208",
+    "cache_or_time_coverage_0.156",
+    "cache_or_time_coverage_0.135",
+    "cache_or_time_coverage_0.125",
+    "cache_or_time_coverage_0.104",
+    "cache_or_time_coverage_0.083",
+    "no_15m_bars_after_entry"
+  ],
+  "INJ-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "PARTI-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "UNI-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "JUP-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.927",
+    "cache_or_time_coverage_0.896",
+    "no_15m_bars_after_entry",
+    "cache_or_time_coverage_0.865"
+  ],
+  "CRV-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.521",
+    "cache_or_time_coverage_0.125",
+    "cache_or_time_coverage_0.042",
+    "no_15m_bars_after_entry"
+  ],
+  "DOOD-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.135",
+    "cache_or_time_coverage_0.125",
+    "no_15m_bars_after_entry"
+  ],
+  "SKYAI-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BMT-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.792",
+    "cache_or_time_coverage_0.708",
+    "cache_or_time_coverage_0.625"
+  ],
+  "LINK-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.667"
+  ],
+  "IRYS-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.552",
+    "cache_or_time_coverage_0.448",
+    "cache_or_time_coverage_0.167",
+    "no_15m_bars_after_entry"
+  ],
+  "ENJ-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844"
+  ],
+  "POWER-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.771",
+    "cache_or_time_coverage_0.760",
+    "cache_or_time_coverage_0.375",
+    "cache_or_time_coverage_0.313",
+    "cache_or_time_coverage_0.250"
+  ],
+  "BANANAS31-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.927",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.885",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.854",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.823",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.802"
+  ],
+  "KNTQ-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "B-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "CVC-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "COTI-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.958"
+  ],
+  "STAR-USDT": [
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ARK-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "CKB-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.604",
+    "no_reference_time_or_price"
+  ],
+  "XPIN-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "CYBERLEEK-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price"
+  ],
+  "SI-USDT": [
+    "cache_or_time_coverage_0.031",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price",
+    "no_15m_bars_after_entry",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.698"
+  ],
+  "ERA-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "PREDICT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "ACT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844"
+  ],
+  "ELSA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.708",
+    "no_reference_time_or_price"
+  ],
+  "API3-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "no_reference_time_or_price"
+  ],
+  "GENIUS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "FORM-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "MASK-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "PROM-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.458"
+  ],
+  "SFP-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "MONAD-USDT": [
+    "no_reference_time_or_price",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing"
+  ],
+  "HMSTR-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "AMEMECOIN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "ASTER-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.021",
+    "cache_or_time_coverage_0.448"
+  ],
+  "4STOCK-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price"
+  ],
+  "NXPC-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "XAN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.833",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.656",
+    "cache_or_time_coverage_0.510"
+  ],
+  "ASTR-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "LA-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "FLOKI-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "MOVE-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ATH-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.844"
+  ],
+  "THETA-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844"
+  ],
+  "OGN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price"
+  ],
+  "GANG-USDT": [
+    "cache_or_time_coverage_0.432",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.245",
+    "cache_or_time_coverage_0.755"
+  ],
+  "BAS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844"
+  ],
+  "BRETT-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "G-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844"
+  ],
+  "AXL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "C-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "LYN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing"
+  ],
+  "OPG-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.844",
+    "no_15m_bars_after_entry"
+  ],
+  "BCH-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.917",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.042",
+    "no_15m_bars_after_entry",
+    "no_reference_time_or_price"
+  ],
+  "ANKR-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.448"
+  ],
+  "CT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "TRUMPSOL-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing"
+  ],
+  "BLESS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.557",
+    "cache_or_time_coverage_0.526"
+  ],
+  "PIXEL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "DUSK-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896"
+  ],
+  "PORTAL-USDT": [
+    "cache_or_time_coverage_0.906",
+    "cache_or_time_coverage_0.896",
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "XPL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "NIGHT-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "AIO-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "US-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "1000CHEEMS-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "TUT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "no_reference_time_or_price"
+  ],
+  "ARB-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ESP-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "JCT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.969",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.927",
+    "cache_or_time_coverage_0.917",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.500",
+    "cache_or_time_coverage_0.344",
+    "cache_or_time_coverage_0.188",
+    "no_15m_bars_after_entry"
+  ],
+  "BEN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "UAI-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "PEOPLE-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.667",
+    "cache_or_time_coverage_0.479",
+    "cache_or_time_coverage_0.448",
+    "cache_or_time_coverage_0.427",
+    "cache_or_time_coverage_0.333",
+    "cache_or_time_coverage_0.250",
+    "no_reference_time_or_price"
+  ],
+  "HAEDAL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "DOGS-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "FLOAT-USDT": [
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "ICP-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.042",
+    "no_15m_bars_after_entry"
+  ],
+  "CFX-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "GOAT-USDT": [
+    "no_reference_time_or_price"
+  ],
+  "CVX-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "MIRANETWORK-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "KOMA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.823"
+  ],
+  "4-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.708",
+    "cache_or_time_coverage_0.313",
+    "cache_or_time_coverage_0.250"
+  ],
+  "MYX-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "TURBO-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BUN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price"
+  ],
+  "RSR-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.635",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.333"
+  ],
+  "MINA-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "TRADOOR-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BLEND-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "AKT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.896"
+  ],
+  "MEW-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "TAC-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "POLYX-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "SIREN-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "SWARMS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.250",
+    "cache_or_time_coverage_0.042"
+  ],
+  "VTHO-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ORDER-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.542",
+    "no_reference_time_or_price"
+  ],
+  "SUN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.500"
+  ],
+  "GPS-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "CRO-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "VRAX-USDT": [
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "no_15m_bars_after_entry"
+  ],
+  "COOKIE-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.083",
+    "no_15m_bars_after_entry"
+  ],
+  "SAGA-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "SOLV-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.906",
+    "cache_or_time_coverage_0.896",
+    "no_reference_time_or_price"
+  ],
+  "VEIL-USDT": [
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "TOWNS-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "GMBSC-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "NAORIS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.875"
+  ],
+  "RUNE-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ZEC-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.969",
+    "cache_or_time_coverage_0.938"
+  ],
+  "PYTH-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.594",
+    "cache_or_time_coverage_0.375",
+    "cache_or_time_coverage_0.292",
+    "cache_or_time_coverage_0.125",
+    "cache_or_time_coverage_0.083",
+    "no_15m_bars_after_entry"
+  ],
+  "DYDX-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "no_reference_time_or_price"
+  ],
+  "XDP-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price",
+    "no_15m_bars_after_entry"
+  ],
+  "GMX-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "PHAROS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.229"
+  ],
+  "FIGHTID-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing"
+  ],
+  "AGRIPPA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "XTZ-USDT": [
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "RAVE-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "COLLECT-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "PRIORS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price"
+  ],
+  "BAT-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.917",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.708",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.458",
+    "cache_or_time_coverage_0.375",
+    "cache_or_time_coverage_0.125",
+    "cache_or_time_coverage_0.938"
+  ],
+  "XCN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875"
+  ],
+  "IOTA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.656",
+    "cache_or_time_coverage_0.448"
+  ],
+  "DEEP-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.250",
+    "no_reference_time_or_price"
+  ],
+  "KAITO-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "MANA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.844",
+    "no_reference_time_or_price"
+  ],
+  "TA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.698",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.250"
+  ],
+  "ETHFI-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979",
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.573"
+  ],
+  "SHELL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BNB-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.917",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.250",
+    "no_reference_time_or_price"
+  ],
+  "METIS-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.844"
+  ],
+  "DYM-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ZEN-USDT": [
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.844",
+    "no_fired_entry; reference price is context only",
+    "no_15m_bars_after_entry"
+  ],
+  "PUSSY-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "cache_or_time_coverage_0.974"
+  ],
+  "SIGN-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "CELR-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "RAY-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "AGT-USDT": [
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars",
+    "no_reference_time_or_price"
+  ],
+  "ONE-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.823",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.708",
+    "cache_or_time_coverage_0.521",
+    "cache_or_time_coverage_0.417",
+    "cache_or_time_coverage_0.333"
+  ],
+  "FLUID-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896"
+  ],
+  "COMP-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price",
+    "no_15m_bars_after_entry"
+  ],
+  "ALCH-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars",
+    "cache_or_time_coverage_0.844"
+  ],
+  "AZTEC-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "TNSR-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "GLM-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.844"
+  ],
+  "BROCCOLI-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "CETUS-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ZETA-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BSV-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896"
+  ],
+  "RESOLV-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "ACH-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BREV-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.177",
+    "cache_or_time_coverage_0.094"
+  ],
+  "1000XEC-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "ROSE-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "AVAX-USDT": [
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.813",
+    "no_fired_entry; reference price is context only",
+    "no_15m_bars_after_entry"
+  ],
+  "MIHAO-USDT": [
+    "cache_or_time_coverage_0.901",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "HAJIMI-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "TST-USDT": [
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "NEO-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.333"
+  ],
+  "NOT-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "MOVR-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "SPORTFUN-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing"
+  ],
+  "AVA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896"
+  ],
+  "BROCCOLIF3B-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "cache_or_time_coverage_0.760",
+    "cache_or_time_coverage_0.250",
+    "cache_or_time_coverage_0.042",
+    "no_reference_time_or_price"
+  ],
+  "RIF-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "NULLMASK-USDT": [
+    "cache_or_time_coverage_0.927",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema50d:need_50_closed_1d_bars",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.021"
+  ],
+  "ON-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.427",
+    "cache_or_time_coverage_0.010"
+  ],
+  "LONGXIA-USDT": [
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.896",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.667",
+    "cache_or_time_coverage_0.573",
+    "cache_or_time_coverage_0.125",
+    "no_15m_bars_after_entry"
+  ],
+  "EDGEX-USDT": [
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.885",
+    "cache_or_time_coverage_0.875",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.448",
+    "cache_or_time_coverage_0.333"
+  ],
+  "SLP-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "NEIROCTO-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.979"
+  ],
+  "TRUST-USDT": [
+    "cache_or_time_coverage_0.979",
+    "no_fired_entry; reference price is context only"
+  ],
+  "KAVA-USDT": [
+    "cache_or_time_coverage_0.979"
+  ],
+  "1000CAT-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "SKL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "SSV-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "AWE-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "WIF-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.594",
+    "no_reference_time_or_price"
+  ],
+  "S-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.667",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.292",
+    "no_15m_bars_after_entry"
+  ],
+  "SKY-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.792",
+    "cache_or_time_coverage_0.760",
+    "cache_or_time_coverage_0.625",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.938"
+  ],
+  "PROVE-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.333",
+    "cache_or_time_coverage_0.125"
+  ],
+  "DIA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.802"
+  ],
+  "WOTAMALAILE-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "cache_or_time_coverage_0.938",
+    "cache_or_time_coverage_0.885",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.698",
+    "cache_or_time_coverage_0.448",
+    "cache_or_time_coverage_0.406",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.396"
+  ],
+  "CHILLGUY-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "TAG-USDT": [
+    "cache_or_time_coverage_0.875"
+  ],
+  "SAFE-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "NMR-USDT": [
+    "cache_or_time_coverage_0.958",
+    "no_fired_entry; reference price is context only"
+  ],
+  "CTSI-USDT": [
+    "cache_or_time_coverage_0.958",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "RPL-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "KSM-USDT": [
+    "cache_or_time_coverage_0.958",
+    "no_fired_entry; reference price is context only"
+  ],
+  "TWT-USDT": [
+    "cache_or_time_coverage_0.958",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.854",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.594",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "SUPER-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.844"
+  ],
+  "ASR-USDT": [
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "KAIA-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844"
+  ],
+  "TRX-USDT": [
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.667",
+    "cache_or_time_coverage_0.542",
+    "no_reference_time_or_price"
+  ],
+  "YFI-USDT": [
+    "cache_or_time_coverage_0.781",
+    "no_reference_time_or_price"
+  ],
+  "STBL-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.844"
+  ],
+  "HOLO-USDT": [
+    "cache_or_time_coverage_0.896",
+    "no_fired_entry; reference price is context only"
+  ],
+  "QTUM-USDT": [
+    "cache_or_time_coverage_0.896",
+    "cache_or_time_coverage_0.844",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.563"
+  ],
+  "CASHCAT-USDT": [
+    "cache_or_time_coverage_0.844",
+    "ema200d:need_200_closed_1d_bars",
+    "cache_or_time_coverage_0.667",
+    "cache_or_time_coverage_0.542"
+  ],
+  "KGEN-USDT": [
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.854",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.656",
+    "no_reference_time_or_price"
+  ],
+  "0G-USDT": [
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "no_fired_entry; reference price is context only"
+  ],
+  "USUAL-USDT": [
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.844",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.667",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.594",
+    "no_15m_bars_after_entry"
+  ],
+  "AIA-USDT": [
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.854",
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.656",
+    "no_fired_entry; reference price is context only"
+  ],
+  "CELO-USDT": [
+    "cache_or_time_coverage_0.844",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ZRO-USDT": [
+    "cache_or_time_coverage_0.875",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.802",
+    "cache_or_time_coverage_0.708",
+    "cache_or_time_coverage_0.625",
+    "cache_or_time_coverage_0.542",
+    "cache_or_time_coverage_0.458",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.427",
+    "cache_or_time_coverage_0.188",
+    "cache_or_time_coverage_0.021",
+    "no_15m_bars_after_entry"
+  ],
+  "PLUME-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "STEEM-USDT": [
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.833",
+    "cache_or_time_coverage_0.823",
+    "cache_or_time_coverage_0.625",
+    "no_reference_time_or_price",
+    "cache_or_time_coverage_0.156",
+    "cache_or_time_coverage_0.042",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.021",
+    "no_15m_bars_after_entry"
+  ],
+  "BANANA-USDT": [
+    "cache_or_time_coverage_0.844",
+    "cache_or_time_coverage_0.823",
+    "no_fired_entry; reference price is context only"
+  ],
+  "LUMIA-USDT": [
+    "cache_or_time_coverage_0.844"
+  ],
+  "GAS-USDT": [
+    "cache_or_time_coverage_0.844"
+  ],
+  "NEARKAT-USDT": [
+    "cache_or_time_coverage_0.844",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only"
+  ],
+  "ORDI-USDT": [
+    "cache_or_time_coverage_0.833",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.813",
+    "cache_or_time_coverage_0.667",
+    "cache_or_time_coverage_0.510",
+    "cache_or_time_coverage_0.417",
+    "cache_or_time_coverage_0.333",
+    "cache_or_time_coverage_0.250"
+  ],
+  "BNLIFE-USDT": [
+    "cache_or_time_coverage_0.833",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "no_reference_time_or_price"
+  ],
+  "BTR-USDT": [
+    "cache_or_time_coverage_0.750",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "SOPH-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "TRUTH-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing"
+  ],
+  "CHR-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "NIULAI-USDT": [
+    "cache_or_time_coverage_0.625",
+    "1h_aggregated_futures_cache_missing",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_futures_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.292",
+    "cache_or_time_coverage_0.250"
+  ],
+  "KMNO-USDT": [
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.302",
+    "cache_or_time_coverage_0.250",
+    "cache_or_time_coverage_0.219",
+    "no_15m_bars_after_entry"
+  ],
+  "SKR-USDT": [
+    "cache_or_time_coverage_0.594",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "O-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "AEVO-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BITLIGHT-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing"
+  ],
+  "BIKETYSON-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars",
+    "no_15m_bars_after_entry"
+  ],
+  "GRIFFAIN-USDT": [
+    "cache_or_time_coverage_0.458",
+    "cache_or_time_coverage_0.448",
+    "no_fired_entry; reference price is context only",
+    "cache_or_time_coverage_0.333",
+    "cache_or_time_coverage_0.250"
+  ],
+  "METEORA-USDT": [
+    "cache_or_time_coverage_0.250",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing"
+  ],
+  "TAKE-USDT": [
+    "no_reference_time_or_price"
+  ],
+  "CROSS-USDT": [
+    "cache_or_time_coverage_0.313",
+    "cache_or_time_coverage_0.302",
+    "no_fired_entry; reference price is context only",
+    "no_reference_time_or_price"
+  ],
+  "B2-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "LIGHTER-USDT": [
+    "cache_or_time_coverage_0.375",
+    "no_fired_entry; reference price is context only"
+  ],
+  "LSK-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "LISTA-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "STABLE-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "KII-USDT": [
+    "no_fired_entry; reference price is context only",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "ACU-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "CITREA-USDT": [
+    "cache_or_time_coverage_0.260",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars",
+    "cache_or_time_coverage_0.219",
+    "no_fired_entry; reference price is context only"
+  ],
+  "OPENLEDGER-USDT": [
+    "no_reference_time_or_price"
+  ],
+  "1INCH-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "GRAMTON-USDT": [
+    "no_fired_entry; reference price is context only",
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars"
+  ],
+  "MAGMA-USDT": [
+    "cache_or_time_coverage_0.021"
+  ],
+  "PENDLE-USDT": [
+    "no_15m_bars_after_entry",
+    "no_fired_entry; reference price is context only"
+  ],
+  "PIPPIN-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "BEAM-USDT": [
+    "no_fired_entry; reference price is context only"
+  ],
+  "TLM-USDT": [
+    "no_reference_time_or_price",
+    "no_fired_entry; reference price is context only"
+  ],
+  "KNOTS-USDT": [
+    "1h_aggregated_spot_cache_missing",
+    "4h_aggregated_spot_cache_missing",
+    "ema200d:need_200_closed_1d_bars"
+  ]
+}

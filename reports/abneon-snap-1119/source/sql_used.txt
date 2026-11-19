@@ -1,0 +1,41 @@
+-- A. Production ABNeon signals (all statuses; paged by id during export)
+SELECT t.id,t.signal_id,t.symbol,t.detected_at,t.entry_price,t.exit_price,t.status::text AS status,
+       t.pnl_percent,t.peak_price,t.stop_loss_price,t.stop_loss_pct,t.closed_at,t.cancel_reason,
+       t.entry_oi_15m,t.entry_oi_30m,t.entry_oi_1h,t.entry_oi_4h,t.entry_oi_24h,
+       t.entry_fut_taker_net_buy,t.entry_spot_taker_net_buy,t.entry_spot_net_buy_1h,t.entry_spot_net_buy_4h,t.entry_spot_net_buy_24h,
+       t.entry_cvd_15m,t.entry_cvd_30m,t.entry_cvd_1h,t.entry_cvd_4h,t.entry_rsi_1h,t.entry_funding_rate,
+       t.entry_whale_index,t.entry_liq_long1h,t.entry_liq_long24h,t.entry_btc_24h,t.entry_global_long_pct,
+       t.entry_spot_vol_mult,t.entry_fut_vol_mult,t.entry_source,t.entry_spot_vol_24h,t.entry_spot_mcap_pct,t.entry_ob_ratio,t.entry_oi,
+       t.entry_price_1h,t.entry_price_3h,t.entry_indicator_telemetry,t.entry_candle_analysis,t.decision_metrics,
+       e.metrics->'moneyFlow' AS money_flow,v.metrics AS vsa_metrics,w.metrics AS wyckoff_metrics,
+       p.entry_metrics->'neonLevel' AS fired_neon_level,p.entry_metrics->'entryVolume' AS fired_entry_volume,
+       p.entry_metrics->'rangeDeviation' AS fired_range_deviation,p.entry_metrics->'candleRealVolume' AS fired_candle_real_volume,
+       p.entry_metrics->'flowSnapshot' AS fired_flow_snapshot,p.entry_metrics->'takerBackfill' AS fired_taker_backfill,
+       p.decision_reason AS fired_decision_reason,p.completeness AS fired_completeness
+FROM tracked_signals t
+LEFT JOIN LATERAL(SELECT metrics FROM signal_entry_extras WHERE tracked_signal_id=t.id ORDER BY recorded_at DESC,id DESC LIMIT 1)e ON true
+LEFT JOIN LATERAL(SELECT metrics FROM vsa_entry_metrics WHERE tracked_signal_id=t.id ORDER BY id DESC LIMIT 1)v ON true
+LEFT JOIN LATERAL(SELECT metrics FROM wyckoff_entry_metrics WHERE tracked_signal_id=t.id ORDER BY id DESC LIMIT 1)w ON true
+LEFT JOIN LATERAL(SELECT entry_metrics,decision_reason,completeness FROM pattern_decision_snapshots WHERE tracked_signal_id=t.id AND pattern_key='neon_support_bounce' AND decision_kind='fired' ORDER BY id DESC LIMIT 1)p ON true
+WHERE t.sentiment_key='neon_support_bounce' AND t.detected_at >= '2026-11-12T00:00:00Z'
+ORDER BY t.id;
+
+-- B1. Every non-fired ABNeon shadow candidate since 12 Nov, including pending/unresolved and all terminal reasons (paged by id)
+SELECT id,symbol,candidate_key,frozen_level,armed_at,trigger_candle_at,status,terminal_reason,
+       live_eligible,volume_evidence,updated_at
+FROM stealth_abneon_shadow_candidates
+WHERE detection_method='abneon_support_bounce' AND armed_at >= '2026-11-12T00:00:00Z' AND status <> 'fired'
+ORDER BY id;
+
+-- B2. Rejected decisions from the OI 15m gate since 12 Nov (raw decisions; repeated scans are not unique setups)
+SELECT id,symbol,decision_at,decision_kind,decision_reason,entry_price,entry_metrics,completeness
+FROM pattern_decision_snapshots
+WHERE pattern_key='neon_support_bounce' AND decision_at >= '2026-11-12T00:00:00Z'
+  AND decision_kind='rejected' AND decision_reason IN ('oi15m_no_new_money','oi15m_unknown')
+ORDER BY id;
+
+-- Snapshot table availability check (production)
+SELECT table_schema,table_name FROM information_schema.tables
+WHERE table_schema='public' AND table_name IN ('neon_snapshots','stealth_hourly_snapshots') ORDER BY table_name;
+
+-- Observed row counts: A=145; B1=3799 non-fired (3942 total candidates, 143 fired); B2=99 raw rejects (98 no_new_money, 1 unknown).

@@ -1,0 +1,662 @@
+ABNEON_SNAP_STUDY offline=1; no external requests; 96h price thresholds +10% / -6%; same 15m candle both-hit => ambiguous.
+SOURCE_ROWS A=145 B_shadow_non_fired=3799 B_OI_decisions=99 B_OI_unique=99 C_references=8
+A_OUTCOMES {"bad":107,"good":18,"censored":16,"open":4}
+B_OUTCOMES {"not_applicable_no_entry":1704,"bad":1426,"censored":415,"good":252,"unavailable":67,"open":34}
+C_OUTCOMES {"bad":6,"good":2}
+A_STATUS {"cancelled":52,"reclassified":46,"stop_loss":17,"bu_stop":11,"profit":10,"expired":7,"active":1,"in_run":1}
+B_REASONS {"rule_touch_volume_grey_N":1370,"neon_not_entered_at_detection":547,"rule_closed_4h_under_zone":527,"touch_volume_grey_N":341,"rule_entry_passed":231,"rule_touch_volume_grey_NNN":201,"rule_touch_short_history":139,"rule_touch_no_aggregated_volume":120,"qualified_duplicate_active_position":99,"rule_waiting_awaiting_touch_volume":80,"rule_arm_window_over":40,"rule_waiting_no_test_yet":31,"rule_touch_volume_grey_NN":16,"rule_waiting_no_reaction_yet":11,"rule_touch_volume_no_buying_ANN":10,"rule_touch_volume_no_buying_NYN":5,"month_volume_no_aggregated_volume":4,"rule_touch_volume_no_buying_NNA":4,"rule_entry_r8":2,"rule_touch_volume_no_buying_MNN":2,"rule_touch_volume_no_buying_NAN":2,"awaiting_later_1h_reaction":1,"entry_above_zone_top_5.23pct":1,"month_volume_low_f0.12_s0.23":1,"month_volume_low_f0.28_s0.43":1,"month_volume_low_f0.28_s0.51":1,"month_volume_low_f0.49_s0.56":1,"month_volume_low_f0.64_s0.22":1,"rule_touch_volume_no_buying_AAN":1,"rule_touch_volume_no_buying_ANY":1,"rule_touch_volume_no_buying_MAN":1,"rule_touch_volume_no_buying_NNO":1,"rule_touch_volume_no_buying_NNW":1,"rule_touch_volume_no_buying_NNY":1,"rule_touch_volume_no_buying_ONN":1,"rule_touch_volume_no_buying_YNN":1,"support_invalidated_before_reaction":1,"touch_volume_grey_NNN":1}
+OI_GATE_RAW_REJECTIONS {"oi15m_no_new_money":98,"oi15m_unknown":1}
+SNAPSHOTS table=public.neon_snapshots present=false recorded=0 expected=432 per signal; T0=unavailable; no interpolation or reconstruction.
+WAIT_VARIANT 48h r8 entered=61 outcomes={"bad":25,"censored":23,"good":10,"open":3}
+WAIT_VARIANT 48h h4 entered=1838 outcomes={"bad":1233,"censored":371,"good":189,"open":33,"unavailable":12}
+WAIT_VARIANT 48h bos entered=2833 outcomes={"bad":1650,"censored":826,"good":326,"open":28,"unavailable":3}
+WAIT_VARIANT 96h r8 entered=61 outcomes={"bad":25,"censored":23,"good":10,"open":3}
+WAIT_VARIANT 96h h4 entered=2032 outcomes={"bad":1289,"censored":459,"good":208,"unavailable":43,"open":33}
+WAIT_VARIANT 96h bos entered=2974 outcomes={"bad":1677,"censored":914,"good":352,"open":28,"unavailable":3}
+WAIT_VARIANT 168h r8 entered=61 outcomes={"bad":25,"censored":23,"good":10,"open":3}
+WAIT_VARIANT 168h h4 entered=2103 outcomes={"bad":1293,"censored":486,"good":215,"unavailable":76,"open":33}
+WAIT_VARIANT 168h bos entered=3020 outcomes={"bad":1678,"censored":951,"good":360,"open":28,"unavailable":3}
+DISQUALIFICATION A_signal current_4H_close_under_zone removed=7 outcomes={"bad":6,"open":1}
+DISQUALIFICATION A_signal below_zone_1d_no_return_no_bright_Lucy_4H removed=0 outcomes={}
+DISQUALIFICATION A_signal below_zone_2d_no_return_no_bright_Lucy_4H removed=0 outcomes={}
+DISQUALIFICATION A_signal below_zone_3d_no_return_no_bright_Lucy_4H removed=0 outcomes={}
+DISQUALIFICATION B_blocked current_4H_close_under_zone removed=581 outcomes={"not_applicable_no_entry":395,"bad":153,"censored":25,"open":5,"good":3}
+DISQUALIFICATION B_blocked below_zone_1d_no_return_no_bright_Lucy_4H removed=6 outcomes={"bad":2,"not_applicable_no_entry":2,"censored":1,"good":1}
+DISQUALIFICATION B_blocked below_zone_2d_no_return_no_bright_Lucy_4H removed=0 outcomes={}
+DISQUALIFICATION B_blocked below_zone_3d_no_return_no_bright_Lucy_4H removed=0 outcomes={}
+DISQUALIFICATION C_reference current_4H_close_under_zone removed=1 outcomes={"bad":1}
+DISQUALIFICATION C_reference below_zone_1d_no_return_no_bright_Lucy_4H removed=0 outcomes={}
+DISQUALIFICATION C_reference below_zone_2d_no_return_no_bright_Lucy_4H removed=0 outcomes={}
+DISQUALIFICATION C_reference below_zone_3d_no_return_no_bright_Lucy_4H removed=0 outcomes={}
+MANAGEMENT_HORIZON 96h stop6 simulated=145/145 pnl=-3614.00647492656 exits={"4h_close_under_zone":68,"stop_-6":39,"breakeven_stop":9,"trailing_stop":2,"96h_close":1} censored=26
+MANAGEMENT_HORIZON 96h under_zone simulated=145/145 pnl=-2181.7043048889414 exits={"under_zone_stop":105,"breakeven_stop":9,"trailing_stop":3,"4h_close_under_zone":1,"96h_close":1} censored=26
+MANAGEMENT_HORIZON 168h stop6 simulated=145/145 pnl=-78.58974358974358 exits={"4h_close_under_zone":1,"stop_-6":1} censored=143
+MANAGEMENT_HORIZON 168h under_zone simulated=145/145 pnl=-98.11475900807997 exits={"under_zone_stop":2} censored=143
+VOLUME_TIMING_ROWS=556 (good A signals + all C references); T0=blank because production neon_snapshots is absent.
+CACHE errors_by_symbol_count=412
+BLOCKED_PRICE_CHAMPIONS=252
+BLOCKED_GOOD ESPORTS-USDT#921574 reason=touch_volume_grey_N at=2026-11-12T03:00:00.000Z peak=11.867088607594933 worst=-2.429927667269438
+BLOCKED_GOOD CAP-USDT#921763 reason=touch_volume_grey_N at=2026-11-12T01:00:00.000Z peak=14.55324235481623 worst=-0.5080187269648317
+BLOCKED_GOOD PIEVERSE-USDT#922070 reason=touch_volume_grey_N at=2026-11-12T07:00:00.000Z peak=15.111084279159614 worst=-5.493842067133558
+BLOCKED_GOOD INJ-USDT#922749 reason=touch_volume_grey_N at=2026-11-12T03:00:00.000Z peak=10.79575596816975 worst=-5.0795755968169765
+BLOCKED_GOOD CAP-USDT#922821 reason=touch_volume_grey_N at=2026-11-12T02:00:00.000Z peak=13.47937635681864 worst=-1.4406946911387442
+BLOCKED_GOOD BEAT-USDT#923363 reason=touch_volume_grey_N at=2026-11-12T03:00:00.000Z peak=10.27820710973726 worst=-2.679031427099432
+BLOCKED_GOOD TAIKO-USDT#923366 reason=touch_volume_grey_N at=2026-11-12T03:00:00.000Z peak=19.517071670255316 worst=-0.4460166102737584
+BLOCKED_GOOD ARX-USDT#923524 reason=touch_volume_grey_N at=2026-11-12T03:00:00.000Z peak=10.356963298139776 worst=-1.9105077928607384
+BLOCKED_GOOD MERL-USDT#923575 reason=neon_not_entered_at_detection at=2026-11-12T03:00:00.000Z peak=10.298769771528992 worst=-0.10544815465728385
+BLOCKED_GOOD INJ-USDT#923703 reason=touch_volume_grey_N at=2026-11-12T03:00:00.000Z peak=10.79575596816975 worst=-5.0795755968169765
+BLOCKED_GOOD ESPORTS-USDT#923930 reason=touch_volume_grey_N at=2026-11-12T03:00:00.000Z peak=11.867088607594933 worst=-2.429927667269438
+BLOCKED_GOOD CAP-USDT#924086 reason=touch_volume_grey_N at=2026-11-12T04:00:00.000Z peak=13.47937635681864 worst=-1.4406946911387442
+BLOCKED_GOOD ARX-USDT#924136 reason=neon_not_entered_at_detection at=2026-11-12T07:00:00.000Z peak=10.091743119266038 worst=-0.2548419979612637
+BLOCKED_GOOD BMT-USDT#924302 reason=touch_volume_grey_N at=2026-11-12T09:00:00.000Z peak=10.890151515151514 worst=-3.693181818181812
+BLOCKED_GOOD ESPORTS-USDT#924519 reason=touch_volume_grey_N at=2026-11-12T04:00:00.000Z peak=11.238480557428643 worst=-2.978197347718581
+BLOCKED_GOOD ESPORTS-USDT#924805 reason=touch_volume_grey_N at=2026-11-12T07:00:00.000Z peak=10.555618679695499 worst=-0.28405862970115603
+BLOCKED_GOOD PIEVERSE-USDT#926240 reason=neon_not_entered_at_detection at=2026-11-12T10:00:00.000Z peak=16.290558672847034 worst=-4.52549402293243
+BLOCKED_GOOD ESPORTS-USDT#926395 reason=touch_volume_grey_N at=2026-11-12T07:00:00.000Z peak=10.555618679695499 worst=-0.28405862970115603
+BLOCKED_GOOD BEAT-USDT#926524 reason=touch_volume_grey_N at=2026-11-12T08:00:00.000Z peak=10.445227836532167 worst=-1.13591852722289
+BLOCKED_GOOD INJ-USDT#926552 reason=touch_volume_grey_N at=2026-11-12T10:00:00.000Z peak=11.31847475832437 worst=-3.9070891514500605
+BLOCKED_GOOD ARX-USDT#926697 reason=touch_volume_grey_N at=2026-11-12T08:00:00.000Z peak=11.421319796954311 worst=-0.6598984771573613
+BLOCKED_GOOD MERL-USDT#926775 reason=touch_volume_grey_N at=2026-11-12T08:00:00.000Z peak=10.245759778470065 worst=-0.830737279335414
+BLOCKED_GOOD PROM-USDT#927122 reason=touch_volume_grey_N at=2026-11-12T09:00:00.000Z peak=11.64904862579279 worst=-0.9725158562367886
+BLOCKED_GOOD ARX-USDT#927466 reason=touch_volume_grey_N at=2026-11-12T09:00:00.000Z peak=10.412474849094554 worst=-1.559356136820922
+BLOCKED_GOOD MEGA-USDT#928359 reason=touch_volume_grey_N at=2026-11-12T11:00:00.000Z peak=10.652222974497839 worst=-4.491085533739558
+BLOCKED_GOOD ARX-USDT#928489 reason=touch_volume_grey_N at=2026-11-12T10:00:00.000Z peak=10.135474159558445 worst=-1.8063221274460584
+BLOCKED_GOOD PROM-USDT#928509 reason=touch_volume_grey_N at=2026-11-12T10:00:00.000Z peak=10.243304027806177 worst=-4.232263340830089
+BLOCKED_GOOD INJ-USDT#928707 reason=touch_volume_grey_N at=2026-11-12T10:00:00.000Z peak=11.31847475832437 worst=-3.9070891514500605
+BLOCKED_GOOD INJ-USDT#929033 reason=touch_volume_grey_N at=2026-11-12T11:00:00.000Z peak=10.707659687251514 worst=-5.155049032600056
+BLOCKED_GOOD PIEVERSE-USDT#929067 reason=touch_volume_grey_N at=2026-11-12T13:00:00.000Z peak=14.750842561386612 worst=-5.789600385170923
+BLOCKED_GOOD ARX-USDT#929177 reason=touch_volume_grey_N at=2026-11-12T11:00:00.000Z peak=10.771543086172342 worst=-1.9539078156312506
+BLOCKED_GOOD PROM-USDT#929480 reason=rule_touch_volume_grey_N at=2026-11-12T16:00:00.000Z peak=10.849645980841327 worst=-0.16659725114536172
+BLOCKED_GOOD GANG-USDT#932234 reason=rule_touch_short_history at=2026-11-12T15:00:00.000Z peak=13.909263787014403 worst=-1.5484922575387028
+BLOCKED_GOOD USELESS-USDT#933042 reason=neon_not_entered_at_detection at=2026-11-12T18:00:00.000Z peak=10.00479463001438 worst=-0.3196420009589196
+BLOCKED_GOOD ARIA-USDT#933062 reason=neon_not_entered_at_detection at=2026-11-12T16:00:00.000Z peak=13.864104323953331 worst=-3.4129905783989556
+BLOCKED_GOOD PIEVERSE-USDT#933148 reason=neon_not_entered_at_detection at=2026-11-12T16:00:00.000Z peak=14.509639060717072 worst=-5.987628370668441
+BLOCKED_GOOD CAP-USDT#933203 reason=rule_touch_volume_grey_N at=2026-11-12T16:00:00.000Z peak=12.502445705341426 worst=-0.6945803169634113
+BLOCKED_GOOD BLESS-USDT#933266 reason=rule_touch_volume_grey_N at=2026-11-12T21:00:00.000Z peak=13.39877300613499 worst=-1.582822085889557
+BLOCKED_GOOD MERL-USDT#933300 reason=rule_touch_volume_grey_N at=2026-11-12T19:00:00.000Z peak=10.017271157167551 worst=-0.5872193436960327
+BLOCKED_GOOD STONK-USDT#933804 reason=neon_not_entered_at_detection at=2026-11-12T19:00:00.000Z peak=14.219114219114214 worst=-2.33100233100233
+BLOCKED_GOOD ICNT-USDT#933928 reason=rule_touch_volume_grey_N at=2026-11-12T19:00:00.000Z peak=10.333333333333329 worst=-0.92592592592593
+BLOCKED_GOOD USELESS-USDT#934613 reason=neon_not_entered_at_detection at=2026-11-12T18:00:00.000Z peak=10.00479463001438 worst=-0.3196420009589196
+BLOCKED_GOOD USELESS-USDT#934982 reason=neon_not_entered_at_detection at=2026-11-12T19:00:00.000Z peak=10.116454091737314 worst=-0.7922047056959536
+BLOCKED_GOOD JCT-USDT#935276 reason=neon_not_entered_at_detection at=2026-11-12T19:00:00.000Z peak=10.167253521126751 worst=-1.9366197183098732
+BLOCKED_GOOD ICNT-USDT#935448 reason=rule_touch_volume_grey_N at=2026-11-12T19:00:00.000Z peak=10.333333333333329 worst=-0.92592592592593
+BLOCKED_GOOD MARSCOIN-USDT#935851 reason=qualified_duplicate_active_position at=2026-11-13T06:00:00.000Z peak=10.349356448647228 worst=-0.44654583661675185
+BLOCKED_GOOD ARX-USDT#935853 reason=rule_touch_volume_grey_N at=2026-11-12T20:00:00.000Z peak=10.025062656641603 worst=-1.904761904761909
+BLOCKED_GOOD BILL-USDT#935896 reason=rule_touch_volume_grey_N at=2026-11-13T05:00:00.000Z peak=10.091743119266061 worst=-0.5552873008208503
+BLOCKED_GOOD ESPORTS-USDT#935902 reason=rule_touch_volume_grey_N at=2026-11-12T20:00:00.000Z peak=10.07043803653973 worst=-2.8835571208452593
+BLOCKED_GOOD GANG-USDT#935944 reason=rule_touch_short_history at=2026-11-13T09:00:00.000Z peak=16.523235800344228 worst=-2.434226702729292
+BLOCKED_GOOD BEAT-USDT#935964 reason=rule_closed_4h_under_zone at=2026-11-12T20:00:00.000Z peak=10.42042816610782 worst=-2.347175651276767
+BLOCKED_GOOD STONK-USDT#935992 reason=neon_not_entered_at_detection at=2026-11-12T22:00:00.000Z peak=15.294117647058814 worst=-0.23529411764706687
+BLOCKED_GOOD FLOAT-USDT#936310 reason=rule_touch_short_history at=2026-11-13T05:00:00.000Z peak=13.096695226438193 worst=-4.2023663810689555
+BLOCKED_GOOD BEAT-USDT#936337 reason=rule_touch_volume_grey_N at=2026-11-12T22:00:00.000Z peak=10.349271813378014 worst=-2.410104394896262
+BLOCKED_GOOD BEAT-USDT#937370 reason=rule_touch_volume_grey_N at=2026-11-12T22:00:00.000Z peak=10.349271813378014 worst=-2.410104394896262
+BLOCKED_GOOD ESPORTS-USDT#937646 reason=rule_touch_volume_grey_N at=2026-11-12T22:00:00.000Z peak=10.118916538207445 worst=-2.840783968288918
+BLOCKED_GOOD BEAT-USDT#937730 reason=rule_touch_volume_grey_N at=2026-11-12T23:00:00.000Z peak=10.10802469135803 worst=-2.6234567901234573
+BLOCKED_GOOD STONK-USDT#937772 reason=neon_not_entered_at_detection at=2026-11-12T23:00:00.000Z peak=13.163972286374136 worst=-1.8475750577367056
+BLOCKED_GOOD ARX-USDT#937940 reason=rule_touch_volume_grey_N at=2026-11-12T23:00:00.000Z peak=10.274314214463832 worst=-2.394014962593516
+BLOCKED_GOOD BEAT-USDT#938396 reason=rule_touch_volume_grey_N at=2026-11-13T06:00:00.000Z peak=10.505937016004152 worst=-0.12906556530716262
+BLOCKED_GOOD PONS-USDT#938514 reason=qualified_duplicate_active_position at=2026-11-13T06:00:00.000Z peak=10.78561917443408 worst=-1.0652463382157085
+BLOCKED_GOOD ELSA-USDT#938631 reason=rule_touch_volume_grey_N at=2026-11-13T06:00:00.000Z peak=10.273972602739722 worst=0
+BLOCKED_GOOD STONK-USDT#938740 reason=rule_touch_volume_grey_N at=2026-11-13T02:00:00.000Z peak=10.398230088495586 worst=-5.9734513274336205
+BLOCKED_GOOD PIEVERSE-USDT#940163 reason=rule_touch_volume_grey_N at=2026-11-13T02:00:00.000Z peak=14.930681133212786 worst=-5.64195298372514
+BLOCKED_GOOD ARX-USDT#940273 reason=rule_touch_volume_grey_N at=2026-11-13T02:00:00.000Z peak=10.579345088161208 worst=-1.4105793450881587
+BLOCKED_GOOD BMT-USDT#941417 reason=rule_touch_volume_grey_N at=2026-11-13T04:00:00.000Z peak=11.523625843780128 worst=-1.9286403085824522
+BLOCKED_GOOD ESPORTS-USDT#941462 reason=rule_touch_volume_grey_N at=2026-11-13T07:00:00.000Z peak=10.099355824871692 worst=-3.9851512173818215
+BLOCKED_GOOD TAC-USDT#941540 reason=rule_touch_volume_grey_N at=2026-11-13T05:00:00.000Z peak=13.932584269662929 worst=-0.3370786516853852
+BLOCKED_GOOD GPS-USDT#942020 reason=rule_entry_passed at=2026-11-14T01:00:00.000Z peak=10.328997704667175 worst=-4.743687834736033
+BLOCKED_GOOD VRAX-USDT#942159 reason=rule_touch_no_aggregated_volume at=2026-11-13T07:00:00.000Z peak=10.003379520108147 worst=-2.2304832713754497
+BLOCKED_GOOD BEAT-USDT#943408 reason=rule_touch_volume_grey_N at=2026-11-13T06:00:00.000Z peak=10.505937016004152 worst=-0.12906556530716262
+BLOCKED_GOOD PRL-USDT#943455 reason=qualified_duplicate_active_position at=2026-11-13T06:00:00.000Z peak=10.204081632653072 worst=-1.8410161267304104
+BLOCKED_GOOD BMT-USDT#943603 reason=rule_touch_volume_grey_N at=2026-11-13T06:00:00.000Z peak=10.108133521391638 worst=-0.9402914903620219
+BLOCKED_GOOD MARSCOIN-USDT#943630 reason=qualified_duplicate_active_position at=2026-11-13T06:00:00.000Z peak=10.349356448647228 worst=-0.44654583661675185
+BLOCKED_GOOD ELSA-USDT#943689 reason=rule_touch_volume_grey_N at=2026-11-13T06:00:00.000Z peak=10.273972602739722 worst=0
+BLOCKED_GOOD BEAT-USDT#943780 reason=rule_touch_volume_grey_N at=2026-11-13T07:00:00.000Z peak=11.022814662906931 worst=-0.10253781081774882
+BLOCKED_GOOD STONK-USDT#944056 reason=neon_not_entered_at_detection at=2026-11-13T07:00:00.000Z peak=10.089686098654704 worst=0
+BLOCKED_GOOD VRAX-USDT#944188 reason=rule_touch_no_aggregated_volume at=2026-11-13T07:00:00.000Z peak=10.003379520108147 worst=-2.2304832713754497
+BLOCKED_GOOD ESPORTS-USDT#944409 reason=rule_touch_volume_grey_N at=2026-11-13T07:00:00.000Z peak=10.099355824871692 worst=-3.9851512173818215
+BLOCKED_GOOD NAORIS-USDT#944910 reason=rule_touch_volume_grey_N at=2026-11-13T10:00:00.000Z peak=14.25041186161451 worst=-1.2767710049423342
+BLOCKED_GOOD VRAX-USDT#944914 reason=rule_touch_no_aggregated_volume at=2026-11-13T08:00:00.000Z peak=13.067807768268613 worst=-3.4562211981566837
+BLOCKED_GOOD CAP-USDT#945038 reason=neon_not_entered_at_detection at=2026-11-13T16:00:00.000Z peak=13.487150628399913 worst=-3.1607578315513196
+BLOCKED_GOOD MEGA-USDT#945064 reason=rule_touch_volume_grey_N at=2026-11-13T10:00:00.000Z peak=11.316140506891958 worst=-5.913739439750987
+BLOCKED_GOOD PROM-USDT#945077 reason=rule_touch_volume_grey_NN at=2026-11-13T19:00:00.000Z peak=11.031604054859878 worst=-2.941761081295957
+BLOCKED_GOOD STONK-USDT#945234 reason=neon_not_entered_at_detection at=2026-11-13T08:00:00.000Z peak=10.109890109890118 worst=-0.6593406593406681
+BLOCKED_GOOD DNA-USDT#945290 reason=neon_not_entered_at_detection at=2026-11-13T23:00:00.000Z peak=11.738857501569356 worst=-3.4526051475204045
+BLOCKED_GOOD NAORIS-USDT#946391 reason=rule_touch_volume_grey_N at=2026-11-13T10:00:00.000Z peak=14.25041186161451 worst=-1.2767710049423342
+BLOCKED_GOOD MEGA-USDT#946576 reason=rule_touch_volume_grey_N at=2026-11-13T10:00:00.000Z peak=11.316140506891958 worst=-5.913739439750987
+BLOCKED_GOOD NAORIS-USDT#946757 reason=rule_touch_volume_grey_N at=2026-11-13T11:00:00.000Z peak=13.316993464052306 worst=-2.083333333333315
+BLOCKED_GOOD NAORIS-USDT#947498 reason=neon_not_entered_at_detection at=2026-11-13T12:00:00.000Z peak=10.782747603833865 worst=-4.273162939297115
+BLOCKED_GOOD BARD-USDT#947753 reason=neon_not_entered_at_detection at=2026-11-13T12:00:00.000Z peak=11.677419354838703 worst=-2.3225806451612874
+BLOCKED_GOOD NIGHT-USDT#949320 reason=rule_touch_volume_grey_N at=2026-11-13T14:00:00.000Z peak=11.177248677248697 worst=-2.7116402116401983
+BLOCKED_GOOD BTW-USDT#950228 reason=rule_touch_volume_grey_N at=2026-11-13T22:00:00.000Z peak=10.02247785270396 worst=-5.672352241174128
+BLOCKED_GOOD NAORIS-USDT#952956 reason=neon_not_entered_at_detection at=2026-11-13T20:00:00.000Z peak=10.473914774990046 worst=-4.5400238948626
+BLOCKED_GOOD NAORIS-USDT#953551 reason=rule_touch_volume_grey_N at=2026-11-14T01:00:00.000Z peak=12.993890020366617 worst=-2.3625254582484656
+BLOCKED_GOOD BTW-USDT#954578 reason=rule_touch_volume_grey_N at=2026-11-13T22:00:00.000Z peak=10.02247785270396 worst=-5.672352241174128
+BLOCKED_GOOD JCT-USDT#955604 reason=rule_touch_volume_grey_N at=2026-11-14T04:00:00.000Z peak=11.138613861386126 worst=-1.7821782178217838
+BLOCKED_GOOD DNA-USDT#955748 reason=neon_not_entered_at_detection at=2026-11-14T05:00:00.000Z peak=10.97256857855362 worst=-4.1147132169575995
+BLOCKED_GOOD PROM-USDT#955843 reason=rule_touch_volume_grey_N at=2026-11-14T00:00:00.000Z peak=11.05367793240557 worst=-2.9224652087475156
+BLOCKED_GOOD PIEVERSE-USDT#957095 reason=rule_touch_volume_grey_N at=2026-11-14T02:00:00.000Z peak=13.392804044008333 worst=-1.2786202795123436
+BLOCKED_GOOD PROM-USDT#957590 reason=rule_touch_volume_grey_N at=2026-11-14T02:00:00.000Z peak=10.591961987725206 worst=-3.326074044743621
+BLOCKED_GOOD BLESS-USDT#959170 reason=neon_not_entered_at_detection at=2026-11-14T22:00:00.000Z peak=10.42120968667508 worst=-1.4461150005738665
+BLOCKED_GOOD JCT-USDT#959331 reason=rule_touch_volume_grey_N at=2026-11-14T04:00:00.000Z peak=11.138613861386126 worst=-1.7821782178217838
+BLOCKED_GOOD JCT-USDT#959744 reason=rule_touch_volume_grey_N at=2026-11-14T05:00:00.000Z peak=10.864197530864207 worst=-2.0246913580246773
+BLOCKED_GOOD DNA-USDT#960032 reason=rule_touch_volume_grey_NN at=2026-11-14T14:00:00.000Z peak=12.444725205306373 worst=-2.8427037271004485
+BLOCKED_GOOD PUSSY-USDT#962004 reason=rule_touch_short_history at=2026-11-14T10:00:00.000Z peak=10.215053763440851 worst=0
+BLOCKED_GOOD NULLMASK-USDT#963361 reason=rule_touch_volume_grey_NN at=2026-11-14T19:00:00.000Z peak=15.823735603405108 worst=-0.6009013520280493
+BLOCKED_GOOD ON-USDT#963563 reason=rule_touch_volume_grey_N at=2026-11-14T12:00:00.000Z peak=11.177170035671825 worst=-3.3293697978596826
+BLOCKED_GOOD PROM-USDT#963637 reason=rule_touch_volume_grey_N at=2026-11-14T10:00:00.000Z peak=10.373443983402497 worst=-3.5170914838964618
+BLOCKED_GOOD SOON-USDT#964575 reason=rule_touch_volume_grey_N at=2026-11-14T18:00:00.000Z peak=11.192660550458712 worst=-4.541284403669721
+BLOCKED_GOOD PROM-USDT#964619 reason=rule_touch_volume_grey_N at=2026-11-14T12:00:00.000Z peak=10.373443983402497 worst=-3.5170914838964618
+BLOCKED_GOOD ON-USDT#964917 reason=rule_touch_volume_grey_N at=2026-11-14T12:00:00.000Z peak=11.177170035671825 worst=-3.3293697978596826
+BLOCKED_GOOD JCT-USDT#965028 reason=rule_touch_volume_grey_N at=2026-11-14T15:00:00.000Z peak=12.00417536534446 worst=-4.540709812108568
+BLOCKED_GOOD JCT-USDT#966952 reason=rule_touch_volume_grey_N at=2026-11-14T15:00:00.000Z peak=12.00417536534446 worst=-4.540709812108568
+BLOCKED_GOOD JCT-USDT#967332 reason=rule_touch_volume_grey_N at=2026-11-14T18:00:00.000Z peak=11.44578313253013 worst=-0.05020080321284093
+BLOCKED_GOOD PROM-USDT#967499 reason=rule_touch_volume_grey_N at=2026-11-14T18:00:00.000Z peak=11.408057439170328 worst=-2.612684483446359
+BLOCKED_GOOD BANANAS31-USDT#967735 reason=neon_not_entered_at_detection at=2026-11-14T19:00:00.000Z peak=10.222960151802663 worst=-4.316888045540789
+BLOCKED_GOOD IRYS-USDT#967771 reason=rule_touch_volume_grey_NN at=2026-11-15T00:00:00.000Z peak=10.117810117810123 worst=-4.920304920304918
+BLOCKED_GOOD PHA-USDT#967993 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=10.317743662977508 worst=-2.213495180292746
+BLOCKED_GOOD EVAA-USDT#968048 reason=neon_not_entered_at_detection at=2026-11-15T02:00:00.000Z peak=11.504484004818627 worst=-3.112033195020747
+BLOCKED_GOOD SOON-USDT#969580 reason=rule_touch_volume_grey_N at=2026-11-14T18:00:00.000Z peak=11.192660550458712 worst=-4.541284403669721
+BLOCKED_GOOD ON-USDT#970009 reason=rule_touch_volume_grey_N at=2026-11-14T19:00:00.000Z peak=10.235294117647054 worst=-4.23529411764707
+BLOCKED_GOOD BANANAS31-USDT#970316 reason=neon_not_entered_at_detection at=2026-11-14T19:00:00.000Z peak=10.222960151802663 worst=-4.316888045540789
+BLOCKED_GOOD BANANAS31-USDT#970726 reason=neon_not_entered_at_detection at=2026-11-14T22:00:00.000Z peak=10.595551303515904 worst=-2.8940444869648307
+BLOCKED_GOOD SPX-USDT#970764 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.524511484401788 worst=-2.5368529310935917
+BLOCKED_GOOD CKB-USDT#970921 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.034389584868597 worst=-2.382706951608937
+BLOCKED_GOOD COOKIE-USDT#971394 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.835509138381184 worst=-3.603133159268934
+BLOCKED_GOOD ARPA-USDT#971477 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.517090271691497 worst=-3.042443971453601
+BLOCKED_GOOD VELVET-USDT#971849 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=11.740716892036929 worst=-2.017600343421322
+BLOCKED_GOOD SWARMS-USDT#972937 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=11.583011583011583 worst=-2.281502281502279
+BLOCKED_GOOD XNY-USDT#972978 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=10.035169988276671 worst=-1.8991793669401957
+BLOCKED_GOOD YGG-USDT#973171 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=10.132158590308382 worst=-2.0925110132158475
+BLOCKED_GOOD JCT-USDT#973339 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=18.421052631578938 worst=-4.021847070506457
+BLOCKED_GOOD SOON-USDT#973479 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=11.551155115511547 worst=-1.885902876001888
+BLOCKED_GOOD GRT-USDT#973493 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=10.119421747328715 worst=-2.2627278441232024
+BLOCKED_GOOD KAIA-USDT#973626 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=10.075295804948015 worst=-1.9720329867336073
+BLOCKED_GOOD PHA-USDT#973633 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=10.317743662977508 worst=-2.213495180292746
+BLOCKED_GOOD AKT-USDT#973650 reason=neon_not_entered_at_detection at=2026-11-14T22:00:00.000Z peak=10.181582360570696 worst=-2.2697795071335958
+BLOCKED_GOOD IO-USDT#973657 reason=neon_not_entered_at_detection at=2026-11-14T22:00:00.000Z peak=10.095642933049941 worst=-2.444208289054195
+BLOCKED_GOOD ON-USDT#973710 reason=rule_touch_volume_grey_N at=2026-11-14T22:00:00.000Z peak=10.299401197604796 worst=-2.5149700598802505
+BLOCKED_GOOD BANANAS31-USDT#973913 reason=neon_not_entered_at_detection at=2026-11-14T23:00:00.000Z peak=10.542380840572928 worst=-4.672458323550122
+BLOCKED_GOOD WOTAMALAILE-USDT#974166 reason=rule_touch_volume_grey_N at=2026-11-14T23:00:00.000Z peak=13.647902045692106 worst=-2.8818874122741422
+BLOCKED_GOOD ICP-USDT#974839 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=10.9239872553482 worst=-1.9116977696859494
+BLOCKED_GOOD JCT-USDT#974841 reason=rule_touch_volume_grey_N at=2026-11-15T00:00:00.000Z peak=18.2449181953396 worst=-4.164600892414483
+BLOCKED_GOOD ONE-USDT#974886 reason=rule_touch_volume_grey_N at=2026-11-15T00:00:00.000Z peak=14.85362342025276 worst=-0.9758438649815959
+BLOCKED_GOOD BANANAS31-USDT#974894 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.09749303621168 worst=-5.756731662024139
+BLOCKED_GOOD AIA-USDT#975010 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=12.5 worst=-1.8617021276595924
+BLOCKED_GOOD SWARMS-USDT#975035 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.727969348659006 worst=-3.0303030303030276
+BLOCKED_GOOD PHA-USDT#975151 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.612959719789838 worst=-2.837127845884402
+BLOCKED_GOOD ON-USDT#975184 reason=rule_touch_volume_grey_N at=2026-11-15T00:00:00.000Z peak=10.129564193168438 worst=-0.7067137809187329
+BLOCKED_GOOD TRIA-USDT#975226 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=10.223642172523984 worst=-0.22820629849382712
+BLOCKED_GOOD COOKIE-USDT#975275 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.835509138381184 worst=-3.603133159268934
+BLOCKED_GOOD IRYS-USDT#975405 reason=rule_touch_volume_grey_N at=2026-11-15T00:00:00.000Z peak=10.117810117810123 worst=-4.920304920304918
+BLOCKED_GOOD ARPA-USDT#975589 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.517090271691497 worst=-3.042443971453601
+BLOCKED_GOOD CKB-USDT#975638 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.034389584868597 worst=-2.382706951608937
+BLOCKED_GOOD XNY-USDT#975639 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=10.108972872710398 worst=-2.133086019012287
+BLOCKED_GOOD WOTAMALAILE-USDT#975679 reason=neon_not_entered_at_detection at=2026-11-15T00:00:00.000Z peak=13.546173355214087 worst=-2.9688199313740005
+BLOCKED_GOOD BEAT-USDT#975719 reason=rule_touch_volume_grey_N at=2026-11-15T02:00:00.000Z peak=10.623706004140775 worst=-0.5175983436852993
+BLOCKED_GOOD BANANAS31-USDT#975843 reason=neon_not_entered_at_detection at=2026-11-15T02:00:00.000Z peak=10.807572489815476 worst=-0.023963575365426593
+BLOCKED_GOOD IRYS-USDT#975888 reason=rule_touch_volume_grey_N at=2026-11-15T03:00:00.000Z peak=10.654596100278567 worst=-2.36768802228412
+BLOCKED_GOOD AIA-USDT#975955 reason=neon_not_entered_at_detection at=2026-11-15T02:00:00.000Z peak=10.594560404807085 worst=-0.4111321948134239
+BLOCKED_GOOD TWT-USDT#976017 reason=neon_not_entered_at_detection at=2026-11-15T02:00:00.000Z peak=10.286576168929095 worst=-0.4826546003016574
+BLOCKED_GOOD PHA-USDT#976060 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=11.365970558028081 worst=-2.5333789798014372
+BLOCKED_GOOD WOTAMALAILE-USDT#976067 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=11.337039204212985 worst=-3.0134581626682366
+BLOCKED_GOOD ON-USDT#976157 reason=rule_touch_volume_grey_N at=2026-11-15T01:00:00.000Z peak=10.889929742388759 worst=-1.2880562060889944
+BLOCKED_GOOD COOKIE-USDT#977023 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=10.565267321679217 worst=-3.0496363404364013
+BLOCKED_GOOD STEEM-USDT#977133 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=14.048410061699101 worst=-0.5695301376364426
+BLOCKED_GOOD BEAT-USDT#977201 reason=rule_touch_volume_grey_N at=2026-11-15T02:00:00.000Z peak=10.623706004140775 worst=-0.5175983436852993
+BLOCKED_GOOD BANANAS31-USDT#977354 reason=neon_not_entered_at_detection at=2026-11-15T02:00:00.000Z peak=10.807572489815476 worst=-0.023963575365426593
+BLOCKED_GOOD AIA-USDT#977539 reason=neon_not_entered_at_detection at=2026-11-15T02:00:00.000Z peak=10.594560404807085 worst=-0.4111321948134239
+BLOCKED_GOOD TWT-USDT#977582 reason=neon_not_entered_at_detection at=2026-11-15T02:00:00.000Z peak=10.286576168929095 worst=-0.4826546003016574
+BLOCKED_GOOD BANANAS31-USDT#977812 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=10.231795832357783 worst=-1.194099742449073
+BLOCKED_GOOD ONE-USDT#977815 reason=rule_touch_volume_grey_N at=2026-11-15T03:00:00.000Z peak=12.699160191507719 worst=-1.6246762420532135
+BLOCKED_GOOD AIA-USDT#977953 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=11.198905941346293 worst=-0.31910044066248977
+BLOCKED_GOOD NEARKAT-USDT#978269 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=16.94915254237288 worst=0
+BLOCKED_GOOD WOTAMALAILE-USDT#978270 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=11.337039204212985 worst=-3.0134581626682366
+BLOCKED_GOOD IRYS-USDT#978386 reason=rule_touch_volume_grey_N at=2026-11-15T03:00:00.000Z peak=10.654596100278567 worst=-2.36768802228412
+BLOCKED_GOOD TRIA-USDT#978537 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=10.223642172523984 worst=-0.22820629849382712
+BLOCKED_GOOD PHA-USDT#978652 reason=neon_not_entered_at_detection at=2026-11-15T03:00:00.000Z peak=11.365970558028081 worst=-2.5333789798014372
+BLOCKED_GOOD HEI-USDT#978712 reason=rule_closed_4h_under_zone at=2026-11-15T04:00:00.000Z peak=10.060857179852412 worst=-2.265958824291059
+BLOCKED_GOOD ONE-USDT#978836 reason=rule_touch_volume_grey_N at=2026-11-15T05:00:00.000Z peak=12.566635308874252 worst=-0.744747569771087
+BLOCKED_GOOD BANANAS31-USDT#978840 reason=rule_touch_volume_grey_N at=2026-11-15T04:00:00.000Z peak=10.205992509363316 worst=-1.217228464419473
+BLOCKED_GOOD IRYS-USDT#978873 reason=rule_touch_volume_grey_N at=2026-11-15T04:00:00.000Z peak=10.529938059187893 worst=-3.509979353062631
+BLOCKED_GOOD CASHCAT-USDT#978907 reason=rule_touch_volume_grey_NNN at=2026-11-15T20:00:00.000Z peak=14.522924411400261 worst=-1.7843866171003642
+BLOCKED_GOOD MELANIA-USDT#978979 reason=rule_touch_volume_grey_N at=2026-11-15T05:00:00.000Z peak=15.229515229515211 worst=-3.8610038610038644
+BLOCKED_GOOD STEEM-USDT#978984 reason=rule_touch_volume_grey_N at=2026-11-15T04:00:00.000Z peak=13.697657913413753 worst=-0.8753252898036523
+BLOCKED_GOOD WOTAMALAILE-USDT#979007 reason=rule_touch_volume_grey_NNN at=2026-11-15T17:00:00.000Z peak=11.696507191077199 worst=-2.700322864690341
+BLOCKED_GOOD BANANAS31-USDT#979629 reason=rule_touch_volume_grey_N at=2026-11-15T05:00:00.000Z peak=11.272397369017927 worst=-0.521660240417321
+BLOCKED_GOOD IRYS-USDT#979643 reason=rule_touch_volume_grey_N at=2026-11-15T06:00:00.000Z peak=10.680272108843546 worst=-4.625850340136051
+BLOCKED_GOOD STEEM-USDT#979830 reason=rule_touch_volume_grey_N at=2026-11-15T05:00:00.000Z peak=12.922932330827063 worst=-1.5507518796992525
+BLOCKED_GOOD BANANAS31-USDT#980407 reason=rule_touch_volume_grey_N at=2026-11-15T06:00:00.000Z peak=10.620067643742948 worst=-0.5411499436302036
+BLOCKED_GOOD ONE-USDT#980425 reason=rule_touch_volume_grey_N at=2026-11-15T06:00:00.000Z peak=12.55781139766401 worst=-0.7525280238300569
+BLOCKED_GOOD IRYS-USDT#980854 reason=rule_touch_volume_grey_N at=2026-11-15T06:00:00.000Z peak=10.680272108843546 worst=-4.625850340136051
+BLOCKED_GOOD JCT-USDT#981179 reason=rule_touch_volume_grey_N at=2026-11-15T07:00:00.000Z peak=20.332996972754813 worst=-2.472250252270425
+BLOCKED_GOOD BANANAS31-USDT#981215 reason=rule_touch_volume_grey_N at=2026-11-15T07:00:00.000Z peak=10.172917134516046 worst=-0.9431843700875908
+BLOCKED_GOOD ONE-USDT#981251 reason=rule_touch_volume_grey_N at=2026-11-15T07:00:00.000Z peak=11.396431342125668 worst=-1.7765709852598843
+BLOCKED_GOOD IRYS-USDT#981260 reason=rule_touch_volume_grey_N at=2026-11-15T07:00:00.000Z peak=12.162162162162149 worst=-5.270270270270283
+BLOCKED_GOOD ZRO-USDT#981948 reason=rule_entry_passed at=2026-11-15T16:00:00.000Z peak=10.39775183744056 worst=-3.026372676178113
+BLOCKED_GOOD KGEN-USDT#982000 reason=rule_touch_volume_grey_NNN at=2026-11-15T21:00:00.000Z peak=10.371558406843096 worst=-0.267308206361927
+BLOCKED_GOOD USUAL-USDT#982105 reason=rule_touch_volume_no_buying_NYN at=2026-11-15T20:00:00.000Z peak=12.444179815421275 worst=-5.001488538255428
+SIM A_signal r8 entered=145 stop6={"n":145,"pnl_usd":-2631.5910436191293,"account_pct_of_1000":-263.1591043619129,"wins":29,"losses":116} under_zone={"n":145,"pnl_usd":-1184.9898423979696,"account_pct_of_1000":-118.49898423979695,"wins":30,"losses":115}
+SIM A_signal h4 entered=122 stop6={"n":122,"pnl_usd":-2665.6198432781484,"account_pct_of_1000":-266.56198432781486,"wins":18,"losses":104} under_zone={"n":122,"pnl_usd":-1320.892616552672,"account_pct_of_1000":-132.0892616552672,"wins":21,"losses":101}
+SIM A_signal bos entered=119 stop6={"n":119,"pnl_usd":-2504.7053627528358,"account_pct_of_1000":-250.47053627528356,"wins":19,"losses":99} under_zone={"n":119,"pnl_usd":-1691.0248749043299,"account_pct_of_1000":-169.102487490433,"wins":23,"losses":95}
+SIM B_blocked r8 entered=53 stop6={"n":53,"pnl_usd":328.6566721111629,"account_pct_of_1000":32.86566721111629,"wins":21,"losses":32} under_zone={"n":53,"pnl_usd":-284.66570478160065,"account_pct_of_1000":-28.466570478160065,"wins":8,"losses":45}
+SIM B_blocked h4 entered=1709 stop6={"n":1697,"pnl_usd":-39791.32613660067,"account_pct_of_1000":-3979.132613660067,"wins":378,"losses":1318} under_zone={"n":1697,"pnl_usd":-33427.36872878799,"account_pct_of_1000":-3342.7368728787987,"wins":398,"losses":1298}
+SIM B_blocked bos entered=2707 stop6={"n":2704,"pnl_usd":-34203.58652081915,"account_pct_of_1000":-3420.3586520819154,"wins":741,"losses":1956} under_zone={"n":2704,"pnl_usd":-20232.189842260777,"account_pct_of_1000":-2023.2189842260777,"wins":723,"losses":1975}
+SIM C_reference r8 entered=0 stop6={"n":0,"pnl_usd":0,"account_pct_of_1000":0,"wins":0,"losses":0} under_zone={"n":0,"pnl_usd":0,"account_pct_of_1000":0,"wins":0,"losses":0}
+SIM C_reference h4 entered=7 stop6={"n":7,"pnl_usd":168.72702047062648,"account_pct_of_1000":16.87270204706265,"wins":3,"losses":4} under_zone={"n":7,"pnl_usd":76.97055993848039,"account_pct_of_1000":7.697055993848039,"wins":4,"losses":3}
+SIM C_reference bos entered=7 stop6={"n":7,"pnl_usd":92.69851195560113,"account_pct_of_1000":9.269851195560113,"wins":2,"losses":5} under_zone={"n":7,"pnl_usd":288.1155652247324,"account_pct_of_1000":28.81155652247324,"wins":4,"losses":3}
+VARIANT_TRIGGER unavailable_missing_neon_snapshots_table; snapshots-derived trigger not inferred.
+EVENT_FILE_ROWS=4051 SNAPSHOT_FILE_ROWS=145
+SUMMARY_WRITTEN events=4051 snapshots=145 metric_keys=216 threshold_rows=216
+CACHE_GAP 0G-USDT: cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|no_fired_entry; reference price is context only
+CACHE_GAP 1000BONK-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP 1000CAT-USDT: no_fired_entry; reference price is context only
+CACHE_GAP 1000CHEEMS-USDT: no_fired_entry; reference price is context only
+CACHE_GAP 1000PEPE-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.833|no_reference_time_or_price
+CACHE_GAP 1000SHIB-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP 1000XEC-USDT: no_fired_entry; reference price is context only|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars
+CACHE_GAP 1INCH-USDT: no_fired_entry; reference price is context only
+CACHE_GAP 2Z-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP 4-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|cache_or_time_coverage_0.938|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.708|cache_or_time_coverage_0.313|cache_or_time_coverage_0.250
+CACHE_GAP 4STOCK-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars|no_reference_time_or_price
+CACHE_GAP AAVE-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ACH-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ACT-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844
+CACHE_GAP ACU-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ADA-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.802|cache_or_time_coverage_0.708|cache_or_time_coverage_0.625|cache_or_time_coverage_0.542|cache_or_time_coverage_0.448
+CACHE_GAP AERO-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.958|cache_or_time_coverage_0.938|cache_or_time_coverage_0.927|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.802|cache_or_time_coverage_0.448|no_reference_time_or_price
+CACHE_GAP AEVO-USDT: no_fired_entry; reference price is context only
+CACHE_GAP AGRIPPA-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars
+CACHE_GAP AGT-USDT: 1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars|no_reference_time_or_price
+CACHE_GAP AIA-USDT: cache_or_time_coverage_0.875|cache_or_time_coverage_0.854|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|no_reference_time_or_price|cache_or_time_coverage_0.813|cache_or_time_coverage_0.656|no_fired_entry; reference price is context only
+CACHE_GAP AIN-USDT: no_fired_entry; reference price is context only
+CACHE_GAP AIO-USDT: ema200d:need_200_closed_1d_bars|no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP AKT-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.896
+CACHE_GAP ALCH-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars|cache_or_time_coverage_0.844
+CACHE_GAP ALGO-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.833|cache_or_time_coverage_0.542|cache_or_time_coverage_0.500
+CACHE_GAP ALICE-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only
+CACHE_GAP AMEMECOIN-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars
+CACHE_GAP ANKR-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.958|cache_or_time_coverage_0.938|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.448
+CACHE_GAP APE-USDT: no_fired_entry; reference price is context only
+CACHE_GAP APEX-USDT: no_fired_entry; reference price is context only
+CACHE_GAP API3-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|no_reference_time_or_price
+CACHE_GAP APT-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP AR-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.979
+CACHE_GAP ARB-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ARIA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.677|cache_or_time_coverage_0.698
+CACHE_GAP ARK-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP ARKM-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ARPA-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.125
+CACHE_GAP ARX-USDT: ema200d:need_200_closed_1d_bars|no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.948|cache_or_time_coverage_0.906|cache_or_time_coverage_0.844|cache_or_time_coverage_0.594|cache_or_time_coverage_0.458|cache_or_time_coverage_0.333
+CACHE_GAP ASR-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP ASTER-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.021|cache_or_time_coverage_0.448
+CACHE_GAP ASTR-USDT: no_fired_entry; reference price is context only
+CACHE_GAP AT-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.542|cache_or_time_coverage_0.510|cache_or_time_coverage_0.344
+CACHE_GAP ATH-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.844
+CACHE_GAP ATOM-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only
+CACHE_GAP AVA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896
+CACHE_GAP AVAX-USDT: cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|no_reference_time_or_price|cache_or_time_coverage_0.813|no_fired_entry; reference price is context only|no_15m_bars_after_entry
+CACHE_GAP AWE-USDT: no_fired_entry; reference price is context only
+CACHE_GAP AXL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP AZTEC-USDT: no_fired_entry; reference price is context only
+CACHE_GAP B-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP B2-USDT: no_fired_entry; reference price is context only
+CACHE_GAP BANANA-USDT: cache_or_time_coverage_0.844|cache_or_time_coverage_0.823|no_fired_entry; reference price is context only
+CACHE_GAP BANANAS31-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.979|cache_or_time_coverage_0.927|cache_or_time_coverage_0.896|cache_or_time_coverage_0.885|cache_or_time_coverage_0.875|cache_or_time_coverage_0.854|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.823|cache_or_time_coverage_0.813|cache_or_time_coverage_0.802
+CACHE_GAP BARD-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.625|cache_or_time_coverage_0.510|no_reference_time_or_price
+CACHE_GAP BAS-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844
+CACHE_GAP BAT-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.917|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.708|no_reference_time_or_price|cache_or_time_coverage_0.542|cache_or_time_coverage_0.458|cache_or_time_coverage_0.375|cache_or_time_coverage_0.125|cache_or_time_coverage_0.938
+CACHE_GAP BCH-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.917|cache_or_time_coverage_0.896|cache_or_time_coverage_0.042|no_15m_bars_after_entry|no_reference_time_or_price
+CACHE_GAP BEAM-USDT: no_fired_entry; reference price is context only
+CACHE_GAP BEAT-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.854|cache_or_time_coverage_0.844|cache_or_time_coverage_0.802|cache_or_time_coverage_0.542|cache_or_time_coverage_0.458|cache_or_time_coverage_0.375|cache_or_time_coverage_0.260|cache_or_time_coverage_0.250
+CACHE_GAP BEN-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars
+CACHE_GAP BICO-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.938|cache_or_time_coverage_0.844|cache_or_time_coverage_0.813|cache_or_time_coverage_0.667|cache_or_time_coverage_0.521|cache_or_time_coverage_0.083|no_15m_bars_after_entry
+CACHE_GAP BIKETYSON-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars|no_15m_bars_after_entry
+CACHE_GAP BILL-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|cache_or_time_coverage_0.948
+CACHE_GAP BIRB-USDT: no_reference_time_or_price
+CACHE_GAP BITLIGHT-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing
+CACHE_GAP BLEND-USDT: no_fired_entry; reference price is context only
+CACHE_GAP BLESS-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.557|cache_or_time_coverage_0.526
+CACHE_GAP BLUAI-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP BMT-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|cache_or_time_coverage_0.958|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.792|cache_or_time_coverage_0.708|cache_or_time_coverage_0.625
+CACHE_GAP BNB-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.917|cache_or_time_coverage_0.844|cache_or_time_coverage_0.250|no_reference_time_or_price
+CACHE_GAP BNLIFE-USDT: cache_or_time_coverage_0.833|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|no_reference_time_or_price
+CACHE_GAP BOME-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.958|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.802|cache_or_time_coverage_0.667|cache_or_time_coverage_0.542|cache_or_time_coverage_0.188|cache_or_time_coverage_0.167|cache_or_time_coverage_0.083
+CACHE_GAP BRETT-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP BREV-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.177|cache_or_time_coverage_0.094
+CACHE_GAP BROCCOLI-USDT: no_fired_entry; reference price is context only
+CACHE_GAP BROCCOLIF3B-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|cache_or_time_coverage_0.760|cache_or_time_coverage_0.250|cache_or_time_coverage_0.042|no_reference_time_or_price
+CACHE_GAP BSV-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896
+CACHE_GAP BTR-USDT: cache_or_time_coverage_0.750|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP BTW-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP BULLA-USDT: no_reference_time_or_price|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP BUN-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_reference_time_or_price
+CACHE_GAP C-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP CAKE-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP CAP-USDT: ema200d:need_200_closed_1d_bars|no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP CASHCAT-USDT: cache_or_time_coverage_0.844|ema200d:need_200_closed_1d_bars|cache_or_time_coverage_0.667|cache_or_time_coverage_0.542
+CACHE_GAP CC-USDT: no_fired_entry; reference price is context only
+CACHE_GAP CELO-USDT: cache_or_time_coverage_0.844|no_fired_entry; reference price is context only
+CACHE_GAP CELR-USDT: no_fired_entry; reference price is context only
+CACHE_GAP CETUS-USDT: no_fired_entry; reference price is context only
+CACHE_GAP CFX-USDT: no_fired_entry; reference price is context only
+CACHE_GAP CHILLGUY-USDT: no_fired_entry; reference price is context only
+CACHE_GAP CHR-USDT: no_fired_entry; reference price is context only
+CACHE_GAP CITREA-USDT: cache_or_time_coverage_0.260|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars|cache_or_time_coverage_0.219|no_fired_entry; reference price is context only
+CACHE_GAP CKB-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.802|cache_or_time_coverage_0.604|no_reference_time_or_price
+CACHE_GAP CLANKER-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.938|cache_or_time_coverage_0.885|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833
+CACHE_GAP CNPY-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|cache_or_time_coverage_0.938
+CACHE_GAP COLLECT-USDT: no_fired_entry; reference price is context only
+CACHE_GAP COMP-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|no_15m_bars_after_entry
+CACHE_GAP COOKIE-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|no_reference_time_or_price|cache_or_time_coverage_0.083|no_15m_bars_after_entry
+CACHE_GAP CORE-USDT: no_fired_entry; reference price is context only
+CACHE_GAP COTI-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.958
+CACHE_GAP CP-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP CRO-USDT: no_fired_entry; reference price is context only
+CACHE_GAP CROSS-USDT: cache_or_time_coverage_0.313|cache_or_time_coverage_0.302|no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP CRV-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.802|cache_or_time_coverage_0.521|cache_or_time_coverage_0.125|cache_or_time_coverage_0.042|no_15m_bars_after_entry
+CACHE_GAP CT-USDT: no_fired_entry; reference price is context only|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars
+CACHE_GAP CTSI-USDT: cache_or_time_coverage_0.958|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP CVC-USDT: no_fired_entry; reference price is context only
+CACHE_GAP CVX-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars
+CACHE_GAP CYBER-USDT: no_fired_entry; reference price is context only
+CACHE_GAP CYBERLEEK-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars|no_reference_time_or_price
+CACHE_GAP DEEP-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.250|no_reference_time_or_price
+CACHE_GAP DEXE-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP DGAI-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars|no_reference_time_or_price
+CACHE_GAP DIA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.813|cache_or_time_coverage_0.802
+CACHE_GAP DNA-USDT: ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|cache_or_time_coverage_0.979
+CACHE_GAP DOGS-USDT: ema200d:need_200_closed_1d_bars|no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP DOOD-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.135|cache_or_time_coverage_0.125|no_15m_bars_after_entry
+CACHE_GAP DOS-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars|no_reference_time_or_price|cache_or_time_coverage_0.875
+CACHE_GAP DOT-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.833|cache_or_time_coverage_0.542
+CACHE_GAP DUSK-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896
+CACHE_GAP DYDX-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|no_reference_time_or_price
+CACHE_GAP DYM-USDT: no_fired_entry; reference price is context only
+CACHE_GAP EDGEX-USDT: 1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|cache_or_time_coverage_0.896|cache_or_time_coverage_0.885|cache_or_time_coverage_0.875|no_fired_entry; reference price is context only|cache_or_time_coverage_0.448|cache_or_time_coverage_0.333
+CACHE_GAP EGLD-USDT: cache_or_time_coverage_0.843|no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.875
+CACHE_GAP EIGEN-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ELSA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.708|no_reference_time_or_price
+CACHE_GAP ENA-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP ENJ-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844
+CACHE_GAP ENS-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.698|no_15m_bars_after_entry
+CACHE_GAP ERA-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ESP-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ESPORTS-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.938
+CACHE_GAP ETC-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP ETHFI-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.979|cache_or_time_coverage_0.958|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|no_reference_time_or_price|cache_or_time_coverage_0.802|cache_or_time_coverage_0.573
+CACHE_GAP EVAA-USDT: cache_or_time_coverage_0.123|no_fired_entry; reference price is context only
+CACHE_GAP FARTCOIN-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.979|no_reference_time_or_price
+CACHE_GAP FET-USDT: no_fired_entry; reference price is context only
+CACHE_GAP FIGHTID-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing
+CACHE_GAP FIL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP FLOAT-USDT: 1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars
+CACHE_GAP FLOCK-USDT: no_fired_entry; reference price is context only
+CACHE_GAP FLOKI-USDT: no_fired_entry; reference price is context only
+CACHE_GAP FLUID-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896
+CACHE_GAP FOLKS-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.979|cache_or_time_coverage_0.969|cache_or_time_coverage_0.958
+CACHE_GAP FORM-USDT: no_fired_entry; reference price is context only
+CACHE_GAP FTR-USDT: 1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|cache_or_time_coverage_0.969|cache_or_time_coverage_0.958|cache_or_time_coverage_0.781|cache_or_time_coverage_0.771|no_reference_time_or_price|cache_or_time_coverage_0.646|cache_or_time_coverage_0.635|cache_or_time_coverage_0.552|cache_or_time_coverage_0.313|cache_or_time_coverage_0.250|cache_or_time_coverage_0.208|cache_or_time_coverage_0.156|cache_or_time_coverage_0.135|cache_or_time_coverage_0.125|cache_or_time_coverage_0.104|cache_or_time_coverage_0.083|no_15m_bars_after_entry
+CACHE_GAP G-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844
+CACHE_GAP GALA-USDT: cache_or_time_coverage_0.154|no_15m_bars_after_entry|no_reference_time_or_price
+CACHE_GAP GANG-USDT: cache_or_time_coverage_0.432|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|cache_or_time_coverage_0.245|cache_or_time_coverage_0.755
+CACHE_GAP GAS-USDT: cache_or_time_coverage_0.844
+CACHE_GAP GENIUS-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP GIGGLE-USDT: no_fired_entry; reference price is context only
+CACHE_GAP GLM-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.844
+CACHE_GAP GMBSC-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars
+CACHE_GAP GMT-USDT: no_fired_entry; reference price is context only
+CACHE_GAP GMX-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP GOAT-USDT: no_reference_time_or_price
+CACHE_GAP GPS-USDT: no_fired_entry; reference price is context only
+CACHE_GAP GRAMTON-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars
+CACHE_GAP GRASS-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|cache_or_time_coverage_0.667|no_reference_time_or_price|cache_or_time_coverage_0.375|cache_or_time_coverage_0.250|cache_or_time_coverage_0.167
+CACHE_GAP GRIFFAIN-USDT: cache_or_time_coverage_0.458|cache_or_time_coverage_0.448|no_fired_entry; reference price is context only|cache_or_time_coverage_0.333|cache_or_time_coverage_0.250
+CACHE_GAP GRT-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|no_reference_time_or_price
+CACHE_GAP GRVT-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP GTC-USDT: ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP GUA-USDT: no_fired_entry; reference price is context only
+CACHE_GAP GUN-USDT: cache_or_time_coverage_1.000
+CACHE_GAP GWEI-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP HAEDAL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP HAJIMI-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars
+CACHE_GAP HBAR-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP HEI-USDT: cache_or_time_coverage_0.441|ema200d:need_200_closed_1d_bars|no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.833|cache_or_time_coverage_0.625|cache_or_time_coverage_0.594|cache_or_time_coverage_0.448|cache_or_time_coverage_0.354|cache_or_time_coverage_0.344|cache_or_time_coverage_0.250|cache_or_time_coverage_0.167|cache_or_time_coverage_0.021
+CACHE_GAP HIVE-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.667
+CACHE_GAP HMSTR-USDT: no_fired_entry; reference price is context only
+CACHE_GAP HOLO-USDT: cache_or_time_coverage_0.896|no_fired_entry; reference price is context only
+CACHE_GAP HOME-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP HOOKED-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|cache_or_time_coverage_0.003
+CACHE_GAP HOT-USDT: no_reference_time_or_price|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP HYPE-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP ICNT-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.813|cache_or_time_coverage_0.719
+CACHE_GAP ICP-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.844|cache_or_time_coverage_0.042|no_15m_bars_after_entry
+CACHE_GAP ID-USDT: no_fired_entry; reference price is context only
+CACHE_GAP IDOL-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP IMX-USDT: cache_or_time_coverage_0.875|no_fired_entry; reference price is context only|cache_or_time_coverage_0.854|no_reference_time_or_price
+CACHE_GAP INJ-USDT: no_fired_entry; reference price is context only
+CACHE_GAP IO-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|cache_or_time_coverage_0.510|no_reference_time_or_price|cache_or_time_coverage_0.250|cache_or_time_coverage_0.031|no_15m_bars_after_entry
+CACHE_GAP IOST-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.844|cache_or_time_coverage_0.708|cache_or_time_coverage_0.625|cache_or_time_coverage_0.344
+CACHE_GAP IOTA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|no_reference_time_or_price|cache_or_time_coverage_0.813|cache_or_time_coverage_0.656|cache_or_time_coverage_0.448
+CACHE_GAP IOTX-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars
+CACHE_GAP IRYS-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.979|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.813|cache_or_time_coverage_0.802|cache_or_time_coverage_0.552|cache_or_time_coverage_0.448|cache_or_time_coverage_0.167|no_15m_bars_after_entry
+CACHE_GAP JASMY-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP JCT-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.969|cache_or_time_coverage_0.938|cache_or_time_coverage_0.927|cache_or_time_coverage_0.917|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.802|cache_or_time_coverage_0.500|cache_or_time_coverage_0.344|cache_or_time_coverage_0.188|no_15m_bars_after_entry
+CACHE_GAP JST-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP JTO-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only|no_15m_bars_after_entry
+CACHE_GAP JUP-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.979|cache_or_time_coverage_0.938|cache_or_time_coverage_0.927|cache_or_time_coverage_0.896|no_15m_bars_after_entry|cache_or_time_coverage_0.865
+CACHE_GAP KAIA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844
+CACHE_GAP KAITO-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP KAS-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.958|cache_or_time_coverage_0.844
+CACHE_GAP KAVA-USDT: cache_or_time_coverage_0.979
+CACHE_GAP KERNEL-USDT: cache_or_time_coverage_0.843|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.813|no_reference_time_or_price|cache_or_time_coverage_0.063
+CACHE_GAP KGEN-USDT: cache_or_time_coverage_0.875|cache_or_time_coverage_0.854|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.802|cache_or_time_coverage_0.656|no_reference_time_or_price
+CACHE_GAP KII-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars
+CACHE_GAP KMNO-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.302|cache_or_time_coverage_0.250|cache_or_time_coverage_0.219|no_15m_bars_after_entry
+CACHE_GAP KNC-USDT: no_fired_entry; reference price is context only
+CACHE_GAP KNOTS-USDT: 1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars
+CACHE_GAP KNTQ-USDT: no_fired_entry; reference price is context only|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars
+CACHE_GAP KOMA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.958|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|no_reference_time_or_price|cache_or_time_coverage_0.844|cache_or_time_coverage_0.823
+CACHE_GAP KSM-USDT: cache_or_time_coverage_0.958|no_fired_entry; reference price is context only
+CACHE_GAP LA-USDT: no_fired_entry; reference price is context only
+CACHE_GAP LAB-USDT: no_fired_entry; reference price is context only
+CACHE_GAP LDO-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.979|cache_or_time_coverage_0.896|cache_or_time_coverage_0.833|cache_or_time_coverage_0.083|no_15m_bars_after_entry
+CACHE_GAP LIGHTER-USDT: cache_or_time_coverage_0.375|no_fired_entry; reference price is context only
+CACHE_GAP LINK-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.667
+CACHE_GAP LISTA-USDT: no_fired_entry; reference price is context only
+CACHE_GAP LONGXIA-USDT: 1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|no_reference_time_or_price|cache_or_time_coverage_0.896|no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.833|cache_or_time_coverage_0.667|cache_or_time_coverage_0.573|cache_or_time_coverage_0.125|no_15m_bars_after_entry
+CACHE_GAP LPT-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.979
+CACHE_GAP LSK-USDT: no_fired_entry; reference price is context only
+CACHE_GAP LTC-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.917|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.802|cache_or_time_coverage_0.552|cache_or_time_coverage_0.542|cache_or_time_coverage_0.333|cache_or_time_coverage_0.250|cache_or_time_coverage_0.167|no_15m_bars_after_entry
+CACHE_GAP LUMIA-USDT: cache_or_time_coverage_0.844
+CACHE_GAP LYN-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing
+CACHE_GAP MAGMA-USDT: cache_or_time_coverage_0.021
+CACHE_GAP MANA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.844|no_reference_time_or_price
+CACHE_GAP MARSCOIN-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP MASK-USDT: no_fired_entry; reference price is context only
+CACHE_GAP MEGA-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP MELANIA-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only|cache_or_time_coverage_0.823|no_reference_time_or_price
+CACHE_GAP MERL-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP METEORA-USDT: cache_or_time_coverage_0.250|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing
+CACHE_GAP METIS-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.844
+CACHE_GAP MEW-USDT: no_fired_entry; reference price is context only
+CACHE_GAP MIHAO-USDT: cache_or_time_coverage_0.901|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars
+CACHE_GAP MINA-USDT: no_fired_entry; reference price is context only
+CACHE_GAP MIRANETWORK-USDT: no_fired_entry; reference price is context only
+CACHE_GAP MMT-USDT: cache_or_time_coverage_0.222|no_fired_entry; reference price is context only|cache_or_time_coverage_0.375|cache_or_time_coverage_0.354|cache_or_time_coverage_0.344|no_reference_time_or_price|cache_or_time_coverage_0.250
+CACHE_GAP MNT-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.979|cache_or_time_coverage_0.938
+CACHE_GAP MONAD-USDT: no_reference_time_or_price|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing
+CACHE_GAP MORPHO-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.833|no_reference_time_or_price|cache_or_time_coverage_0.292
+CACHE_GAP MOVE-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP MOVR-USDT: no_fired_entry; reference price is context only
+CACHE_GAP MUBARAK-USDT: no_fired_entry; reference price is context only
+CACHE_GAP MYX-USDT: no_fired_entry; reference price is context only
+CACHE_GAP NAORIS-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.875
+CACHE_GAP NEAR-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP NEARKAT-USDT: cache_or_time_coverage_0.844|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP NEIROCTO-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.979
+CACHE_GAP NEO-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.333
+CACHE_GAP NES-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|no_15m_bars_after_entry|no_reference_time_or_price
+CACHE_GAP NIGHT-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP NIL-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars|cache_or_time_coverage_0.281|no_reference_time_or_price
+CACHE_GAP NIULAI-USDT: cache_or_time_coverage_0.625|1h_aggregated_futures_cache_missing|1h_aggregated_spot_cache_missing|4h_aggregated_futures_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|cache_or_time_coverage_0.292|cache_or_time_coverage_0.250
+CACHE_GAP NMR-USDT: cache_or_time_coverage_0.958|no_fired_entry; reference price is context only
+CACHE_GAP NOT-USDT: no_fired_entry; reference price is context only
+CACHE_GAP NULLMASK-USDT: cache_or_time_coverage_0.927|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|cache_or_time_coverage_0.021
+CACHE_GAP NXPC-USDT: no_fired_entry; reference price is context only
+CACHE_GAP O-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars
+CACHE_GAP OGN-USDT: no_fired_entry; reference price is context only|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_reference_time_or_price
+CACHE_GAP OKB-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP ON-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.427|cache_or_time_coverage_0.010
+CACHE_GAP ONDO-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.823|cache_or_time_coverage_0.802|cache_or_time_coverage_0.542|cache_or_time_coverage_0.448|cache_or_time_coverage_0.083|no_15m_bars_after_entry
+CACHE_GAP ONE-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|no_reference_time_or_price|cache_or_time_coverage_0.844|cache_or_time_coverage_0.823|cache_or_time_coverage_0.813|cache_or_time_coverage_0.802|cache_or_time_coverage_0.708|cache_or_time_coverage_0.521|cache_or_time_coverage_0.417|cache_or_time_coverage_0.333
+CACHE_GAP OP-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP OPENLEDGER-USDT: no_reference_time_or_price
+CACHE_GAP OPG-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.844|no_15m_bars_after_entry
+CACHE_GAP OPN-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP ORCA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.781|no_reference_time_or_price
+CACHE_GAP ORDER-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.625|cache_or_time_coverage_0.542|no_reference_time_or_price
+CACHE_GAP ORDI-USDT: cache_or_time_coverage_0.833|no_fired_entry; reference price is context only|cache_or_time_coverage_0.813|cache_or_time_coverage_0.667|cache_or_time_coverage_0.510|cache_or_time_coverage_0.417|cache_or_time_coverage_0.333|cache_or_time_coverage_0.250
+CACHE_GAP PARTI-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP PAXG-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.625|cache_or_time_coverage_0.500|cache_or_time_coverage_0.333|cache_or_time_coverage_0.208
+CACHE_GAP PENDLE-USDT: no_15m_bars_after_entry|no_fired_entry; reference price is context only
+CACHE_GAP PENGU-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP PEOPLE-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.958|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.813|cache_or_time_coverage_0.667|cache_or_time_coverage_0.479|cache_or_time_coverage_0.448|cache_or_time_coverage_0.427|cache_or_time_coverage_0.333|cache_or_time_coverage_0.250|no_reference_time_or_price
+CACHE_GAP PHA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|no_reference_time_or_price
+CACHE_GAP PHAROS-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars|cache_or_time_coverage_0.875|cache_or_time_coverage_0.229
+CACHE_GAP PIEVERSE-USDT: cache_or_time_coverage_0.123|no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.458|cache_or_time_coverage_0.250|cache_or_time_coverage_0.208|cache_or_time_coverage_0.115
+CACHE_GAP PIPPIN-USDT: no_fired_entry; reference price is context only
+CACHE_GAP PIXEL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP PLUME-USDT: no_fired_entry; reference price is context only
+CACHE_GAP POL-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.625|no_15m_bars_after_entry
+CACHE_GAP POLYX-USDT: no_fired_entry; reference price is context only
+CACHE_GAP PONS-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP PORTAL-USDT: cache_or_time_coverage_0.906|cache_or_time_coverage_0.896|no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP POWER-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.771|cache_or_time_coverage_0.760|cache_or_time_coverage_0.375|cache_or_time_coverage_0.313|cache_or_time_coverage_0.250
+CACHE_GAP PREDICT-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars
+CACHE_GAP PRIORS-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_reference_time_or_price
+CACHE_GAP PRL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP PROM-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.938|cache_or_time_coverage_0.625|cache_or_time_coverage_0.458
+CACHE_GAP PROVE-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.333|cache_or_time_coverage_0.125
+CACHE_GAP PUMP-USDT: no_fired_entry; reference price is context only
+CACHE_GAP PUSSY-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|cache_or_time_coverage_0.974
+CACHE_GAP PYTH-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.594|cache_or_time_coverage_0.375|cache_or_time_coverage_0.292|cache_or_time_coverage_0.125|cache_or_time_coverage_0.083|no_15m_bars_after_entry
+CACHE_GAP QNT-USDT: cache_or_time_coverage_0.854|no_fired_entry; reference price is context only
+CACHE_GAP QTUM-USDT: cache_or_time_coverage_0.896|cache_or_time_coverage_0.844|no_fired_entry; reference price is context only|cache_or_time_coverage_0.563
+CACHE_GAP RAVE-USDT: no_fired_entry; reference price is context only
+CACHE_GAP RAY-USDT: no_fired_entry; reference price is context only
+CACHE_GAP RE-USDT: ema200d:need_200_closed_1d_bars
+CACHE_GAP RENDER-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.969|cache_or_time_coverage_0.844
+CACHE_GAP RESOLV-USDT: no_fired_entry; reference price is context only
+CACHE_GAP REZ-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP RIF-USDT: no_fired_entry; reference price is context only
+CACHE_GAP RIVER-USDT: no_fired_entry; reference price is context only
+CACHE_GAP RLS-USDT: no_fired_entry; reference price is context only|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars
+CACHE_GAP ROBO-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ROSE-USDT: no_fired_entry; reference price is context only
+CACHE_GAP RPL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP RSR-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.979|cache_or_time_coverage_0.938|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.813|cache_or_time_coverage_0.635|no_reference_time_or_price|cache_or_time_coverage_0.333
+CACHE_GAP RUNE-USDT: no_fired_entry; reference price is context only
+CACHE_GAP RVN-USDT: no_fired_entry; reference price is context only
+CACHE_GAP S-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.802|cache_or_time_coverage_0.667|no_reference_time_or_price|cache_or_time_coverage_0.292|no_15m_bars_after_entry
+CACHE_GAP SAFE-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP SAGA-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SAND-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.542|cache_or_time_coverage_0.448
+CACHE_GAP SEI-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.958|cache_or_time_coverage_0.938|cache_or_time_coverage_0.292|cache_or_time_coverage_0.188|no_15m_bars_after_entry
+CACHE_GAP SFP-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SHELL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SI-USDT: cache_or_time_coverage_0.031|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_reference_time_or_price|no_15m_bars_after_entry|no_fired_entry; reference price is context only|cache_or_time_coverage_0.698
+CACHE_GAP SIGN-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SIREN-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SKL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SKR-USDT: cache_or_time_coverage_0.594|no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP SKY-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.833|cache_or_time_coverage_0.813|cache_or_time_coverage_0.802|cache_or_time_coverage_0.792|cache_or_time_coverage_0.760|cache_or_time_coverage_0.625|no_reference_time_or_price|cache_or_time_coverage_0.938
+CACHE_GAP SKYAI-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SLP-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SNX-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SOLV-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.906|cache_or_time_coverage_0.896|no_reference_time_or_price
+CACHE_GAP SOON-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.938|cache_or_time_coverage_0.896|cache_or_time_coverage_0.667
+CACHE_GAP SOPH-USDT: no_fired_entry; reference price is context only
+CACHE_GAP SPK-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only
+CACHE_GAP SPORTFUN-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing
+CACHE_GAP SPX-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.938|cache_or_time_coverage_0.927|cache_or_time_coverage_0.875|cache_or_time_coverage_0.156|no_15m_bars_after_entry
+CACHE_GAP SSV-USDT: no_fired_entry; reference price is context only
+CACHE_GAP STABLE-USDT: no_fired_entry; reference price is context only
+CACHE_GAP STAR-USDT: 1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP STBL-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.844
+CACHE_GAP STEEM-USDT: cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|cache_or_time_coverage_0.823|cache_or_time_coverage_0.625|no_reference_time_or_price|cache_or_time_coverage_0.156|cache_or_time_coverage_0.042|no_fired_entry; reference price is context only|cache_or_time_coverage_0.021|no_15m_bars_after_entry
+CACHE_GAP STONK-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP STX-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.625|cache_or_time_coverage_0.479|no_reference_time_or_price|no_15m_bars_after_entry
+CACHE_GAP SUI-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.875|cache_or_time_coverage_0.708|no_15m_bars_after_entry
+CACHE_GAP SUN-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.542|cache_or_time_coverage_0.500
+CACHE_GAP SUPER-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.844
+CACHE_GAP SUSHI-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.833|cache_or_time_coverage_0.813|cache_or_time_coverage_0.802|no_reference_time_or_price
+CACHE_GAP SWARMS-USDT: no_fired_entry; reference price is context only|ema200d:need_200_closed_1d_bars|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.250|cache_or_time_coverage_0.042
+CACHE_GAP SXT-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP TA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|cache_or_time_coverage_0.698|no_reference_time_or_price|cache_or_time_coverage_0.250
+CACHE_GAP TAC-USDT: no_fired_entry; reference price is context only
+CACHE_GAP TAG-USDT: cache_or_time_coverage_0.875
+CACHE_GAP TAIKO-USDT: no_fired_entry; reference price is context only
+CACHE_GAP TAKE-USDT: no_reference_time_or_price
+CACHE_GAP TAO-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.875|cache_or_time_coverage_0.813|cache_or_time_coverage_0.417|cache_or_time_coverage_0.271
+CACHE_GAP THETA-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.958|cache_or_time_coverage_0.938|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844
+CACHE_GAP TIA-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only|cache_or_time_coverage_0.250
+CACHE_GAP TLM-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP TNSR-USDT: no_fired_entry; reference price is context only
+CACHE_GAP TOWNS-USDT: no_fired_entry; reference price is context only
+CACHE_GAP TRADOOR-USDT: no_fired_entry; reference price is context only
+CACHE_GAP TRB-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|cache_or_time_coverage_0.844|no_15m_bars_after_entry
+CACHE_GAP TRIA-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.917|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833|no_reference_time_or_price|cache_or_time_coverage_0.531|cache_or_time_coverage_0.313
+CACHE_GAP TRUMPSOL-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing
+CACHE_GAP TRUST-USDT: cache_or_time_coverage_0.979|no_fired_entry; reference price is context only
+CACHE_GAP TRUTH-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing
+CACHE_GAP TRX-USDT: cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|no_fired_entry; reference price is context only|cache_or_time_coverage_0.667|cache_or_time_coverage_0.542|no_reference_time_or_price
+CACHE_GAP TST-USDT: ema200d:need_200_closed_1d_bars
+CACHE_GAP TURBO-USDT: no_fired_entry; reference price is context only
+CACHE_GAP TUT-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|no_reference_time_or_price
+CACHE_GAP TWT-USDT: cache_or_time_coverage_0.958|cache_or_time_coverage_0.875|cache_or_time_coverage_0.854|cache_or_time_coverage_0.844|cache_or_time_coverage_0.594|no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP UAI-USDT: no_fired_entry; reference price is context only
+CACHE_GAP UB-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.990|no_reference_time_or_price|cache_or_time_coverage_0.979|cache_or_time_coverage_0.750|cache_or_time_coverage_0.625|cache_or_time_coverage_0.479
+CACHE_GAP UNI-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP US-USDT: no_fired_entry; reference price is context only
+CACHE_GAP USELESS-USDT: no_fired_entry; reference price is context only
+CACHE_GAP USUAL-USDT: cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|no_fired_entry; reference price is context only|cache_or_time_coverage_0.813|cache_or_time_coverage_0.667|cache_or_time_coverage_0.625|cache_or_time_coverage_0.594|no_15m_bars_after_entry
+CACHE_GAP VEIL-USDT: 1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP VELVET-USDT: cache_or_time_coverage_0.854|no_fired_entry; reference price is context only|cache_or_time_coverage_0.938|cache_or_time_coverage_0.917|cache_or_time_coverage_0.875
+CACHE_GAP VET-USDT: cache_or_time_coverage_0.843|no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.083
+CACHE_GAP VIRTUAL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP VRAX-USDT: 1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_reference_time_or_price|no_fired_entry; reference price is context only|no_15m_bars_after_entry
+CACHE_GAP VTHO-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP W-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.938|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.677|cache_or_time_coverage_0.573|cache_or_time_coverage_0.177|cache_or_time_coverage_0.167|cache_or_time_coverage_0.135|cache_or_time_coverage_0.042|no_15m_bars_after_entry
+CACHE_GAP WAL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP WAVES-USDT: no_fired_entry; reference price is context only
+CACHE_GAP WAXP-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP WIF-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.802|cache_or_time_coverage_0.594|no_reference_time_or_price
+CACHE_GAP WLD-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.833
+CACHE_GAP WOTAMALAILE-USDT: no_fired_entry; reference price is context only|1h_aggregated_spot_cache_missing|4h_aggregated_spot_cache_missing|cache_or_time_coverage_0.938|cache_or_time_coverage_0.885|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.698|cache_or_time_coverage_0.448|cache_or_time_coverage_0.406|no_reference_time_or_price|cache_or_time_coverage_0.396
+CACHE_GAP XAN-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.833|no_reference_time_or_price|cache_or_time_coverage_0.656|cache_or_time_coverage_0.510
+CACHE_GAP XAUT-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price|cache_or_time_coverage_0.625|cache_or_time_coverage_0.542|cache_or_time_coverage_0.500
+CACHE_GAP XCN-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.875
+CACHE_GAP XDP-USDT: no_fired_entry; reference price is context only|ema50d:need_50_closed_1d_bars|ema200d:need_200_closed_1d_bars|no_reference_time_or_price|no_15m_bars_after_entry
+CACHE_GAP XLM-USDT: no_fired_entry; reference price is context only
+CACHE_GAP XMR-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.833|cache_or_time_coverage_0.813|cache_or_time_coverage_0.802|cache_or_time_coverage_0.125|no_reference_time_or_price
+CACHE_GAP XNY-USDT: cache_or_time_coverage_0.843|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|no_fired_entry; reference price is context only
+CACHE_GAP XPIN-USDT: no_fired_entry; reference price is context only
+CACHE_GAP XPL-USDT: no_fired_entry; reference price is context only
+CACHE_GAP XRP-USDT: no_fired_entry; reference price is context only|no_reference_time_or_price
+CACHE_GAP XTZ-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP XVG-USDT: ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only
+CACHE_GAP YFI-USDT: cache_or_time_coverage_0.781|no_reference_time_or_price
+CACHE_GAP YGG-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.896
+CACHE_GAP ZAMA-USDT: no_reference_time_or_price
+CACHE_GAP ZBT-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP ZEC-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.969|cache_or_time_coverage_0.938
+CACHE_GAP ZEN-USDT: no_reference_time_or_price|cache_or_time_coverage_0.896|cache_or_time_coverage_0.844|no_fired_entry; reference price is context only|no_15m_bars_after_entry
+CACHE_GAP ZEREBRO-USDT: cache_or_time_coverage_0.843|ema200d:need_200_closed_1d_bars|no_fired_entry; reference price is context only|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875
+CACHE_GAP ZEST-USDT: ema200d:need_200_closed_1d_bars
+CACHE_GAP ZETA-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ZIL-USDT: no_reference_time_or_price|no_fired_entry; reference price is context only
+CACHE_GAP ZK-USDT: no_fired_entry; reference price is context only|cache_or_time_coverage_0.979|cache_or_time_coverage_0.938|cache_or_time_coverage_0.896|cache_or_time_coverage_0.875|cache_or_time_coverage_0.844|cache_or_time_coverage_0.354|no_reference_time_or_price|cache_or_time_coverage_0.083|cache_or_time_coverage_0.021
+CACHE_GAP ZORA-USDT: no_fired_entry; reference price is context only
+CACHE_GAP ZRO-USDT: cache_or_time_coverage_0.875|cache_or_time_coverage_0.813|cache_or_time_coverage_0.802|cache_or_time_coverage_0.708|cache_or_time_coverage_0.625|cache_or_time_coverage_0.542|cache_or_time_coverage_0.458|no_reference_time_or_price|cache_or_time_coverage_0.427|cache_or_time_coverage_0.188|cache_or_time_coverage_0.021|no_15m_bars_after_entry
+CACHE_GAP ZRX-USDT: cache_or_time_coverage_0.843
+FINAL_COUNTS {"cohorts":{"A_signal":{"bad":107,"good":18,"censored":16,"open":4},"B_blocked":{"not_applicable_no_entry":1704,"bad":1426,"censored":415,"good":252,"unavailable":67,"open":34},"C_reference":{"bad":6,"good":2}},"aStatus":{"cancelled":52,"reclassified":46,"stop_loss":17,"bu_stop":11,"profit":10,"expired":7,"active":1,"in_run":1},"bReasons":{"rule_touch_volume_grey_N":1370,"neon_not_entered_at_detection":547,"rule_closed_4h_under_zone":527,"touch_volume_grey_N":341,"rule_entry_passed":231,"rule_touch_volume_grey_NNN":201,"rule_touch_short_history":139,"rule_touch_no_aggregated_volume":120,"qualified_duplicate_active_position":99,"rule_waiting_awaiting_touch_volume":80,"rule_arm_window_over":40,"rule_waiting_no_test_yet":31,"rule_touch_volume_grey_NN":16,"rule_waiting_no_reaction_yet":11,"rule_touch_volume_no_buying_ANN":10,"rule_touch_volume_no_buying_NYN":5,"month_volume_no_aggregated_volume":4,"rule_touch_volume_no_buying_NNA":4,"rule_entry_r8":2,"rule_touch_volume_no_buying_MNN":2,"rule_touch_volume_no_buying_NAN":2,"awaiting_later_1h_reaction":1,"entry_above_zone_top_5.23pct":1,"month_volume_low_f0.12_s0.23":1,"month_volume_low_f0.28_s0.43":1,"month_volume_low_f0.28_s0.51":1,"month_volume_low_f0.49_s0.56":1,"month_volume_low_f0.64_s0.22":1,"rule_touch_volume_no_buying_AAN":1,"rule_touch_volume_no_buying_ANY":1,"rule_touch_volume_no_buying_MAN":1,"rule_touch_volume_no_buying_NNO":1,"rule_touch_volume_no_buying_NNW":1,"rule_touch_volume_no_buying_NNY":1,"rule_touch_volume_no_buying_ONN":1,"rule_touch_volume_no_buying_YNN":1,"support_invalidated_before_reaction":1,"touch_volume_grey_NNN":1},"oiReasons":{"oi15m_no_new_money":98,"oi15m_unknown":1},"waitVariants":[{"wait_hours":48,"strategy":"r8","selected":61,"outcomes":{"bad":25,"censored":23,"good":10,"open":3}},{"wait_hours":48,"strategy":"h4","selected":1838,"outcomes":{"bad":1233,"censored":371,"good":189,"open":33,"unavailable":12}},{"wait_hours":48,"strategy":"bos","selected":2833,"outcomes":{"bad":1650,"censored":826,"good":326,"open":28,"unavailable":3}},{"wait_hours":96,"strategy":"r8","selected":61,"outcomes":{"bad":25,"censored":23,"good":10,"open":3}},{"wait_hours":96,"strategy":"h4","selected":2032,"outcomes":{"bad":1289,"censored":459,"good":208,"unavailable":43,"open":33}},{"wait_hours":96,"strategy":"bos","selected":2974,"outcomes":{"bad":1677,"censored":914,"good":352,"open":28,"unavailable":3}},{"wait_hours":168,"strategy":"r8","selected":61,"outcomes":{"bad":25,"censored":23,"good":10,"open":3}},{"wait_hours":168,"strategy":"h4","selected":2103,"outcomes":{"bad":1293,"censored":486,"good":215,"unavailable":76,"open":33}},{"wait_hours":168,"strategy":"bos","selected":3020,"outcomes":{"bad":1678,"censored":951,"good":360,"open":28,"unavailable":3}}],"disqualifications":[{"cohort":"A_signal","scenario":"current_4H_close_under_zone","removed":7,"by_outcome":{"bad":6,"open":1}},{"cohort":"A_signal","scenario":"below_zone_1d_no_return_no_bright_Lucy_4H","removed":0,"by_outcome":{}},{"cohort":"A_signal","scenario":"below_zone_2d_no_return_no_bright_Lucy_4H","removed":0,"by_outcome":{}},{"cohort":"A_signal","scenario":"below_zone_3d_no_return_no_bright_Lucy_4H","removed":0,"by_outcome":{}},{"cohort":"B_blocked","scenario":"current_4H_close_under_zone","removed":581,"by_outcome":{"not_applicable_no_entry":395,"bad":153,"censored":25,"open":5,"good":3}},{"cohort":"B_blocked","scenario":"below_zone_1d_no_return_no_bright_Lucy_4H","removed":6,"by_outcome":{"bad":2,"not_applicable_no_entry":2,"censored":1,"good":1}},{"cohort":"B_blocked","scenario":"below_zone_2d_no_return_no_bright_Lucy_4H","removed":0,"by_outcome":{}},{"cohort":"B_blocked","scenario":"below_zone_3d_no_return_no_bright_Lucy_4H","removed":0,"by_outcome":{}},{"cohort":"C_reference","scenario":"current_4H_close_under_zone","removed":1,"by_outcome":{"bad":1}},{"cohort":"C_reference","scenario":"below_zone_1d_no_return_no_bright_Lucy_4H","removed":0,"by_outcome":{}},{"cohort":"C_reference","scenario":"below_zone_2d_no_return_no_bright_Lucy_4H","removed":0,"by_outcome":{}},{"cohort":"C_reference","scenario":"below_zone_3d_no_return_no_bright_Lucy_4H","removed":0,"by_outcome":{}}],"management":[{"hold_hours":96,"stop_mode":"stop6","signals":145,"simulated":145,"complete":119,"total_pnl_usd_per_100_margin":-3614.00647492656,"outcomes":{"4h_close_under_zone":68,"stop_-6":39,"breakeven_stop":9,"trailing_stop":2,"96h_close":1},"censored":26},{"hold_hours":96,"stop_mode":"under_zone","signals":145,"simulated":145,"complete":119,"total_pnl_usd_per_100_margin":-2181.7043048889414,"outcomes":{"under_zone_stop":105,"breakeven_stop":9,"trailing_stop":3,"4h_close_under_zone":1,"96h_close":1},"censored":26},{"hold_hours":168,"stop_mode":"stop6","signals":145,"simulated":145,"complete":2,"total_pnl_usd_per_100_margin":-78.58974358974358,"outcomes":{"4h_close_under_zone":1,"stop_-6":1},"censored":143},{"hold_hours":168,"stop_mode":"under_zone","signals":145,"simulated":145,"complete":2,"total_pnl_usd_per_100_margin":-98.11475900807997,"outcomes":{"under_zone_stop":2},"censored":143}],"cacheGapSymbols":412}

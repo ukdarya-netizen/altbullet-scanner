@@ -1,0 +1,12 @@
+{
+  "cohort_start_utc": "2026-11-12T00:00:00Z",
+  "exported_at_utc": "2026-11-19T07:28:26.391176Z",
+  "A_signals": 145,
+  "B_shadow_non_fired": 3799,
+  "B_shadow_all": 3942,
+  "B_shadow_fired": 143,
+  "B_oi_rejections": 99,
+  "neon_snapshots_table_present": false,
+  "stealth_hourly_snapshots_table_present": true,
+  "cache_external_fetches": 0
+}
