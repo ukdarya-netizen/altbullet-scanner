@@ -1,0 +1,9 @@
+A start: 145 signals / 120 symbols.
+CoinGlass requests=236; requests by endpoint={"oi15":121,"fut15":33,"spot15":30,"fut1h":26,"spot1h":26}; 429=1; five-minute pauses=1.
+Outcomes={"good":19,"bad":108,"open":17,"censored":1,"ambiguous":0}; t0.csv rows=152; path15m.csv rows=48154.
+2026-11-19T10:50:06.052Z A start: 145 signals / 120 symbols; missing CoinGlass ranges=235; cap=15/min.
+2026-11-19T10:53:46.842Z CG progress: 50 done / 185 remaining / ETA 19/11/2026, 15:07:23 Dubai
+2026-11-19T10:57:11.838Z CG progress: 100 done / 135 remaining / ETA 19/11/2026, 15:06:46 Dubai
+2026-11-19T11:00:36.851Z CG progress: 150 done / 85 remaining / ETA 19/11/2026, 15:06:34 Dubai
+2026-11-19T11:01:22.101Z CoinGlass code 429 oi15 SAND-USDT; pause 5 min, retry 1/5
+2026-11-19T11:08:57.911Z CG progress: 200 done / 35 remaining / ETA 19/11/2026, 15:12:15 Dubai
