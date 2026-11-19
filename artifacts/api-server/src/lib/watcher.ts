@@ -2445,7 +2445,7 @@ export async function trackSignal(params: {
   detectedAt?: Date;
   /** Absolute initial stop (Stealth fresh-24H-high); overrides the pattern stop. */
   fixedStopPrice?: number | null;
-  /** Only the durable Stealth ABNeon queue may open alongside another pattern on the same symbol. */
+  /** Legacy caller hint; duplicate checks still apply to every open pattern on this symbol. */
   allowConcurrentOtherPatternSameSymbol?: boolean;
 }): Promise<"new" | "reentry" | "skip" | false> {
   if (isSignalSymbolExcluded(params.symbol)) {
@@ -2469,17 +2469,10 @@ export async function trackSignal(params: {
       })
       .from(trackedSignalsTable)
       .where(
-        params.allowConcurrentOtherPatternSameSymbol &&
-          params.sentimentKey === "stealth_breakout"
-          ? and(
-              eq(trackedSignalsTable.symbol, params.symbol),
-              eq(trackedSignalsTable.sentimentKey, "stealth_breakout"),
-              inArray(trackedSignalsTable.status, ["active", "in_run"]),
-            )
-          : and(
-              eq(trackedSignalsTable.symbol, params.symbol),
-              inArray(trackedSignalsTable.status, ["active", "in_run"]),
-            ),
+        and(
+          eq(trackedSignalsTable.symbol, params.symbol),
+          inArray(trackedSignalsTable.status, ["active", "in_run"]),
+        ),
       )
       .limit(1);
 
