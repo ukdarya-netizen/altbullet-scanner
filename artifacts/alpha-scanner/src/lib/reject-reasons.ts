@@ -54,6 +54,7 @@ export const REJECT_LABELS: Record<string, string> = {
   rule_waiting_no_reaction_yet: "Покупатель подтверждён; ждёт зелёную 1H-свечу",
   rule_waiting_awaiting_touch_4h_close: "Ждёт закрытия 4H-свечи касания",
   rule_waiting_entry_not_fresh: "Подходящая 1H-свеча устарела; ждёт следующую",
+  abneon_touch_from_below: "Касание зоны пришло снизу — это пробой, не отскок",
   rule_arm_window_over: "14-дневный срок от арма истёк",
   rule_closed_4h_under_zone: "4H-свеча закрылась под зоной",
   awaiting_later_1h_reaction: "Ждёт 1H-реакции у поддержки",

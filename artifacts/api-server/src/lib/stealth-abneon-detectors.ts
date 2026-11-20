@@ -12,6 +12,16 @@ import {
   NEON_MIN_TURNOVER_PCT_OF_MCAP,
 } from "./turnover-threshold.js";
 
+export const ABNEON_TOUCH_FROM_BELOW_REASON = "abneon_touch_from_below";
+
+function isAbneonTouchFromBelow(
+  previous4hClose: number,
+  touch4hOpen: number,
+  zone: { bottom: number; top: number },
+): boolean {
+  return !(previous4hClose > zone.top && touch4hOpen >= zone.bottom);
+}
+
 export type AbneonShadowMethod = Exclude<
   StealthDetectionMethod,
   | "quiet_zone_breakout"
@@ -437,8 +447,10 @@ export function resolveFrozenZone(
 
 /**
  * Support is a zone from the Neon indicator algorithm. It is frozen (by its
- * upper edge) when a closed 4H candle's low reaches the zone ±1%. It stays
- * valid until a closed 4H candle closes more than 1% below the zone bottom.
+ * upper edge) when a closed 4H candle's low reaches the zone ±1%; the arm is
+ * valid only when the prior closed 4H candle closed above the zone top and the
+ * arm candle opened at or above the zone bottom. It stays valid until a closed
+ * 4H candle closes more than 1% below the zone bottom.
  * A later closed bullish 1H candle that touches the zone ±1%, closes back
  * inside/above it (≤ +1% above the top) with volume >= 4x the preceding 20
  * closed 1H candles and the minimum turnover qualifies the bounce.
@@ -519,6 +531,41 @@ export function evaluateAbneonSupportBounce(input: {
       zTf,
       input.researchMaxZones,
     );
+    const armTouchIndex = h4.findIndex((c) => c.time + ZONE_TF === arm);
+    if (
+      armTouchIndex > 0 &&
+      isAbneonTouchFromBelow(
+        h4[armTouchIndex - 1]!.close,
+        h4[armTouchIndex]!.open,
+        zone,
+      )
+    ) {
+      const touch = h4[armTouchIndex]!;
+      const previous = h4[armTouchIndex - 1]!;
+      return {
+        method: "abneon_support_bounce",
+        status: "terminal",
+        reason: ABNEON_TOUCH_FROM_BELOW_REASON,
+        frozenLevel,
+        armCandleTime: arm,
+        triggerCandleTime: null,
+        volumeEvidence: volumeEvidence(h1, h1.length - 1),
+        evidence: {
+          supportTop: zone.top,
+          supportBottom: zone.bottom,
+          previous4hCandle: {
+            time: previous.time,
+            close: previous.close,
+          },
+          touch4hCandle: {
+            time: touch.time,
+            open: touch.open,
+            low: touch.low,
+            close: touch.close,
+          },
+        },
+      };
+    }
     const brokenBelow = zone.bottom * (1 - SUPPORT_TOUCH_TOLERANCE);
     const breakdownCandles = h4.filter((c) => c.time >= arm);
     const invalidatingCandle =
@@ -805,6 +852,52 @@ export function evaluateAbneonSupportBounce(input: {
           time: arm.time,
           open: arm.open,
           high: arm.high,
+          low: arm.low,
+          close: arm.close,
+        },
+      },
+    };
+  }
+  const armTouchZone = zones
+    .filter(
+      (candidate) =>
+        arm.low <= candidate.top * (1 + SUPPORT_TOUCH_ABOVE_TOLERANCE) &&
+        arm.high >= candidate.bottom,
+    )
+    .sort(
+      (a, b) =>
+        Math.abs(arm.low - a.center) / a.center -
+        Math.abs(arm.low - b.center) / b.center,
+    )[0];
+  const armIndex = h4.findIndex((c) => c.time === arm.time);
+  if (
+    armTouchZone &&
+    armIndex > 0 &&
+    isAbneonTouchFromBelow(
+      h4[armIndex - 1]!.close,
+      arm.open,
+      armTouchZone,
+    )
+  ) {
+    const previous = h4[armIndex - 1]!;
+    return {
+      method: "abneon_support_bounce",
+      status: "terminal",
+      reason: ABNEON_TOUCH_FROM_BELOW_REASON,
+      frozenLevel: armTouchZone.top,
+      armCandleTime: arm.time + ZONE_TF,
+      triggerCandleTime: null,
+      volumeEvidence: volumeEvidence(h1, h1.length - 1),
+      evidence: {
+        supportTop: armTouchZone.top,
+        supportBottom: armTouchZone.bottom,
+        previous4hCandle: {
+          time: previous.time,
+          close: previous.close,
+        },
+        touch4hCandle: {
+          time: arm.time,
+          open: arm.open,
           low: arm.low,
           close: arm.close,
         },

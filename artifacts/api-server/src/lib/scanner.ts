@@ -268,6 +268,7 @@ import {
 import { scheduleAltBulletIndicatorSnapshot } from "./altbullet-indicator.js";
 import { buildStealthAbneonArmSnapshotSafely } from "./stealth-abneon-arm-snapshot.js";
 import {
+  ABNEON_TOUCH_FROM_BELOW_REASON,
   computeSupportZones,
   evaluateAbneonSupportBounce,
   ABNEON_LEVEL_BREAKOUT_REASON,
@@ -7198,7 +7199,9 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
       // the zone still voids the setup.
       const detectorSupport = support;
       const r8Arm =
-        arm != null
+        support.reason === ABNEON_TOUCH_FROM_BELOW_REASON
+          ? null
+          : arm != null
           ? { level: arm.level, armedAt: arm.armedAt }
           : (support.status === "armed" || support.status === "qualified") &&
               support.frozenLevel != null &&
@@ -7323,7 +7326,10 @@ async function performScanBody(lease: MarketCycleLeaseContext): Promise<{
           support = {
             ...support,
             status: "terminal",
-            reason: `rule_${rule.reason}`,
+            reason:
+              rule.reason === ABNEON_TOUCH_FROM_BELOW_REASON
+                ? ABNEON_TOUCH_FROM_BELOW_REASON
+                : `rule_${rule.reason}`,
             frozenLevel: r8Arm.level,
             armCandleTime: r8Arm.armedAt,
             evidence: { ...(support.evidence ?? {}), ruleEntry: { ...ruleBase, void: rule.reason, colours: rule.colours ?? null } },
