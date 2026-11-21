@@ -1103,7 +1103,14 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
               neonLevelCandidates.delete(symbol);
             }
 
-            const cross = neonLevelCrossing4h(candles, h4Start, dayZones);
+            // Owner 2026-11-21: the zone must have been resistance — above the close of the last UTC day
+            // that closed before this 4H candle opened (a return above a support zone is not a breakout).
+            const prevDay = [...zoneDays].reverse().find((d) => d.time + ABNEON_D1_MS <= h4Start);
+            const prevDayClose = prevDay ? prevDay.close : null;
+            const cross = neonLevelCrossing4h(candles, h4Start, dayZones, prevDayClose);
+            if (!cross && prevDayClose != null && neonLevelCrossing4h(candles, h4Start, dayZones)) {
+              await recordNeonLevelReject(symbol, "stealth_neon_level_zone_was_support");
+            }
             if (cross) {
               const event: StealthNeonLevelQueueEvent = {
                 ...cross,

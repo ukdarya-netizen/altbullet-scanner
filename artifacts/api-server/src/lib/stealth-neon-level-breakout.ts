@@ -212,15 +212,26 @@ const VSA_BRIGHT = new Set(["M", "W"]);
  * Price-only: the 4H crossing of the candle that opened at `h4Start` (last bar of `h4`, closed), or null.
  * Owner 2026-11-14: `zones` = the DAILY ABNeon zones (live); without it the zones come from the 4H candles.
  */
-export function neonLevelCrossing4h(h4: readonly NlCandle[], h4Start: number, zonesIn?: readonly SupportZone[]): NeonLevelBreakout | null {
+export function neonLevelCrossing4h(
+  h4: readonly NlCandle[],
+  h4Start: number,
+  zonesIn?: readonly SupportZone[],
+  prevDayClose?: number | null,
+): NeonLevelBreakout | null {
   const last = h4.at(-1);
   if (!last || last.time !== h4Start || h4.length < 60) return null;
   const prev = h4.at(-2);
   if (!prev || prev.time !== h4Start - H4_MS) return null;
   const zones = zonesIn ? [...zonesIn] : computeSupportZones(h4);
   if (!zones.length) return null;
-  const b = breakoutOf(zones, prev.close, last.close);
-  if (!b) return null;
+  // Owner 2026-11-21 (SIREN #3981): only a zone that was RESISTANCE can be broken — its bottom is above the
+  // close of the last UTC day that closed before this 4H candle opened. A close back above a support zone
+  // after a poke under it is not a breakout. No daily close known = no filter (zones come from those days).
+  const resistance =
+    prevDayClose != null && Number.isFinite(prevDayClose) ? zones.filter((x) => x.bottom > prevDayClose) : zones;
+  const crossedB = breakoutOf(resistance, prev.close, last.close);
+  if (!crossedB) return null;
+  const b = { ...crossedB, next: zones.filter((x) => x.top > last.close).sort((a, c) => a.bottom - c.bottom)[0] ?? null };
   return {
     tf: "4h",
     method: NEON_LEVEL_4H_METHOD,
