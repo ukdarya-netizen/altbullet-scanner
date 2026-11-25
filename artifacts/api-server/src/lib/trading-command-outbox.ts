@@ -333,6 +333,81 @@ export async function ensureTradingCommandOutboxSchema(): Promise<void> {
   }
 }
 
+/**
+ * Owner 2026-11-26 (MMT: CAB's PROFIT STOP +5% at 0.31059, the trading bot closed by market at 0.3006):
+ * the tracker's break-even / profit stop is a price check in the fast cycle, never written to
+ * stop_loss_price / trailing_stop_level, so the trigger above never sent it — the trading bot only
+ * learned of it from the close, after the price had passed it. The fast cycle now relays that level
+ * as an ordinary move_stop the moment the protection is in force, so it stands on the exchange.
+ * Only a higher stop than the last one sent; the tracked_signals row is locked so the event_seq can
+ * never collide with a close the trigger writes for the same signal.
+ */
+export async function enqueueProtectionStop(p: {
+  trackedId: number;
+  stopPrice: number;
+  reason: "breakeven_protection" | "profit_stop_protection";
+}): Promise<boolean> {
+  if (!(p.stopPrice > 0)) return false;
+  const stop = Number(p.stopPrice.toPrecision(10));
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const row = await client.query<{ signal_id: number; symbol: string; status: string }>(
+      "SELECT signal_id, symbol, status FROM tracked_signals WHERE id = $1 FOR UPDATE",
+      [p.trackedId],
+    );
+    const t = row.rows[0];
+    if (!t || !["active", "in_run"].includes(t.status)) {
+      await client.query("ROLLBACK");
+      return false;
+    }
+    const last = await client.query<{ stop_price: string | null; seq: number }>(
+      `SELECT (SELECT stop_price FROM trading_command_outbox
+                WHERE tracked_signal_id = $1 AND type = 'move_stop'
+                ORDER BY event_seq DESC LIMIT 1) AS stop_price,
+              COALESCE((SELECT MAX(event_seq) FROM trading_command_outbox
+                WHERE tracked_signal_id = $1), 0) + 1 AS seq`,
+      [p.trackedId],
+    );
+    const lastStop = Number(last.rows[0]?.stop_price);
+    if (Number.isFinite(lastStop) && lastStop >= stop * 0.9999) {
+      await client.query("ROLLBACK");
+      return false;
+    }
+    const seq = Number(last.rows[0]!.seq);
+    const cid = `cab-cmd-${p.trackedId}-${seq}`;
+    const sourceSignalId = `cab-signal-${t.signal_id}`;
+    const symbol = t.symbol.toUpperCase().replace(/-/g, "");
+    const eventAt = new Date();
+    const payload = {
+      commandId: cid,
+      sourceSignalId,
+      symbol,
+      type: "move_stop",
+      eventSeq: seq,
+      eventAt: eventAt.toISOString(),
+      reason: p.reason,
+      source: "CryptoAltBullet",
+      stopPrice: String(stop),
+    };
+    await client.query(
+      `INSERT INTO trading_command_outbox (
+         command_id, tracked_signal_id, source_signal_id, symbol, type,
+         event_seq, event_at, reason, stop_price, payload
+       ) VALUES ($1, $2, $3, $4, 'move_stop', $5, $6, $7, $8, $9)
+       ON CONFLICT DO NOTHING`,
+      [cid, p.trackedId, sourceSignalId, symbol, seq, eventAt, p.reason, stop, JSON.stringify(payload)],
+    );
+    await client.query("COMMIT");
+    return true;
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 type ClaimedCommand = {
   command_id: string;
   payload: Record<string, unknown>;

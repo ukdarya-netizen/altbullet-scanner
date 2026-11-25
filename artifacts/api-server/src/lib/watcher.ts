@@ -3,6 +3,7 @@ import {
   LC_SMALL_LIQ_1H_PCT_OF_MCAP,
 } from "./turnover-threshold.js";
 import { isTelegramMuted } from "./telegram-mute.js";
+import { enqueueProtectionStop } from "./trading-command-outbox.js";
 import {
   buildBtcTickerContext,
   parseBtcPrice,
@@ -7815,6 +7816,28 @@ type ProfitLockActivationCacheEntry = {
   persistedPeakPnlPct: number;
 };
 
+/** Owner 2026-11-26 (MMT): last protected stop relayed per tracked signal — one write per new level, not per cycle. */
+const relayedProtectionStops = new Map<number, number>();
+async function relayProtectionStop(
+  trackedId: number,
+  stopPrice: number,
+  protectedProfitPct: number,
+): Promise<void> {
+  if (!(stopPrice > 0)) return;
+  const relayed = relayedProtectionStops.get(trackedId);
+  if (relayed !== undefined && relayed >= stopPrice * 0.9999) return;
+  try {
+    await enqueueProtectionStop({
+      trackedId,
+      stopPrice,
+      reason: protectedProfitPct > 0 ? "profit_stop_protection" : "breakeven_protection",
+    });
+    relayedProtectionStops.set(trackedId, stopPrice);
+  } catch (err) {
+    logger.warn({ err, trackedId }, "protection stop relay failed; retried next cycle");
+  }
+}
+
 const profitLockActivationCache = new Map<
   number,
   ProfitLockActivationCacheEntry
@@ -8951,6 +8974,13 @@ async function runInRunFastCycle(
       const hardBuProtectionEarned =
         tracked.status === "in_run" ||
         (tracked.status === "active" && activeBuProtectionEarned);
+      // Owner 2026-11-26 (MMT): the protected level checked below goes to the trading bot as a
+      // move_stop the moment it is in force, so the trading bot holds it on the exchange instead of
+      // closing by market after this cycle notices the price already below it. Longs only: the
+      // check below is a long check.
+      if (hardBuProtectionEarned && !trailingActive && tracked.isShort !== true) {
+        await relayProtectionStop(tracked.id, protectedBuStopPrice, buStopProtectedProfitPct);
+      }
       if (
         hardBuProtectionEarned &&
         !trailingActive &&
