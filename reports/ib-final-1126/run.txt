@@ -1,0 +1,22 @@
+IB final study start: 2026-11-26T07:25:33.261Z
+CoinGlass requests: 0
+Price source: BingX public klines only; cache: reports/.cache
+BingX klines unavailable GANG-USDT: code 109418 GANG-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable KNTQ-USDT: code 109418 KNTQ-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable KOR-USDT: code 109418 KOR-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable BATON-USDT: code 109418 BATON-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable 4STOCK-USDT: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable AGI-USDT: code 109418 AGI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable CATE-USDT: code 109418 CATE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable HOOKED-USDT: code 109418 HOOKED-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable KIMCHI-USDT: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable DOPE-USDT: code 109418 DOPE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable CLAUDIA-USDT: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+BingX klines unavailable SI-USDT: code 109418 SI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+Signals A: 86
+PDB first-per-symbol-day raw: 9867; rolling-24h: 7077
+missed_signals_log raw: 10757; per-symbol-day: 781
+scan_reject_log grouped symbol-day rows: 2198; raw: 111463
+BingX symbols loaded: 551; 15m candles: 957888; errors: 12
+Output rows: {"events":7944,"filters":7944,"cancels":4,"stops":516,"leaders":14,"wyckoff":20,"missing":758,"deposit_scenarios":37,"prices":{"symbols":551,"errors":12,"candles":957888}}
+Finished: 2026-11-26T07:28:17.538Z

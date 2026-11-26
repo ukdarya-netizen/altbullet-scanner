@@ -1,0 +1,5 @@
+id,signal_id,symbol,cancel_reason,cancelled_at_utc,entry_price,price_at_cancel,pnl_at_cancel_pct,status_now,bot_recorded_4h_pct,bot_recorded_8h_pct,bot_recorded_24h_pct,max_move_72h_pct,reached_plus10_after_cancel_72h,classification,snapshots_72h,max_bot_followup_hour,bingx_price_window_72h_complete,followup_source
+3947,23522,CASHCAT-USDT,impulse_smart_cancel_cvd,2026-11-17T06:38:59.077Z,0.05201,0.04994,-3.9800038,cancelled,,,,-0.701,false,не достигла +10% за полные 72ч,72,72,true,bu_stop_followup_snapshots + BingX 15m
+3991,23891,PARTI-USDT,impulse_smart_cancel_cvd,2026-11-21T20:20:23.640Z,0.0383,0.03694,-3.5509138,cancelled,,,,6.064,false,не достигла +10% за полные 72ч,54,72,true,bu_stop_followup_snapshots + BingX 15m
+3996,24005,MAGMA-USDT,impulse_smart_cancel_cvd,2026-11-24T08:42:17.722Z,0.26191,0.25634,-2.1266847,cancelled,,,,4.287,false,не достигла +10% за полные 72ч,45,45,true,bu_stop_followup_snapshots + BingX 15m
+4021,24253,MOODENG-USDT,impulse_smart_cancel_cvd,2026-11-26T02:41:13.765Z,0.02858,0.02791,-2.3442967,cancelled,,,,5.697,false,не достигла +10% за полные 72ч,3,3,true,bu_stop_followup_snapshots + BingX 15m
