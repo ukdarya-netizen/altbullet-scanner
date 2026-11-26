@@ -117,6 +117,9 @@ export async function recordLiqCascadeObservation(input: {
               ),
               'liq_cascade_fire_reject'
             FROM canonical_observation o
+            -- Owner 2026-11-26: the decision snapshot is the real verdict, never the
+            -- non-terminal "candle still open" wait.
+            WHERE o.reason IS DISTINCT FROM 'detection_candle_pending'
             ON CONFLICT (event_key) DO NOTHING
           `)
         : db.execute(sql`

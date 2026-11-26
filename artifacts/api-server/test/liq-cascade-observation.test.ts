@@ -29,7 +29,7 @@ test("LC rejected observation remains one business outcome for the watch", () =>
   );
 });
 
-test("LC rejected observation identity keeps watches separate but collapses reasons and buckets", () => {
+test("LC rejected observation identity keeps watches and reasons separate, collapses buckets", () => {
   const observedAt = new Date("2026-09-06T10:01:10.000Z");
   const base = {
     watchId: 42,
@@ -42,7 +42,7 @@ test("LC rejected observation identity keeps watches separate but collapses reas
     liqCascadeObservationEventKey(base),
     liqCascadeObservationEventKey({ ...base, watchId: 43 }),
   );
-  assert.equal(
+  assert.notEqual(
     liqCascadeObservationEventKey(base),
     liqCascadeObservationEventKey({
       ...base,

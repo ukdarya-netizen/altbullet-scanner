@@ -20,12 +20,11 @@ export function liqCascadeObservationEventKey(input: {
     return `liq-watch-observation:${input.watchId}:terminal:${input.stage}`;
   }
   if (input.stage === "rejected") {
-    // Preserve the recovery-gate decision even if an earlier cycle already
-    // recorded a different rejection for the same watch.
-    if (input.reason === "weak_liq_continued_decline") {
-      return `liq-watch-observation:${input.watchId}:rejected:weak_liq_continued_decline`;
-    }
-    return `liq-watch-observation:${input.watchId}:rejected`;
+    // Owner 2026-11-26 (reports/lc-final-1126): one row per watch froze the FIRST rejection —
+    // the non-terminal "detection_candle_pending" — so the real verdict after the candle closed
+    // (too_small / not_capitulation / window passed / later gates) was never stored for ~1 600
+    // watches. Every distinct rejection reason now gets its own row (first occurrence kept).
+    return `liq-watch-observation:${input.watchId}:rejected:${input.reason ?? "none"}`;
   }
   const bucket = liqCascadeObservationBucket(input.observedAt).toISOString();
   return `liq-watch-observation:${input.watchId}:${bucket}:${input.stage}:${input.reason ?? "none"}`;

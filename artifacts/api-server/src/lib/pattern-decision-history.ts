@@ -856,6 +856,7 @@ export async function reconcilePatternDecisionSnapshots(): Promise<number> {
         o.watch_id, o.symbol, o.reason, o.observed_at, o.price, o.metrics
       FROM liq_cascade_candidate_observations o
       WHERE o.stage = 'rejected'
+        AND o.reason IS DISTINCT FROM 'detection_candle_pending'
         AND o.price IS NOT NULL
         AND o.price > 0
       ORDER BY o.watch_id, o.reason = 'weak_liq_continued_decline',

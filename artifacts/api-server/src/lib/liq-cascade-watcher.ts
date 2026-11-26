@@ -169,11 +169,12 @@ export function getLcScanDecisionForSymbol(symbol: string): {
   const last = _lcLastDecision.get(symbol);
   const lastForWatch = last && watch && last.watchId === watch.watchId ? last : null;
   if (!watch) {
-    const unavailableReason = !_running
-      ? "lc_watcher_not_running"
-      : !_initialized
-        ? "lc_watcher_not_initialized"
-        : "lc_no_active_watch_no_cascade_detected";
+    // Owner 2026-11-26: _running is "a watcher cycle is in progress right now", not "the job is up";
+    // between cycles every coin without a watch was logged as lc_watcher_not_running (23–26.11: 45
+    // champions, 44 had no watch at all). Only a job that has not loaded its watches yet is "not ready".
+    const unavailableReason = !_initialized
+      ? "lc_watcher_not_initialized"
+      : "lc_no_active_watch_no_cascade_detected";
     return {
       reason: unavailableReason,
       decisionKind:
