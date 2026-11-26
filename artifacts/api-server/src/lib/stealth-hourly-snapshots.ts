@@ -17,13 +17,23 @@ import { computeVsa, loadVsaInputs } from "./vsa-metrics.js";
 import { recordEntryReadings } from "./entry-readings.js";
 
 const HOUR_MS = 3_600_000;
-const MAX_HOURS = 72;
 // Owner 2026-11-02: Neon snapshots every 10 minutes (own table neon_snapshots, slot_index is the
 // 10-minute slot number, stored in its own neon_snapshots table).
 const SLOT_MS_BY_KEY: Record<string, number> = {
   stealth_breakout: HOUR_MS,
   neon_support_bounce: 600_000,
+  // Owner 2026-11-26: snapshots for every pattern. IB trades are short (1.5–8.5 h), so every 10 minutes;
+  // every other pattern (LC, retired patterns still open, BTC) hourly. Rows go to stealth_hourly_snapshots
+  // (no schema change); the pattern comes from tracked_signal_id, the slot length from metrics.slotMinutes.
+  impulse_buy: 600_000,
 };
+const DEFAULT_SLOT_MS = HOUR_MS;
+// Stealth/ABNeon keep their 72 h; the rest cover the whole position life (IB runner up to 5 days).
+const MAX_HOURS_BY_KEY: Record<string, number> = {
+  stealth_breakout: 72,
+  neon_support_bounce: 72,
+};
+const DEFAULT_MAX_HOURS = 120;
 const METRIC_TIMEOUT_MS = 8_000;
 
 const done = new Set<string>();
@@ -52,8 +62,8 @@ function withTimeout<T>(p: Promise<T>): Promise<T | null> {
 }
 
 /**
- * Hourly metric snapshot of an open Stealth Breakout position (observation
- * only). Called from FastCycle; never throws, never blocks trading paths.
+ * Metric snapshot of an open position of any pattern (observation only):
+ * ABNeon and IB every 10 minutes, the rest hourly. Called from FastCycle; never throws, never blocks trading paths.
  */
 export async function maybeRecordStealthHourlySnapshot(
   tracked: typeof trackedSignalsTable.$inferSelect,
@@ -62,12 +72,12 @@ export async function maybeRecordStealthHourlySnapshot(
   peakPct: number,
 ): Promise<void> {
   void recordVsaEntry(tracked).catch(() => null);
-  const slotMs = SLOT_MS_BY_KEY[tracked.sentimentKey ?? ""];
-  if (!slotMs) return;
+  const slotMs = SLOT_MS_BY_KEY[tracked.sentimentKey ?? ""] ?? DEFAULT_SLOT_MS;
+  const maxHours = MAX_HOURS_BY_KEY[tracked.sentimentKey ?? ""] ?? DEFAULT_MAX_HOURS;
   const elapsedMs = Date.now() - tracked.detectedAt.getTime();
   const hourIndex = Math.floor(elapsedMs / slotMs);
   // Slot 0 = first snapshot right after the signal; then every full slot.
-  if (hourIndex < 0 || hourIndex > (MAX_HOURS * HOUR_MS) / slotMs) return;
+  if (hourIndex < 0 || hourIndex > (maxHours * HOUR_MS) / slotMs) return;
   const key = `${tracked.id}:${hourIndex}`;
   if (done.has(key) || inflight.has(key)) return;
   inflight.add(key);
@@ -146,6 +156,8 @@ export async function maybeRecordStealthHourlySnapshot(
       // volume aggregated).
       vsa,
       source: "coinglass_aggregated",
+      slotMinutes: slotMs / 60_000,
+      sentimentKey: tracked.sentimentKey ?? null,
     };
     const row = {
       trackedSignalId: tracked.id,

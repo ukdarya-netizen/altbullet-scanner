@@ -388,6 +388,7 @@ import {
   getMaxWatchDays,
   getNoTouchStopMs,
   getBuStopMilestone,
+  getBuStopProtectedProfitPct,
   resolveLongSplitFillAdjustment,
   resolveBuStopProtection,
   SMART_CANCEL_MIN_AGE_MS,
@@ -4827,23 +4828,38 @@ export async function runStartupReset(): Promise<void> {
   // delays the economic startup close.
   void enqueueBrMissedMilestones();
 
-  // Historical versions persisted a sampled post-gap market price for BE.
-  // stops. The protected exit must instead remain at entry, with zero PnL for
-  // the remaining position.
+  // Historical versions persisted a sampled post-gap market price for BE
+  // stops. The protected exit must instead be the protected level itself.
+  // Owner 2026-11-26 (IB final review): this pass used to force EVERY bu_stop
+  // to entry / 0%, wiping the earned "+10% → stop at +5%" exit on each restart
+  // (JCT, AKE, CASHCAT, BLESS, SKYAI ×2, VVV, MOODENG, MMT: last_milestone 10,
+  // stored 0%). The protected level is now kept, and rows closed since
+  // 2026-11-04 (the promotion is in the code from that snapshot on) get it back:
+  // +5% when last_milestone ≥ 10 for patterns with the promotion, 0% otherwise.
+  const protectedBuPct = sql<number>`(CASE
+    WHEN COALESCE(${trackedSignalsTable.lastMilestone}, 0) >= 10
+      AND COALESCE(${trackedSignalsTable.sentimentKey}, '') NOT IN ('stealth_breakout', 'neon_support_bounce', 'liquidation_cascade')
+      AND ${trackedSignalsTable.symbol} NOT IN ('BTC-USDT', 'BTCUSDT')
+      AND ${trackedSignalsTable.coreClosedAt} IS NULL
+      AND ${trackedSignalsTable.closedAt} >= TIMESTAMP '2026-11-04 00:00:00'
+    THEN ${getBuStopProtectedProfitPct("impulse_buy")}::real
+    ELSE 0::real
+  END)`;
   try {
     const normalized = await db
       .update(trackedSignalsTable)
       .set({
-        exitPrice: trackedSignalsTable.entryPrice,
-        pnlPercent: 0,
+        exitPrice: sql<number>`${trackedSignalsTable.entryPrice} * (1 + ${protectedBuPct} / 100)`,
+        pnlPercent: protectedBuPct,
         updatedAt: new Date(),
       })
       .where(
         and(
           eq(trackedSignalsTable.status, "bu_stop"),
           or(
-            sql`${trackedSignalsTable.pnlPercent} IS DISTINCT FROM 0`,
-            sql`${trackedSignalsTable.exitPrice} IS DISTINCT FROM ${trackedSignalsTable.entryPrice}`,
+            sql`${trackedSignalsTable.pnlPercent} IS DISTINCT FROM ${protectedBuPct}`,
+            sql`abs(${trackedSignalsTable.exitPrice} - ${trackedSignalsTable.entryPrice} * (1 + ${protectedBuPct} / 100)) > ${trackedSignalsTable.entryPrice} * 1e-6`,
+            sql`${trackedSignalsTable.exitPrice} IS NULL`,
           ),
         ),
       )
@@ -8890,6 +8906,16 @@ async function runInRunFastCycle(
           runnerPeak,
           runnerTrailingStop,
         );
+        // Owner 2026-11-26: snapshots for every open position, the IB runner included.
+        void maybeRecordStealthHourlySnapshot(
+          tracked,
+          currentPrice,
+          computePnl(
+            { ...tracked, entryPrice: runnerEntryPrice },
+            currentPrice,
+          ),
+          computePnl({ ...tracked, entryPrice: runnerEntryPrice }, runnerPeak),
+        ).catch(() => null);
         continue;
       }
       const activatedTrailingStop = resolveActivatedTrailingStopLevel({
