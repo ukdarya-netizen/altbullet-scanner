@@ -1,0 +1,12 @@
+[
+  {
+    "kind": "prior_run",
+    "failure_count": 1,
+    "reason": "One failed range was recorded in the saved progress checkpoint; its detailed response was not persisted before restart."
+  },
+  {
+    "kind": "funding",
+    "failure_count": 1,
+    "reason": "Funding endpoint returned a nonzero API code; response details were not persisted before restart."
+  }
+]
