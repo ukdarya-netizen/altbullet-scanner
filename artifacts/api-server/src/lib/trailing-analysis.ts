@@ -872,7 +872,7 @@ export function buildTrailingAnalysis(input: {
       boundaryPolicy: `The entry-overlap candle cannot arm or raise trailing. The close-overlap candle is excluded from replay because its high/low order is ambiguous; later candles are replayed through ${TRAILING_ANALYSIS_HORIZON_DAYS} days from detection.`,
       liveRuleChanged: true,
       runnerCandidate:
-        "impulse_runner_v1 is live for newly policy-stamped positions. Replay/candidate comparison is observational; after a confirmed standard trailing close, 20% remains open with an entry-anchored -10% emergency stop, +30% trailing activation, and a 30-point gap.",
+        "impulse_runner_v1 is live for newly policy-stamped positions. Replay/candidate comparison is observational; since 2026-11-26 the 80% core is taken at +10%; 20% remains open with an entry-anchored breakeven emergency stop, +30% trailing activation, and a 30-point gap.",
       runnerCoverage:
         "Runner candidates with zero candles or a horizon ending before four days are excluded from PnL unless an unambiguous emergency/trailing stop was hit before coverage ended; close-overlap and same-candle activation/raise hits remain ambiguous.",
     },

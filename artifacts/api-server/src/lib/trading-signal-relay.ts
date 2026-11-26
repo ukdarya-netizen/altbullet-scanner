@@ -13,6 +13,7 @@ import {
   PATTERN_MAX_STOP,
 } from "./watcher-config.js";
 import {
+  IMPULSE_RUNNER_CORE_TAKE_PCT,
   IMPULSE_RUNNER_CORE_WEIGHT,
   IMPULSE_RUNNER_POLICY_VERSION,
   IMPULSE_RUNNER_TRAILING_ACTIVATION_PCT,
@@ -47,7 +48,11 @@ export const RELAY_PATTERN_RULES = Object.fromEntries(
           execution: "advice_only_not_automated",
         },
         firstTargetPct: exit.firstTarget,
-        firstTargetAction: "milestone_not_full_close",
+        // Owner 2026-11-26: IB closes its 80% core at the first target (+10%).
+        firstTargetAction:
+          key === "impulse_buy"
+            ? "close_core_fraction"
+            : "milestone_not_full_close",
         breakevenAtPct: getBuStopMilestone(key),
         breakevenStopGainPct: 0,
         breakevenIncludesFees: false,
@@ -68,7 +73,8 @@ export const RELAY_PATTERN_RULES = Object.fromEntries(
                 policyVersion: IMPULSE_RUNNER_POLICY_VERSION,
                 coreFraction: IMPULSE_RUNNER_CORE_WEIGHT,
                 runnerFraction: 1 - IMPULSE_RUNNER_CORE_WEIGHT,
-                coreExit: "standard_trailing_stop",
+                coreExit: "take_profit_at_first_target",
+                coreTakeProfitPct: IMPULSE_RUNNER_CORE_TAKE_PCT,
                 afterCoreEmergencyStop: "original_entry_breakeven",
                 trailingActivationPct: IMPULSE_RUNNER_TRAILING_ACTIVATION_PCT,
                 trailingGapPercentagePoints: IMPULSE_RUNNER_TRAILING_GAP_PCT,
@@ -98,6 +104,8 @@ export const BTC_RELAY_PATTERN_RULES = Object.fromEntries(
       {
         ...baseRules,
         firstTargetPct: exit.firstTarget,
+        // BTC has no core/runner split: its first target never closes a fraction.
+        firstTargetAction: "milestone_not_full_close",
         breakevenAtPct: getBuStopMilestone(key, "BTC-USDT"),
         // BTC protection is the +1% BE followed by the +2% peak-minus-1pp
         // trail; the generic +10% => +5% floor is intentionally disabled.

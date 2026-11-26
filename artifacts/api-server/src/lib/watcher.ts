@@ -343,6 +343,7 @@ import {
 } from "./stealth-breakout-reclassification.js";
 import {
   BR_MISSED_MILESTONES,
+  IMPULSE_RUNNER_CORE_TAKE_PCT,
   IMPULSE_RUNNER_MAX_AGE_MS,
   IMPULSE_RUNNER_POLICY_VERSION,
   isImpulseRunnerFiveDaysOld,
@@ -6574,6 +6575,7 @@ async function closeImpulseRunnerCorePosition(input: {
   observedAt: Date;
   priceSource: "fast_cycle" | "bingx_ws_last_price" | "startup_reset";
   realtimeMonitorGeneration?: number;
+  coreTake?: boolean;
 }): Promise<boolean> {
   const { tracked } = input;
   if (!isImpulseRunnerPolicy(tracked.policyVersion)) return false;
@@ -6623,6 +6625,7 @@ async function closeImpulseRunnerCorePosition(input: {
         persistedCorePnl,
         persistedPeakPnl,
         health,
+        input.coreTake === true,
       ),
     eventKey,
     async (tx) => {
@@ -8918,6 +8921,34 @@ async function runInRunFastCycle(
 
       // Owner 2026-11-13: the ABNeon take at the nearest resistance (2026-11-12, R8 exit B) is removed — ABNeon is
       // managed by its exit profile (+5% notice, partial take +8%, B.U. +10%, trailing from +20% at 20 p.p.).
+
+      // ── IMPULSE BUY: CORE TAKE AT +10% ──────────────────────────────────────
+      // Owner 2026-11-26: the IB core (80%) is fixed at +10% (a resting take at
+      // the first target), not by the trailing from +15%. The runner (20%) then
+      // lives by its own rules: stop at the original entry, trailing from +30%
+      // at 30 p.p. Waits for the +10% milestone delivery (pendingMilestone) so
+      // the messages arrive in order; settles at exactly +10%.
+      if (
+        tracked.status === "in_run" &&
+        isImpulseRunnerPolicy(tracked.policyVersion) &&
+        !isBitcoinTrackedSignal(tracked) &&
+        tracked.coreClosedAt == null &&
+        tracked.pendingMilestone == null &&
+        peakPnlNow >= IMPULSE_RUNNER_CORE_TAKE_PCT
+      ) {
+        const closed = await closeImpulseRunnerCorePosition({
+          tracked,
+          currentPrice,
+          peakPrice: newPeak,
+          trailingStop:
+            tracked.entryPrice * (1 + IMPULSE_RUNNER_CORE_TAKE_PCT / 100),
+          exitProfile,
+          observedAt: new Date(),
+          priceSource: "fast_cycle",
+          coreTake: true,
+        });
+        if (closed) continue;
+      }
 
       // ── HARD TRAILING EXIT ───────────────────────────────────────────────────
       // Закрытие по уже активированному трейлингу важнее любых Telegram-очередей,

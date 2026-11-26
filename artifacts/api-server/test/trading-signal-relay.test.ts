@@ -305,7 +305,7 @@ test(
       );
       assert.equal(
         impulse.rows[0].payload.payload.exitRules.runner.coreExit,
-        "standard_trailing_stop",
+        "take_profit_at_first_target",
       );
       assert.equal(
         impulse.rows[0].payload.payload.exitRules.runner.coreFraction,

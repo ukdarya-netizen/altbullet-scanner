@@ -2016,5 +2016,8 @@
   "уровень — зона ABNeon по дневным свечам (1D), от которой цена уже разворачивалась": "the level is an ABNeon zone from the daily (1D) candles where price has reversed before",
   "зона была сопротивлением: дневная свеча до пробоя закрылась ниже зоны (возврат над поддержкой после прокола — не пробой)": "the zone was resistance: the daily candle before the breakout closed below it (a close back above support after a poke under it is not a breakout)",
   "зона поддержки ABNeon по дневным свечам (1D) — уровень, от которого цена уже разворачивалась; касание и вход смотрятся на 4H / 1H": "ABNeon support zone from the daily (1D) candles — a level price has already reversed from; the touch and the entry are read on 4H / 1H",
-  "Кандидаты на пробой сопротивления ABNeon: ближайшая дневная зона сопротивления (уровни по свечам 1D) не дальше 5% над закрытием последней 4ч свечи. Сигнал — закрытие 4ч свечи выше верха зоны на ярком объёме.": "ABNeon resistance breakout candidates: the nearest daily resistance zone (levels from the 1D candles) at most 5% above the last 4h close. Signal — a 4h close above the zone top on bright volume."
+  "Кандидаты на пробой сопротивления ABNeon: ближайшая дневная зона сопротивления (уровни по свечам 1D) не дальше 5% над закрытием последней 4ч свечи. Сигнал — закрытие 4ч свечи выше верха зоны на ярком объёме.": "ABNeon resistance breakout candidates: the nearest daily resistance zone (levels from the 1D candles) at most 5% above the last 4h close. Signal — a 4h close above the zone top on bright volume.",
+  "Цена прошла +5%: стоп в безубыток": "Price moved +5%: stop to breakeven",
+  "На +10% основная часть (80% позиции) фиксируется": "At +10% the main part (80% of the position) is taken",
+  "«Хвост» (20%) остаётся открытым: его стоп в безубытке, а с +30% он идёт за ценой на 30 п.п. ниже пика": "The “tail” (20%) stays open: its stop is at breakeven, and from +30% it trails the price 30 p.p. below the peak"
 }

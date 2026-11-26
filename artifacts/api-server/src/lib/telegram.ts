@@ -36,7 +36,11 @@ import {
   tickerTag,
   patternTag,
 } from "./watcher-formatters.js";
-import { IMPULSE_RUNNER_POLICY_VERSION } from "./impulse-runner-policy.js";
+import {
+  IMPULSE_RUNNER_POLICY_VERSION,
+  IMPULSE_RUNNER_TRAILING_ACTIVATION_PCT,
+  IMPULSE_RUNNER_TRAILING_GAP_PCT,
+} from "./impulse-runner-policy.js";
 import { isBingxExclusive, isBinanceSpotListed } from "./coinglass_listings.js";
 import { getWhaleIndexLine, getTokenWhaleIndex } from "./whale_index.js";
 import { getGlobalAccountRatio } from "./coinglass_global_ratio.js";
@@ -160,12 +164,16 @@ export function buildSignalManagementLine(
   if (sentimentKey === "neon_support_bounce") {
     return `🛡 <b>Сопровождение:</b> частичная фиксация +8% · БУ с +${beActivation}% · трейлинг с +${exitProfile.trailingActivation}% на ${exitProfile.trailingGap} п.п. ниже пика · отмена, если 4H закроется под уровнем`;
   }
+  // Owner 2026-11-26: IB core (80%) is taken at +10%; the 20% runner keeps B.U., trailing +30% / 30 p.p.
+  if (sentimentKey === "impulse_buy") {
+    return `🛡 <b>Сопровождение:</b> БУ с +${beActivation}% · на +10% фиксация 80% позиции · остаток 20%: стоп в Б/У, трейлинг с +${IMPULSE_RUNNER_TRAILING_ACTIVATION_PCT}% на ${IMPULSE_RUNNER_TRAILING_GAP_PCT} п.п. ниже пика, максимум 5 дней`;
+  }
   const protectionPlan = hasNoProfitStopPromotion(sentimentKey)
     ? `БУ с +${beActivation}%`
     : beActivation === 10
       ? "БУ с +10% · при +10% стоп в прибыль +5%"
       : `БУ с +${beActivation}% · при +10% стоп в прибыль +5%`;
-  return `🛡 <b>Сопровождение:</b> ${protectionPlan} ${sentimentKey === "impulse_buy" ? ` · цель +${exitProfile.firstTarget}%: вручную зафиксируй 20–25% (не автоисполнение)` : ""} · трейлинг +${exitProfile.trailingActivation}%`;
+  return `🛡 <b>Сопровождение:</b> ${protectionPlan} · трейлинг +${exitProfile.trailingActivation}%`;
 }
 
 // ── Channel ID in-memory cache ────────────────────────────────────────────────

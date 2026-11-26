@@ -18,6 +18,7 @@ import { isBingxExclusive, isBinanceSpotListed } from "./coinglass_listings.js";
 import {
   IMPULSE_RUNNER_POLICY_VERSION,
   IMPULSE_RUNNER_TRAILING_ACTIVATION_PCT,
+  IMPULSE_RUNNER_TRAILING_GAP_PCT,
   isImpulseRunnerPolicy,
 } from "./impulse-runner-policy.js";
 
@@ -29,7 +30,7 @@ export function fmtImpulseRunnerPolicyLine(signal: {
   if (!isImpulseRunnerPolicy(signal.policyVersion)) return "";
   return [
     `🧊 <b>Exit policy ${IMPULSE_RUNNER_POLICY_VERSION}</b>`,
-    `После стандартного трейлинга core закрывается отдельно, runner продолжает движение.`,
+    `Core (80%) фиксируется на +10%, runner (20%) продолжает движение.`,
     `После закрытия core: аварийный стоп runner в Б/У от исходного входа.`,
   ].join("\n");
 }
@@ -660,6 +661,10 @@ function nextStepAfterBu(t: TrackedSignal): string {
     return `⏳ Дальше стоп идёт за ценой на 1R ниже пика`;
   }
   const exitProfile = getExitProfile(t.sentimentKey, t.symbol);
+  // Owner 2026-11-26: IB core (80%) is taken at +10%.
+  if (t.sentimentKey === "impulse_buy") {
+    return `⏳ На +10% фиксация 80% позиции, остаток 20% — стоп в Б/У`;
+  }
   return hasNoProfitStopPromotion(t.sentimentKey)
     ? `⏳ Дальше: трейлинг с +${exitProfile.trailingActivation}%`
     : `⏳ На +10% стоп в прибыль +5%, трейлинг с +${exitProfile.trailingActivation}%`;
@@ -696,11 +701,19 @@ export function msgFirstTarget(
           `ℹ️ Уровень сопровождения, не подтверждение частичного исполнения`,
         ]
       : [
-          ...(t.sentimentKey === "neon_support_bounce" ? [] : [`✂️ Фиксируй 20-25%`]),
-          fmtPositionProtectionLine(t, {
-            milestone: exitProfile.firstTarget,
-          }),
-          `⏳ Следующий уровень: +${exitProfile.trailingActivation}% (трейлинг)`,
+          ...(t.sentimentKey === "impulse_buy"
+            ? // Owner 2026-11-26: IB core (80%) is taken at +10%; the 20% runner stays.
+              [
+                `✂️ Фиксируй 80% позиции`,
+                `⏳ Остаток 20%: стоп в Б/У, трейлинг с +${IMPULSE_RUNNER_TRAILING_ACTIVATION_PCT}% на ${IMPULSE_RUNNER_TRAILING_GAP_PCT} п.п. ниже пика, максимум 5 дней`,
+              ]
+            : [
+                ...(t.sentimentKey === "neon_support_bounce" ? [] : [`✂️ Фиксируй 20-25%`]),
+                fmtPositionProtectionLine(t, {
+                  milestone: exitProfile.firstTarget,
+                }),
+                `⏳ Следующий уровень: +${exitProfile.trailingActivation}% (трейлинг)`,
+              ]),
         ],
     health,
     liqCtx,
@@ -799,11 +812,15 @@ export function msgImpulseRunnerCoreClose(
   corePnl: number,
   peakPnl: number,
   health?: SpotHealth | null,
+  coreTake = false,
 ): string {
   const dur = hoursAndDays(t.detectedAt);
   return buildPositionUpdate(t, {
     showRunnerPolicy: true,
-    event: "🟡 CORE CLOSED — standard trailing exit",
+    // Owner 2026-11-26: the IB core (80%) is taken at +10%.
+    event: coreTake
+      ? "🟢 CORE CLOSED — 80% зафиксировано на +10%"
+      : "🟡 CORE CLOSED — standard trailing exit",
     price: `${fmtP(t.entryPrice)} → ${fmtP(corePrice)} (${fmtPct(corePnl)}) | ${dur.str}`,
     context: [
       `📈 Пик позиции: ${fmtPct(peakPnl)}`,
@@ -978,7 +995,10 @@ export function msgPartialTakeProfit(
       : [
           // Owner 2026-10-29: the B.U. level is not a take-profit; fixing is optional.
           fmtPositionProtectionLine(t, { milestone }),
-          `✂️ По желанию: можно зафиксировать 20-25%`,
+          // Owner 2026-11-26: IB fixes 80% at +10%, no optional take at +5%.
+          ...(t.sentimentKey === "impulse_buy"
+            ? []
+            : [`✂️ По желанию: можно зафиксировать 20-25%`]),
           nextStepAfterBu(t),
         ],
     health,

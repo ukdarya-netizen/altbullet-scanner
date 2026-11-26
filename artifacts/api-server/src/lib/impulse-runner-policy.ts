@@ -2,6 +2,12 @@ export const IMPULSE_RUNNER_POLICY_VERSION = "impulse_runner_v1" as const;
 export const IMPULSE_RUNNER_NEW_ENTRY_POLICY_VERSION =
   "single_entry_v1" as const;
 export const IMPULSE_RUNNER_CORE_WEIGHT = 0.8;
+// Owner 2026-11-26 (final IB review, 45 live IB 09–26.11): the core (80%) is
+// taken at +10% instead of the trailing from +15% / 10 p.p. Of 20 trades that
+// reached +10% only 7 had a core close; 6 of those 7 trailing cores closed
+// below +10% (ARIA +6.8, SOPH +9.4, NES +8.7, ICNT +5.8, ZIL +9.6, NES +5.3;
+// only ELSA +18.4), the rest ended at B.U. The runner (20%) keeps its rules.
+export const IMPULSE_RUNNER_CORE_TAKE_PCT = 10;
 export const IMPULSE_RUNNER_RUNNER_WEIGHT = 0.2;
 export const IMPULSE_RUNNER_EMERGENCY_STOP_PCT = 0;
 export const IMPULSE_RUNNER_NEW_EMERGENCY_STOP_PCT = 0;
