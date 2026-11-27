@@ -1,0 +1,36 @@
+attempt_1=stopped at 50/1093 before CoinGlass; initial cache glob included unrelated symbols
+attempt_1_coinGlass_requests=0
+attempt_2=stopped before CoinGlass after audit found the prior-event file omitted symbols from other named study universes; no 50-symbol progress line was reached
+attempt_2_coinGlass_requests=0
+attempt_3=stopped at 50/549 before CoinGlass after request to use four concurrent BingX requests; BingX counters were not flushed; CoinGlass requests=0
+attempt_4=stopped at 200/549 before CoinGlass; no candle-cache files had refreshed; no CoinGlass requests
+attempt_5=stopped at 50/549 after BingX returned code 109429; 522 HTTP attempts and 50 symbol failures; no candle-cache refresh; CoinGlass requests=0
+attempt_6=scan universe is the same union of prior Stealth/ABNeon reports + production signals + D examples (547 symbols); idempotent USDT symbol normalization; four workers, max four concurrent BingX HTTP requests, cache-first; honors BingX 109429 retry timestamp
+run_utc=2026-11-27T11:24:43.160Z
+production_export_cutoff=2026-11-27T06:27:23.679Z
+study_period=2026-11-01T00:00:00.000Z..2026-11-27T11:24:43.160Z
+input_rows: A=496, extras=496, vsa=482, wyckoff=492, colors=492, queue=175, decisions=19472, rejects=1757, hourlyGroups=495, selectedHourlySnapshots=2562, trajectory=3437, drawdown=496, trailing=31, followup=8965, guard=1078
+cohorts: A=496, B=1725, C=309, D=18
+outcomes_B_5d: champion=309, bad=1045, ambiguous=1, open=370
+scan_reject_log_coverage=2026-11-24T07:34:02.539355Z..2026-11-27T06:11:39.879712Z (1757 rows)
+bingx_requests=1833 bingx_errors=36 bingx_peak_concurrent=4 bingx_limit=4 symbol_failures=36
+coinglass_requests=693 coinglass_errors=31 coinglass_429=0 coinglass_ok=662 coinglass_empty=22
+CoinGlass: 50/693 запросов · осталось примерно 643 · конец около 27/11, 16:17 Dubai
+CoinGlass: 100/693 запросов · осталось примерно 593 · конец около 27/11, 16:17 Dubai
+CoinGlass: 150/693 запросов · осталось примерно 543 · конец около 27/11, 16:17 Dubai
+CoinGlass: 200/693 запросов · осталось примерно 493 · конец около 27/11, 16:17 Dubai
+CoinGlass: 250/693 запросов · осталось примерно 443 · конец около 27/11, 16:17 Dubai
+CoinGlass: 300/693 запросов · осталось примерно 393 · конец около 27/11, 16:17 Dubai
+CoinGlass: 350/693 запросов · осталось примерно 343 · конец около 27/11, 16:17 Dubai
+CoinGlass: 400/693 запросов · осталось примерно 293 · конец около 27/11, 16:17 Dubai
+CoinGlass: 450/693 запросов · осталось примерно 243 · конец около 27/11, 16:17 Dubai
+CoinGlass: 500/693 запросов · осталось примерно 193 · конец около 27/11, 16:17 Dubai
+CoinGlass: 550/693 запросов · осталось примерно 143 · конец около 27/11, 16:17 Dubai
+CoinGlass: 600/693 запросов · осталось примерно 93 · конец около 27/11, 16:17 Dubai
+CoinGlass: 650/693 запросов · осталось примерно 43 · конец около 27/11, 16:17 Dubai
+coinglass_scope=C+D only; unique_symbols=157; requested_series=662; initially_missing_series=693
+coinglass_requests_planned=693
+deposit_best_first_half=retest_zone_top_with_lucy_mw_volume__under_breakout_low__runner80_take10_trail30_30_5d
+filter_mismatches=558; unlogged_filter_failures=226
+outputs: events=2545, filter_check=2049, filters=5, metrics_compare=758105, entries=5872, stops=8623, exits=14541, closes_after=496, champions_missed=309, examples=18, missing_metrics=303523
+errors=36

@@ -1,0 +1,317 @@
+{
+  "productionExportCutoff": "2026-11-27T06:27:23.679Z",
+  "symbolErrors": [
+    {
+      "symbol": "4STOCK-USDT",
+      "reason": "Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "AGENCY-USDT",
+      "reason": "Error: code 109418 AGENCY-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "AGI-USDT",
+      "reason": "Error: code 109418 AGI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "AGRIPPA-USDT",
+      "reason": "Error: code 109418 AGRIPPA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "BATON-USDT",
+      "reason": "Error: code 109418 BATON-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "BEN-USDT",
+      "reason": "Error: code 109418 BEN-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "BIKETYSON-USDT",
+      "reason": "Error: code 109418 BIKETYSON-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "BUN-USDT",
+      "reason": "Error: code 109418 BUN-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "CATE-USDT",
+      "reason": "Error: code 109418 CATE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "CENT-USDT",
+      "reason": "Error: code 109418 CENT-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "CLAUDIA-USDT",
+      "reason": "Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "DOPE-USDT",
+      "reason": "Error: code 109418 DOPE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "EVERLYN-USDT",
+      "reason": "Error: code 109425 EVERLYN-USDT not exist, please verify it in api: /openApi/swap/v2/quote/contracts"
+    },
+    {
+      "symbol": "FTR-USDT",
+      "reason": "Error: code 109418 FTR-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "HOOKED-USDT",
+      "reason": "Error: code 109418 HOOKED-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "JEANPHIL-USDT",
+      "reason": "Error: code 109418 JEANPHIL-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "KNOTS-USDT",
+      "reason": "Error: code 109418 KNOTS-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "NEARKAT-USDT",
+      "reason": "Error: code 109418 NEARKAT-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "OLAXBT-USDT",
+      "reason": "Error: code 109425 OLAXBT-USDT not exist, please verify it in api: /openApi/swap/v2/quote/contracts"
+    },
+    {
+      "symbol": "SI-USDT",
+      "reason": "Error: code 109418 SI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "AGRIPPA-USDT",
+      "reason": "Error: code 109418 AGRIPPA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "BIKETYSON-USDT",
+      "reason": "Error: code 109418 BIKETYSON-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "BUN-USDT",
+      "reason": "Error: code 109418 BUN-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "AGI-USDT",
+      "reason": "Error: code 109418 AGI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "JEANPHIL-USDT",
+      "reason": "Error: code 109418 JEANPHIL-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "CENT-USDT",
+      "reason": "Error: code 109418 CENT-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "CLAUDIA-USDT",
+      "reason": "Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "BEN-USDT",
+      "reason": "Error: code 109418 BEN-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "BATON-USDT",
+      "reason": "Error: code 109418 BATON-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "DOPE-USDT",
+      "reason": "Error: code 109418 DOPE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "AGENCY-USDT",
+      "reason": "Error: code 109418 AGENCY-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "4STOCK-USDT",
+      "reason": "Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "KNOTS-USDT",
+      "reason": "Error: code 109418 KNOTS-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "FTR-USDT",
+      "reason": "Error: code 109418 FTR-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+    },
+    {
+      "symbol": "OLAXBT-USDT",
+      "reason": "Error: code 109425 OLAXBT-USDT not exist, please verify it in api: /openApi/swap/v2/quote/contracts"
+    },
+    {
+      "symbol": "EVERLYN-USDT",
+      "reason": "Error: code 109425 EVERLYN-USDT not exist, please verify it in api: /openApi/swap/v2/quote/contracts"
+    }
+  ],
+  "requestErrors": [],
+  "rejectedChampions": 309,
+  "coinGlassAllowedSymbols": [
+    "0G-USDT",
+    "1000BONK-USDT",
+    "1000PEPE-USDT",
+    "4-USDT",
+    "ACT-USDT",
+    "ACU-USDT",
+    "ADA-USDT",
+    "AERO-USDT",
+    "AGT-USDT",
+    "AIA-USDT",
+    "AIOT-USDT",
+    "AKE-USDT",
+    "AR-USDT",
+    "ARIA-USDT",
+    "ARX-USDT",
+    "ATH-USDT",
+    "AVAAI-USDT",
+    "AVAX-USDT",
+    "AXIS-USDT",
+    "B2-USDT",
+    "BANANAS31-USDT",
+    "BARD-USDT",
+    "BILL-USDT",
+    "BIRB-USDT",
+    "BITLIGHT-USDT",
+    "BLESS-USDT",
+    "BLUAI-USDT",
+    "BMT-USDT",
+    "BR-USDT",
+    "BROCCOLI-USDT",
+    "BROCCOLIF3B-USDT",
+    "BTR-USDT",
+    "BTW-USDT",
+    "BULLA-USDT",
+    "CARV-USDT",
+    "CASHCAT-USDT",
+    "CETUS-USDT",
+    "CHIP-USDT",
+    "CHR-USDT",
+    "CITREA-USDT",
+    "CLANKER-USDT",
+    "COLLECT-USDT",
+    "COMP-USDT",
+    "COOKIE-USDT",
+    "CROSS-USDT",
+    "CYBER-USDT",
+    "CYBERLEEK-USDT",
+    "DGAI-USDT",
+    "DNA-USDT",
+    "EDGEX-USDT",
+    "EDU-USDT",
+    "ELSA-USDT",
+    "ENA-USDT",
+    "ERA-USDT",
+    "ESPORTS-USDT",
+    "ETHFI-USDT",
+    "EUL-USDT",
+    "EVAA-USDT",
+    "FARTCOIN-USDT",
+    "FF-USDT",
+    "FIDA-USDT",
+    "FLOCK-USDT",
+    "FLUID-USDT",
+    "FLUX-USDT",
+    "FOLKS-USDT",
+    "G-USDT",
+    "GENIUS-USDT",
+    "GPS-USDT",
+    "GRASS-USDT",
+    "GRT-USDT",
+    "HAEDAL-USDT",
+    "HEI-USDT",
+    "HMSTR-USDT",
+    "HYPE-USDT",
+    "ICNT-USDT",
+    "IDOL-USDT",
+    "INIT-USDT",
+    "INJ-USDT",
+    "INX-USDT",
+    "IRYS-USDT",
+    "JCT-USDT",
+    "KAS-USDT",
+    "KERNEL-USDT",
+    "KGEN-USDT",
+    "KITE-USDT",
+    "KMNO-USDT",
+    "KOMA-USDT",
+    "LINK-USDT",
+    "LISTA-USDT",
+    "MAGMA-USDT",
+    "MAVIA-USDT",
+    "MEGA-USDT",
+    "MELANIA-USDT",
+    "MERL-USDT",
+    "METEORA-USDT",
+    "MMT-USDT",
+    "MUBARAK-USDT",
+    "NAORIS-USDT",
+    "NEAR-USDT",
+    "NES-USDT",
+    "NIGHT-USDT",
+    "NULLMASK-USDT",
+    "O-USDT",
+    "ON-USDT",
+    "ONE-USDT",
+    "OPENLEDGER-USDT",
+    "OPG-USDT",
+    "ORCA-USDT",
+    "PHA-USDT",
+    "PHAROS-USDT",
+    "PIEVERSE-USDT",
+    "PIPPIN-USDT",
+    "PLAYSOUT-USDT",
+    "PORTAL-USDT",
+    "PROM-USDT",
+    "PUNDIX-USDT",
+    "PYTH-USDT",
+    "QNT-USDT",
+    "RAY-USDT",
+    "RSR-USDT",
+    "RUNE-USDT",
+    "S-USDT",
+    "SAGA-USDT",
+    "SAHARA-USDT",
+    "SENT-USDT",
+    "SHELL-USDT",
+    "SIGN-USDT",
+    "SIREN-USDT",
+    "SKR-USDT",
+    "SKYAI-USDT",
+    "SKY-USDT",
+    "SOON-USDT",
+    "SOPH-USDT",
+    "SPACECOIN-USDT",
+    "STAR-USDT",
+    "SWARMS-USDT",
+    "TA-USDT",
+    "TAG-USDT",
+    "TAC-USDT",
+    "THETA-USDT",
+    "TIA-USDT",
+    "TRADOOR-USDT",
+    "TRIA-USDT",
+    "TRUST-USDT",
+    "UAI-USDT",
+    "US-USDT",
+    "VELVET-USDT",
+    "VET-USDT",
+    "VVV-USDT",
+    "XNY-USDT",
+    "XPIN-USDT",
+    "XTZ-USDT",
+    "YGG-USDT",
+    "ZEC-USDT",
+    "ZEST-USDT",
+    "ZEREBRO-USDT",
+    "ZRO-USDT"
+  ],
+  "coinGlassStats": {
+    "requests": 693,
+    "errors": 31,
+    "rateLimited429": 0,
+    "successful": 662,
+    "empty": 22
+  }
+}
