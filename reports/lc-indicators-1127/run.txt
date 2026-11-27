@@ -1,0 +1,544 @@
+ATTEMPT 1
+command=STUDY_OFFLINE=0 pnpm dlx tsx reports/lc-indicators-1127/study.ts
+result=failed exit_code=134 before source import completed; no network requests were made
+error=FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+cause=metrics-compare.csv was parsed as a full in-memory object collection (file size 113 MiB)
+fix=streaming CSV reader now retains only detection-anchor rows for the target A/B event ids
+
+ATTEMPT 2
+command=STUDY_OFFLINE=0 pnpm dlx tsx reports/lc-indicators-1127/study.ts
+started_utc=2026-11-27T15:39:07.958Z
+as_of_last_closed_15m=2026-11-27T15:15:00.000Z
+sql_source=SELECT status,count(*) FROM liq_cascade_watch WHERE detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT status,count(*) FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT row_to_json(w) FROM liq_cascade_watch w WHERE detected_at >= '2026-11-26 09:43:12.391' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(t) FROM tracked_signals t WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-26 08:43:08.542' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(x) FROM (SELECT symbol,count(*) AS watch_count,count(*) FILTER (WHERE signal_id IS NOT NULL) AS fired_watch_count FROM liq_cascade_watch WHERE detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT' GROUP BY symbol) x; | SELECT row_to_json(x) FROM (SELECT id,symbol,detected_at,entry_price,peak_price,stop_loss_price,exit_price,pnl_percent,status,closed_at FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT') x; | SELECT row_to_json(x) FROM (SELECT o.* FROM lc_stop_bid_observations o JOIN tracked_signals t ON t.id=o.tracked_signal_id WHERE t.sentiment_key='liquidation_cascade' AND t.detected_at >= '2026-11-01' AND t.symbol <> 'BTC-USDT') x; | SELECT count(*),min(snapshot_at),max(snapshot_at) FROM cg_liq_heatmap_snapshot;
+production_readonly=true; database_writes=0; schema_changes=0; application_server_started=false
+old_report=reports/lc-final-1126; production watch rows from 2026-11-01 non-BTC=4117; fired signals=13
+delta_watch_rows=118; delta_signal_rows=2
+historical_watch_symbols=681; historical_lc_signals=640; bid_observation_rows=16
+cg_liq_heatmap_snapshot rows=0; no historical map/levels source available
+candidate_rows_before_gate=4117; unique_symbols=503
+study_candle_gate=exact evaluateLcDetectionCandleGate; retrospective now=start+45m to evaluate at readiness, not at current wall-clock
+trade_outcome=+10% before -10% over 72h from actual A entry or simulated B gate-ready close; ambiguous same-candle retained as ambiguous
+money_model=$1000 deposit / $100 margin / 10x; 4d stop -10%, BE after +8%, trailing from +15% by 10 percentage points, fee 0.1% round trip; same-candle stop checks precede higher highs
+BINGX_GATE_PROGRESS symbols=25/128 requests=44 errors=0
+BINGX_GATE_PROGRESS symbols=50/128 requests=70 errors=0
+BINGX_GATE_PROGRESS symbols=75/128 requests=95 errors=0
+BINGX_GATE_PROGRESS symbols=100/128 requests=120 errors=0
+BINGX_GATE_PROGRESS symbols=125/128 requests=145 errors=0
+BINGX_GATE_PROGRESS symbols=128/128 requests=145 errors=0
+gate_counts=detection_candle_too_small=3860, pass=171, detection_candle_no_rebound=81, detection_candle_unavailable=5
+gate_passed_entry_ready=171
+gate_candles_reused_from_prior_report=3982; missing_rows_fetched_from_bingx_symbols=128
+BINGX_SAMPLE_PROGRESS symbols=25/112 requests=269 errors=1
+BINGX_SAMPLE_PROGRESS symbols=50/112 requests=416 errors=6
+BINGX_SAMPLE_PROGRESS symbols=75/112 requests=539 errors=11
+BINGX_SAMPLE_PROGRESS symbols=100/112 requests=660 errors=15
+BINGX_SAMPLE_PROGRESS symbols=112/112 requests=717 errors=20
+historical_signal_symbols=284; history_windows_missing_before_fetch=318; merged_requests=279; history_fetch_calls=131
+BINANCE_PROGRESS symbols=25/112 requests=224 errors=224
+BINANCE_PROGRESS symbols=50/112 requests=417 errors=416
+BINANCE_PROGRESS symbols=75/112 requests=610 errors=608
+ATTEMPT 2 result=stopped_by_agent_after_repeated_HTTP_451
+stage=Binance cross-exchange fetch; progress_at_stop=75/112 symbols, 610 requests, 608 HTTP/network errors
+reason=remaining requests were returning HTTP 451; stopped retries to avoid repeating a confirmed unavailable source
+
+ATTEMPT 3
+command=STUDY_OFFLINE=0 pnpm dlx tsx reports/lc-indicators-1127/study.ts
+started_utc=2026-11-27T15:52:53.558Z
+as_of_last_closed_15m=2026-11-27T15:30:00.000Z
+sql_source=SELECT status,count(*) FROM liq_cascade_watch WHERE detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT status,count(*) FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT row_to_json(w) FROM liq_cascade_watch w WHERE detected_at >= '2026-11-26 09:43:12.391' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(t) FROM tracked_signals t WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-26 08:43:08.542' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(x) FROM (SELECT symbol,count(*) AS watch_count,count(*) FILTER (WHERE signal_id IS NOT NULL) AS fired_watch_count FROM liq_cascade_watch WHERE detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT' GROUP BY symbol) x; | SELECT row_to_json(x) FROM (SELECT id,symbol,detected_at,entry_price,peak_price,stop_loss_price,exit_price,pnl_percent,status,closed_at FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT') x; | SELECT row_to_json(x) FROM (SELECT o.* FROM lc_stop_bid_observations o JOIN tracked_signals t ON t.id=o.tracked_signal_id WHERE t.sentiment_key='liquidation_cascade' AND t.detected_at >= '2026-11-01' AND t.symbol <> 'BTC-USDT') x; | SELECT count(*),min(snapshot_at),max(snapshot_at) FROM cg_liq_heatmap_snapshot;
+production_readonly=true; database_writes=0; schema_changes=0; application_server_started=false
+old_report=reports/lc-final-1126; production watch rows from 2026-11-01 non-BTC=4117; fired signals=13
+delta_watch_rows=118; delta_signal_rows=2
+historical_watch_symbols=681; historical_lc_signals=640; bid_observation_rows=16
+cg_liq_heatmap_snapshot rows=0; no historical map/levels source available
+candidate_rows_before_gate=4117; unique_symbols=503
+study_candle_gate=exact evaluateLcDetectionCandleGate; retrospective now=start+45m to evaluate at readiness, not at current wall-clock
+trade_outcome=+10% before -10% over 72h from actual A entry or simulated B gate-ready close; ambiguous same-candle retained as ambiguous
+money_model=$1000 deposit / $100 margin / 10x; 4d stop -10%, BE after +8%, trailing from +15% by 10 percentage points, fee 0.1% round trip; same-candle stop checks precede higher highs
+BINGX_GATE_PROGRESS symbols=25/128 requests=765 errors=20
+BINGX_GATE_PROGRESS symbols=50/128 requests=790 errors=20
+BINGX_GATE_PROGRESS symbols=75/128 requests=816 errors=20
+BINGX_GATE_PROGRESS symbols=100/128 requests=842 errors=20
+BINGX_GATE_PROGRESS symbols=125/128 requests=869 errors=20
+BINGX_GATE_PROGRESS symbols=128/128 requests=869 errors=20
+ATTEMPT 3 result=stopped_by_agent_before_sample_and_before_any_CoinGlass_request
+reason=the active research instruction restricts new CoinGlass requests to C_champion and D samples; the current script was still scoped for A/B
+CORRECTION: that restriction belonged to the separate Stealth study. The attached LC-indicators request authorizes CoinGlass for its gate-passing LC sample; attempt 3 was stopped before any CoinGlass call and attempt 4 resumes the LC scope.
+
+ATTEMPT 4
+command=STUDY_OFFLINE=0 pnpm dlx tsx reports/lc-indicators-1127/study.ts
+started_utc=2026-11-27T15:55:11.936Z
+as_of_last_closed_15m=2026-11-27T15:30:00.000Z
+sql_source=SELECT status,count(*) FROM liq_cascade_watch WHERE detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT status,count(*) FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT row_to_json(w) FROM liq_cascade_watch w WHERE detected_at >= '2026-11-26 09:43:12.391' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(t) FROM tracked_signals t WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-26 08:43:08.542' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(x) FROM (SELECT symbol,count(*) AS watch_count,count(*) FILTER (WHERE signal_id IS NOT NULL) AS fired_watch_count FROM liq_cascade_watch WHERE detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT' GROUP BY symbol) x; | SELECT row_to_json(x) FROM (SELECT id,symbol,detected_at,entry_price,peak_price,stop_loss_price,exit_price,pnl_percent,status,closed_at FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT') x; | SELECT row_to_json(x) FROM (SELECT o.* FROM lc_stop_bid_observations o JOIN tracked_signals t ON t.id=o.tracked_signal_id WHERE t.sentiment_key='liquidation_cascade' AND t.detected_at >= '2026-11-01' AND t.symbol <> 'BTC-USDT') x; | SELECT count(*),min(snapshot_at),max(snapshot_at) FROM cg_liq_heatmap_snapshot;
+production_readonly=true; database_writes=0; schema_changes=0; application_server_started=false
+old_report=reports/lc-final-1126; production watch rows from 2026-11-01 non-BTC=4117; fired signals=13
+delta_watch_rows=118; delta_signal_rows=2
+historical_watch_symbols=681; historical_lc_signals=640; bid_observation_rows=16
+cg_liq_heatmap_snapshot rows=0; no historical map/levels source available
+candidate_rows_before_gate=4117; unique_symbols=503
+study_candle_gate=exact evaluateLcDetectionCandleGate; retrospective now=start+45m to evaluate at readiness, not at current wall-clock
+trade_outcome=+10% before -10% over 72h from actual A entry or simulated B gate-ready close; ambiguous same-candle retained as ambiguous
+money_model=$1000 deposit / $100 margin / 10x; 4d stop -10%, BE after +8%, trailing from +15% by 10 percentage points, fee 0.1% round trip; same-candle stop checks precede higher highs
+BINGX_GATE_PROGRESS symbols=25/128 requests=915 errors=20
+BINGX_GATE_PROGRESS symbols=50/128 requests=944 errors=20
+BINGX_GATE_PROGRESS symbols=75/128 requests=971 errors=20
+BINGX_GATE_PROGRESS symbols=100/128 requests=997 errors=20
+BINGX_GATE_PROGRESS symbols=125/128 requests=1025 errors=20
+BINGX_GATE_PROGRESS symbols=128/128 requests=1026 errors=20
+gate_counts=detection_candle_too_small=3860, pass=171, detection_candle_no_rebound=81, detection_candle_unavailable=5
+gate_passed_entry_ready=171
+gate_candles_reused_from_prior_report=3982; missing_rows_fetched_from_bingx_symbols=128
+BINGX_SAMPLE_PROGRESS symbols=25/112 requests=1145 errors=20
+BINGX_SAMPLE_PROGRESS symbols=50/112 requests=1268 errors=25
+BINGX_SAMPLE_PROGRESS symbols=75/112 requests=1391 errors=31
+BINGX_SAMPLE_PROGRESS symbols=100/112 requests=1507 errors=35
+BINGX_SAMPLE_PROGRESS symbols=112/112 requests=1565 errors=40
+historical_signal_symbols=284; history_windows_missing_before_fetch=318; merged_requests=279; history_fetch_calls=131
+BINANCE_PROGRESS symbols=25/112 requests=610 errors=608
+BINANCE_PROGRESS symbols=50/112 requests=610 errors=608
+BINANCE_PROGRESS symbols=75/112 requests=610 errors=608
+BINANCE_PROGRESS symbols=100/112 requests=610 errors=608
+BINANCE_PROGRESS symbols=112/112 requests=610 errors=608
+COINGLASS_PROGRESS symbols=10/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=20/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=30/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=40/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=50/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=60/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=70/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=80/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=90/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=100/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=110/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=112/112 requests=8 errors=2
+completed_utc=2026-11-27T16:08:08.339Z
+included_events=171; outcomes={"champion":57,"bad":74,"open":39,"ambiguous":1}
+http_attempts bingx=1727 binance=610 coinglass=8
+http_attempts coingecko=59
+http_errors bingx=77 binance=608 coinglass=2 coingecko=52
+current_attempt_http_attempts bingx=858 binance=0 coinglass=8 coingecko=59
+current_attempt_http_errors bingx=57 binance=0 coinglass=2 coingecko=52
+missing_metric_rows=6047; threshold_rows=748; combo_rows=10
+ERROR BingX gate candles AGENCY-USDT: Error: code 109418 AGENCY-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX gate candles CATE-USDT: Error: code 109418 CATE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX gate candles AGI-USDT: Error: code 109418 AGI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX gate candles ZCAT-USDT: Error: code 109418 ZCAT-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines 4STOCK-USDT 15m: Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines 4STOCK-USDT 1h: Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines CLAUDIA-USDT 15m: Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines SI-USDT 15m: Error: code 109418 SI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines 4STOCK-USDT 4h: Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines CLAUDIA-USDT 1h: Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines SI-USDT 1h: Error: code 109418 SI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines 4STOCK-USDT 1d: Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines CLAUDIA-USDT 4h: Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines SI-USDT 4h: Error: code 100410 请稍后重试
+ERROR BingX klines CLAUDIA-USDT 1d: Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines KIMCHI-USDT 15m: Error: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines SI-USDT 1d: Error: code 109418 SI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines AGRIPPA-USDT 15m: Error: code 100410 请稍后重试
+ERROR BingX klines KIMCHI-USDT 1h: Error: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines AGRIPPA-USDT 1h: Error: code 109418 AGRIPPA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines KIMCHI-USDT 4h: Error: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines AGRIPPA-USDT 4h: Error: code 109418 AGRIPPA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines KIMCHI-USDT 1d: Error: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines AGRIPPA-USDT 1d: Error: code 109418 AGRIPPA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX history BREW-USDT: Error: BingX code 109418 BREW-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, pl
+ERROR BingX history EPIC-USDT: Error: BingX code 109418 EPIC-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, pl
+ERROR BingX history PTB-USDT: Error: BingX code 109418 PTB-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, ple
+ERROR BingX history PTB-USDT: Error: BingX code 109418 PTB-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, ple
+ERROR BingX history PURR-USDT: Error: BingX code 109418 PURR-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, pl
+ERROR BingX history VANRY-USDT: Error: BingX code 109418 VANRY-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, p
+ERROR Binance API returned HTTP 451; remaining cross-exchange retries were skipped and unavailable metrics are marked in missing_metrics.csv.
+ERROR CoinGecko evaa-protocol: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/evaa-
+ERROR CoinGecko 4-2: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/4-2.j
+ERROR CoinGecko 4stock: Error: HTTP 429
+ERROR CoinGecko meet48: Error: HTTP 429
+ERROR CoinGecko xpin-network: Error: HTTP 429
+ERROR CoinGecko akedo: Error: HTTP 429
+ERROR CoinGecko tokenbot-2: Error: HTTP 429
+ERROR CoinGecko particle-network: Error: HTTP 429
+ERROR CoinGecko velvet: Error: HTTP 429
+ERROR CoinGecko bluwhale: Error: HTTP 429
+ERROR CoinGecko bless-2: Error: HTTP 429
+ERROR CoinGecko zilliqa: Error: HTTP 429
+ERROR CoinGecko mubarak: Error: HTTP 429
+ERROR CoinGecko holotoken: Error: HTTP 429
+ERROR CoinGecko okzoo: Error: HTTP 429
+ERROR CoinGecko 1inch: Error: HTTP 429
+ERROR CoinGecko vaulta: Error: HTTP 429
+ERROR CoinGecko aevo-exchange: Error: HTTP 429
+ERROR CoinGecko aia: Error: HTTP 429
+ERROR CoinGecko stp-network: Error: HTTP 429
+ERROR CoinGecko chainopera-ai: Error: HTTP 429
+ERROR CoinGecko dexe: Error: HTTP 429
+ERROR CoinGecko folks: Error: HTTP 429
+ERROR CoinGecko illuvium: Error: HTTP 429
+ERROR CoinGecko jasmycoin: Error: HTTP 429
+ERROR CoinGecko mantra: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/mantr
+ERROR CoinGecko popcat: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/popca
+ERROR CoinGecko subsquid: Error: HTTP 429
+ERROR CoinGecko useless-3: Error: HTTP 429
+ERROR CoinGecko virtual-protocol: Error: HTTP 429
+ERROR CoinGecko zksync: Error: HTTP 429
+ERROR CoinGecko prometeus: Error: HTTP 429
+ERROR CoinGecko bedrock-token: Error: HTTP 429
+ERROR CoinGecko waves: Error: HTTP 429
+ERROR CoinGecko bulla-3: Error: HTTP 429
+ERROR CoinGecko opengradient: Error: HTTP 429
+ERROR CoinGecko agrippa: Error: HTTP 429
+ERROR CoinGecko immutable-x: Error: HTTP 429
+ERROR CoinGecko cash-cat: Error: HTTP 429
+ERROR CoinGecko allora: Error: HTTP 429
+ERROR CoinGecko brevis: Error: HTTP 429
+ERROR CoinGecko pippin: Error: HTTP 429
+ERROR CoinGecko boundless: Error: HTTP 429
+ERROR CoinGecko irys: Error: HTTP 429
+ERROR CoinGecko dacitycoin: Error: HTTP 429
+ERROR CoinGecko naoris: Error: HTTP 429
+ERROR CoinGecko ni-hao-cat-2: Error: HTTP 429
+ERROR CoinGecko lombard-protocol: Error: HTTP 429
+ERROR CoinGecko kernel-2: Error: HTTP 429
+ERROR CoinGecko carv: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/carv.
+ERROR CoinGecko elsa: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/elsa.
+ERROR CoinGecko hamster-kombat: Error: HTTP 429
+ERROR CoinGecko skyai: Error: HTTP 429
+ERROR CoinGecko momentum-3: Error: HTTP 429
+ERROR CoinGecko wax: Error: HTTP 429
+ERROR CoinGecko movement: Error: HTTP 429
+ERROR CoinGecko lista: Error: HTTP 429
+ERROR CoinGecko kava: Error: HTTP 429
+ERROR CoinGecko XPL-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ZKP-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko US-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko UAI-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko JCT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ON-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ARIA-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko SOPH-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko BMT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko AGT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko Q-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko AIO-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko AIN-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko MARSCOIN-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko STAR-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko TAC-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko GRASS-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko TRADOOR-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko CLAUDIA-USDT: ambiguous ticker (4 matches)
+ERROR CoinGecko CYBER-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ONE-USDT: ambiguous ticker (7 matches)
+ERROR CoinGecko ACT-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko LYN-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko TRUST-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko TA-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko STONK-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko SI-USDT: ambiguous ticker (15 matches)
+ERROR CoinGecko APEX-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko CP-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko FIL-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko PUMP-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko SEI-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ZEN-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko HANA-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko DOS-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko KIMCHI-USDT: ambiguous ticker (7 matches)
+ERROR CoinGecko CAP-USDT: ambiguous ticker (6 matches)
+ERROR CoinGecko ZEC-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko ASTR-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko BIRB-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko BTW-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko INIT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko RARE-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ANSEM-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko CFG-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko SENT-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko FLUX-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko DNA-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko XVG-USDT: ambiguous ticker (2 matches)
+POSTRUN_CORRECTION: final cumulative request totals restored from the completed collection pass; offline attempt 6 added zero requests. Recommendations were added from the completed combo analysis.
+POSTRUN_READONLY_STATUS_COUNTS_UTC=2026-11-27T16:26:48Z
+SELECT status, count(*) FROM liq_cascade_watch WHERE detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status ORDER BY status;
+result_rows=3; expired=3863; fired=13; watching=275; total=4151. The study's frozen 16:00Z input snapshot was 4117 rows.
+SELECT status, count(*) FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status ORDER BY status;
+result_rows=6; active=1; in_run=1; profit=3; stop_loss=5; bu_stop=1; reclassified=2; total=13.
+ERROR CoinGlass API 429 EVAA-USDT; pause 5m before retry
+ERROR CoinGlass top ratio 4STOCK-USDT: code 400 The requested pair does not exist on the exchange. Please check the documentation to view supported exchanges and trading pairs: https://docs.coinglass.com/reference/instruments or https://docs.coinglass.com/reference/spot-suported-exchange-pairs
+POSTRUN_CORRECTION: duplicate coin_category metric found in the output schema; top trader response key was absent from the parser. Recalculating report outputs offline from existing caches only; no external requests.
+ATTEMPT 5
+command=STUDY_OFFLINE=1 pnpm dlx tsx reports/lc-indicators-1127/study.ts
+started_utc=2026-11-27T16:15:09.170Z
+as_of_last_closed_15m=2026-11-27T16:00:00.000Z
+sql_source=SELECT status,count(*) FROM liq_cascade_watch WHERE detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT status,count(*) FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT row_to_json(w) FROM liq_cascade_watch w WHERE detected_at >= '2026-11-26 09:43:12.391' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(t) FROM tracked_signals t WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-26 08:43:08.542' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(x) FROM (SELECT symbol,count(*) AS watch_count,count(*) FILTER (WHERE signal_id IS NOT NULL) AS fired_watch_count FROM liq_cascade_watch WHERE detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT' GROUP BY symbol) x; | SELECT row_to_json(x) FROM (SELECT id,symbol,detected_at,entry_price,peak_price,stop_loss_price,exit_price,pnl_percent,status,closed_at FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT') x; | SELECT row_to_json(x) FROM (SELECT o.* FROM lc_stop_bid_observations o JOIN tracked_signals t ON t.id=o.tracked_signal_id WHERE t.sentiment_key='liquidation_cascade' AND t.detected_at >= '2026-11-01' AND t.symbol <> 'BTC-USDT') x; | SELECT count(*),min(snapshot_at),max(snapshot_at) FROM cg_liq_heatmap_snapshot;
+production_readonly=true; database_writes=0; schema_changes=0; application_server_started=false
+old_report=reports/lc-final-1126; production watch rows from 2026-11-01 non-BTC=4117; fired signals=13
+delta_watch_rows=118; delta_signal_rows=2
+historical_watch_symbols=681; historical_lc_signals=640; bid_observation_rows=16
+cg_liq_heatmap_snapshot rows=0; no historical map/levels source available
+candidate_rows_before_gate=4117; unique_symbols=503
+study_candle_gate=exact evaluateLcDetectionCandleGate; retrospective now=start+45m to evaluate at readiness, not at current wall-clock
+trade_outcome=+10% before -10% over 72h from actual A entry or simulated B gate-ready close; ambiguous same-candle retained as ambiguous
+money_model=$1000 deposit / $100 margin / 10x; 4d stop -10%, BE after +8%, trailing from +15% by 10 percentage points, fee 0.1% round trip; same-candle stop checks precede higher highs
+BINGX_GATE_PROGRESS symbols=25/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=50/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=75/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=100/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=125/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=128/128 requests=858 errors=57
+gate_counts=detection_candle_too_small=3860, pass=171, detection_candle_no_rebound=81, detection_candle_unavailable=5
+gate_passed_entry_ready=171
+gate_candles_reused_from_prior_report=3982; missing_rows_fetched_from_bingx_symbols=128
+BINGX_SAMPLE_PROGRESS symbols=25/112 requests=858 errors=57
+BINGX_SAMPLE_PROGRESS symbols=50/112 requests=858 errors=57
+BINGX_SAMPLE_PROGRESS symbols=75/112 requests=858 errors=57
+BINGX_SAMPLE_PROGRESS symbols=100/112 requests=858 errors=57
+BINGX_SAMPLE_PROGRESS symbols=112/112 requests=858 errors=57
+
+attempt_5_result=stopped before output writes because the offline history path retried missing cache entries; no network requests were sent.
+
+ATTEMPT 6
+command=STUDY_OFFLINE=1 pnpm dlx tsx reports/lc-indicators-1127/study.ts
+started_utc=2026-11-27T16:21:06.958Z
+as_of_last_closed_15m=2026-11-27T16:00:00.000Z
+sql_source=SELECT status,count(*) FROM liq_cascade_watch WHERE detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT status,count(*) FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-01' AND symbol <> 'BTC-USDT' GROUP BY status; | SELECT row_to_json(w) FROM liq_cascade_watch w WHERE detected_at >= '2026-11-26 09:43:12.391' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(t) FROM tracked_signals t WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-11-26 08:43:08.542' AND detected_at < '2026-11-28 00:00:00' AND symbol <> 'BTC-USDT' ORDER BY detected_at,id; | SELECT row_to_json(x) FROM (SELECT symbol,count(*) AS watch_count,count(*) FILTER (WHERE signal_id IS NOT NULL) AS fired_watch_count FROM liq_cascade_watch WHERE detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT' GROUP BY symbol) x; | SELECT row_to_json(x) FROM (SELECT id,symbol,detected_at,entry_price,peak_price,stop_loss_price,exit_price,pnl_percent,status,closed_at FROM tracked_signals WHERE sentiment_key='liquidation_cascade' AND detected_at >= '2026-07-14' AND symbol <> 'BTC-USDT') x; | SELECT row_to_json(x) FROM (SELECT o.* FROM lc_stop_bid_observations o JOIN tracked_signals t ON t.id=o.tracked_signal_id WHERE t.sentiment_key='liquidation_cascade' AND t.detected_at >= '2026-11-01' AND t.symbol <> 'BTC-USDT') x; | SELECT count(*),min(snapshot_at),max(snapshot_at) FROM cg_liq_heatmap_snapshot;
+production_readonly=true; database_writes=0; schema_changes=0; application_server_started=false
+old_report=reports/lc-final-1126; production watch rows from 2026-11-01 non-BTC=4117; fired signals=13
+delta_watch_rows=118; delta_signal_rows=2
+historical_watch_symbols=681; historical_lc_signals=640; bid_observation_rows=16
+cg_liq_heatmap_snapshot rows=0; no historical map/levels source available
+candidate_rows_before_gate=4117; unique_symbols=503
+study_candle_gate=exact evaluateLcDetectionCandleGate; retrospective now=start+45m to evaluate at readiness, not at current wall-clock
+trade_outcome=+10% before -10% over 72h from actual A entry or simulated B gate-ready close; ambiguous same-candle retained as ambiguous
+money_model=$1000 deposit / $100 margin / 10x; 4d stop -10%, BE after +8%, trailing from +15% by 10 percentage points, fee 0.1% round trip; same-candle stop checks precede higher highs
+BINGX_GATE_PROGRESS symbols=25/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=50/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=75/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=100/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=125/128 requests=858 errors=57
+BINGX_GATE_PROGRESS symbols=128/128 requests=858 errors=57
+gate_counts=detection_candle_too_small=3860, pass=171, detection_candle_no_rebound=81, detection_candle_unavailable=5
+gate_passed_entry_ready=171
+gate_candles_reused_from_prior_report=3982; missing_rows_fetched_from_bingx_symbols=128
+BINGX_SAMPLE_PROGRESS symbols=25/112 requests=858 errors=57
+BINGX_SAMPLE_PROGRESS symbols=50/112 requests=858 errors=57
+BINGX_SAMPLE_PROGRESS symbols=75/112 requests=858 errors=57
+BINGX_SAMPLE_PROGRESS symbols=100/112 requests=858 errors=57
+BINGX_SAMPLE_PROGRESS symbols=112/112 requests=858 errors=57
+historical_signal_symbols=284; history_windows_missing_before_fetch=323; merged_requests=284; history_fetch_calls=135
+BINANCE_PROGRESS symbols=25/112 requests=0 errors=0
+BINANCE_PROGRESS symbols=50/112 requests=0 errors=0
+BINANCE_PROGRESS symbols=75/112 requests=0 errors=0
+BINANCE_PROGRESS symbols=100/112 requests=0 errors=0
+BINANCE_PROGRESS symbols=112/112 requests=0 errors=0
+COINGLASS_PROGRESS symbols=10/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=20/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=30/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=40/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=50/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=60/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=70/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=80/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=90/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=100/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=110/112 requests=8 errors=2
+COINGLASS_PROGRESS symbols=112/112 requests=8 errors=2
+completed_utc=2026-11-27T16:21:50.854Z
+included_events=171; outcomes={"champion":57,"bad":74,"open":39,"ambiguous":1}
+http_attempts bingx=1727 binance=610 coinglass=8
+http_attempts coingecko=59
+http_errors bingx=77 binance=608 coinglass=2 coingecko=52
+current_attempt_http_attempts bingx=0 binance=0 coinglass=0 coingecko=0
+current_attempt_http_errors bingx=0 binance=0 coinglass=0 coingecko=0
+missing_metric_rows=5859; threshold_rows=742; combo_rows=10
+ERROR BingX gate candles AGENCY-USDT: Error: code 109418 AGENCY-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX gate candles CATE-USDT: Error: code 109418 CATE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX gate candles AGI-USDT: Error: code 109418 AGI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX gate candles ZCAT-USDT: Error: code 109418 ZCAT-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines 4STOCK-USDT 15m: Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines 4STOCK-USDT 1h: Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines CLAUDIA-USDT 15m: Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines SI-USDT 15m: Error: code 109418 SI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines 4STOCK-USDT 4h: Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines CLAUDIA-USDT 1h: Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines SI-USDT 1h: Error: code 109418 SI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines 4STOCK-USDT 1d: Error: code 109418 4STOCK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines CLAUDIA-USDT 4h: Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines SI-USDT 4h: Error: code 100410 请稍后重试
+ERROR BingX klines CLAUDIA-USDT 1d: Error: code 109418 CLAUDIA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines KIMCHI-USDT 15m: Error: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines SI-USDT 1d: Error: code 109418 SI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines AGRIPPA-USDT 15m: Error: code 100410 请稍后重试
+ERROR BingX klines KIMCHI-USDT 1h: Error: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines AGRIPPA-USDT 1h: Error: code 109418 AGRIPPA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines KIMCHI-USDT 4h: Error: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines AGRIPPA-USDT 4h: Error: code 109418 AGRIPPA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines KIMCHI-USDT 1d: Error: code 109418 KIMCHI-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX klines AGRIPPA-USDT 1d: Error: code 109418 AGRIPPA-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
+ERROR BingX history BREW-USDT: Error: BingX code 109418 BREW-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, pl
+ERROR BingX history EPIC-USDT: Error: BingX code 109418 EPIC-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, pl
+ERROR BingX history PTB-USDT: Error: BingX code 109418 PTB-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, ple
+ERROR BingX history PURR-USDT: Error: BingX code 109418 PURR-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, pl
+ERROR BingX history VANRY-USDT: Error: BingX code 109418 VANRY-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, p
+ERROR Binance API returned HTTP 451; remaining cross-exchange retries were skipped and unavailable metrics are marked in missing_metrics.csv.
+ERROR CoinGecko evaa-protocol: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/evaa-
+ERROR CoinGecko 4-2: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/4-2.j
+ERROR CoinGecko 4stock: Error: HTTP 429
+ERROR CoinGecko meet48: Error: HTTP 429
+ERROR CoinGecko xpin-network: Error: HTTP 429
+ERROR CoinGecko akedo: Error: HTTP 429
+ERROR CoinGecko tokenbot-2: Error: HTTP 429
+ERROR CoinGecko particle-network: Error: HTTP 429
+ERROR CoinGecko velvet: Error: HTTP 429
+ERROR CoinGecko bluwhale: Error: HTTP 429
+ERROR CoinGecko bless-2: Error: HTTP 429
+ERROR CoinGecko zilliqa: Error: HTTP 429
+ERROR CoinGecko mubarak: Error: HTTP 429
+ERROR CoinGecko holotoken: Error: HTTP 429
+ERROR CoinGecko okzoo: Error: HTTP 429
+ERROR CoinGecko 1inch: Error: HTTP 429
+ERROR CoinGecko vaulta: Error: HTTP 429
+ERROR CoinGecko aevo-exchange: Error: HTTP 429
+ERROR CoinGecko aia: Error: HTTP 429
+ERROR CoinGecko stp-network: Error: HTTP 429
+ERROR CoinGecko chainopera-ai: Error: HTTP 429
+ERROR CoinGecko dexe: Error: HTTP 429
+ERROR CoinGecko folks: Error: HTTP 429
+ERROR CoinGecko illuvium: Error: HTTP 429
+ERROR CoinGecko jasmycoin: Error: HTTP 429
+ERROR CoinGecko mantra: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/mantr
+ERROR CoinGecko popcat: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/popca
+ERROR CoinGecko subsquid: Error: HTTP 429
+ERROR CoinGecko useless-3: Error: HTTP 429
+ERROR CoinGecko virtual-protocol: Error: HTTP 429
+ERROR CoinGecko zksync: Error: HTTP 429
+ERROR CoinGecko prometeus: Error: HTTP 429
+ERROR CoinGecko bedrock-token: Error: HTTP 429
+ERROR CoinGecko waves: Error: HTTP 429
+ERROR CoinGecko bulla-3: Error: HTTP 429
+ERROR CoinGecko opengradient: Error: HTTP 429
+ERROR CoinGecko agrippa: Error: HTTP 429
+ERROR CoinGecko immutable-x: Error: HTTP 429
+ERROR CoinGecko cash-cat: Error: HTTP 429
+ERROR CoinGecko allora: Error: HTTP 429
+ERROR CoinGecko brevis: Error: HTTP 429
+ERROR CoinGecko pippin: Error: HTTP 429
+ERROR CoinGecko boundless: Error: HTTP 429
+ERROR CoinGecko irys: Error: HTTP 429
+ERROR CoinGecko dacitycoin: Error: HTTP 429
+ERROR CoinGecko naoris: Error: HTTP 429
+ERROR CoinGecko ni-hao-cat-2: Error: HTTP 429
+ERROR CoinGecko lombard-protocol: Error: HTTP 429
+ERROR CoinGecko kernel-2: Error: HTTP 429
+ERROR CoinGecko carv: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/carv.
+ERROR CoinGecko elsa: Error: ENOENT: no such file or directory, open '/home/runner/workspace/reports/.cache/lc-indicators-1127/coingecko/elsa.
+ERROR CoinGecko hamster-kombat: Error: HTTP 429
+ERROR CoinGecko skyai: Error: HTTP 429
+ERROR CoinGecko momentum-3: Error: HTTP 429
+ERROR CoinGecko wax: Error: HTTP 429
+ERROR CoinGecko movement: Error: HTTP 429
+ERROR CoinGecko lista: Error: HTTP 429
+ERROR CoinGecko kava: Error: HTTP 429
+ERROR CoinGecko XPL-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ZKP-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko US-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko UAI-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko JCT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ON-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ARIA-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko SOPH-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko BMT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko AGT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko Q-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko AIO-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko AIN-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko MARSCOIN-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko STAR-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko TAC-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko GRASS-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko TRADOOR-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko CLAUDIA-USDT: ambiguous ticker (4 matches)
+ERROR CoinGecko CYBER-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ONE-USDT: ambiguous ticker (7 matches)
+ERROR CoinGecko ACT-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko LYN-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko TRUST-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko TA-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko STONK-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko SI-USDT: ambiguous ticker (15 matches)
+ERROR CoinGecko APEX-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko CP-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko FIL-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko PUMP-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko SEI-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ZEN-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko HANA-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko DOS-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko KIMCHI-USDT: ambiguous ticker (7 matches)
+ERROR CoinGecko CAP-USDT: ambiguous ticker (6 matches)
+ERROR CoinGecko ZEC-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko ASTR-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko BIRB-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko BTW-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko INIT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko RARE-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ANSEM-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko CFG-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko SENT-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko FLUX-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko DNA-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko XVG-USDT: ambiguous ticker (2 matches)
+ERROR CoinGlass API 429 EVAA-USDT; pause 5m before retry
+ERROR CoinGlass top ratio 4STOCK-USDT: code 400 The requested pair does not exist on the exchange. Please check the documentation to view supported exchanges and trading pairs: https://docs.coinglass.com/reference/instruments or https://docs.coinglass.com/reference/spot-suported-exchange-pairs
+ERROR BingX gate candles AGENCY-USDT: Error: not_in_cache
+ERROR BingX gate candles ZCAT-USDT: Error: not_in_cache
+ERROR Binance API returned HTTP 451; remaining cross-exchange retries were skipped and unavailable metrics are marked in missing_metrics.csv.
+ERROR CoinGecko XPL-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ZKP-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko US-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko UAI-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko JCT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ON-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ARIA-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko SOPH-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko BMT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko AGT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko Q-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko AIO-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko AIN-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko MARSCOIN-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko STAR-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko TAC-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko GRASS-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko TRADOOR-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko CLAUDIA-USDT: ambiguous ticker (4 matches)
+ERROR CoinGecko CYBER-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ONE-USDT: ambiguous ticker (7 matches)
+ERROR CoinGecko ACT-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko LYN-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko TRUST-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko TA-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko STONK-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko SI-USDT: ambiguous ticker (15 matches)
+ERROR CoinGecko APEX-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko CP-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko FIL-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko PUMP-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko SEI-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ZEN-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko HANA-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko DOS-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko KIMCHI-USDT: ambiguous ticker (7 matches)
+ERROR CoinGecko CAP-USDT: ambiguous ticker (6 matches)
+ERROR CoinGecko ZEC-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko ASTR-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko BIRB-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko BTW-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko INIT-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko RARE-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko ANSEM-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko CFG-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko SENT-USDT: ambiguous ticker (3 matches)
+ERROR CoinGecko FLUX-USDT: ambiguous ticker (2 matches)
+ERROR CoinGecko DNA-USDT: ambiguous ticker (5 matches)
+ERROR CoinGecko XVG-USDT: ambiguous ticker (2 matches)
