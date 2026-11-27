@@ -188,7 +188,10 @@ export const PATTERN_MAX_STOP: Record<string, number> = {
   stealth_breakout: 8,
   // Новая калибровка: PLM/BG оставлены на 10%, IB использует 8%.
   price_led_momentum: 10,
-  impulse_buy: 8,
+  // Owner 2026-11-27: IB stop −10% (was 8%). Final IB review, 45 live IB: −10% kept ARIA #3995 (−8.5% wick, then +51%)
+  // and ELSA #3978 (−9.9%, then +17%) — +41% vs −15% (80/20); PORTAL #4045 (27.11) stopped at −8% then +12%.
+  // Lucy's Trading Bot adds margin so liquidation stays beyond the stop at 10x.
+  impulse_buy: 10,
   // Owner decision 2026-10-22: Neon Support stop is exactly 8% (was global 10%).
   // Owner 2026-11-11: under the level (zone bottom / low −1%, 3…15%) when the level is known; 8% otherwise.
   neon_support_bounce: 8,
