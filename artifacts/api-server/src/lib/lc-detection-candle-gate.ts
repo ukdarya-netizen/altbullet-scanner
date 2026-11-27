@@ -29,11 +29,19 @@ export const LC_MAX_DETECTION_CANDLE_BODY_PCT = -3.5;
 // = 224 trades +246% / +1.10% avg, every month ≥ 0, vs 94 trades +182% with it). Kept for the shadow
 // readings only; the gate no longer reads it.
 export const LC_MIN_DETECTION_CANDLE_BODY_PCT = -5.5;
-export const LC_DETECTION_ENTRY_WINDOW_MS = 15 * 60 * 1000;
-// Owner 2026-10-23: only the CLOSED detection candle is judged. While it is
-// still open the watch waits (reason "detection_candle_pending", non-terminal)
-// and the gate is re-evaluated each cycle. Threshold 10% -> 6% (replay of
-// 1672 watches: range>=6% = 47% champions / 17% stops vs 26% / 32% overall).
+// Owner 2026-11-27: 30 min (was 15). The fire cycle is deferred while the main scanner runs, and the
+// 15-minute window lost real passes (AKE 22.11: candle −11.3%, «entry window passed»).
+export const LC_DETECTION_ENTRY_WINDOW_MS = 30 * 60 * 1000;
+// Owner 2026-11-27 (reports/lc-final-1126, watches 12–26.11): the cascade is judged on the candles
+// AROUND the detection — 3 before (the cascade often runs before the bot sees the liquidation spike:
+// AKE 15.11 fell −6.6/−11.4/−6.1% before the watch) to 1 after. The largest-range candle of that window
+// must be ≥ 5.6%; a red body is no longer required (a big candle with a buy-back did better: current rule
+// 4 champions / 12 bad, any big candle in the window 37 / 49). Then the NEXT candle (rebound) must not
+// keep falling: body ≥ −1% (on those 70 new candidates: 25 / 33 champions vs 16 / 37 bad pass). Entry
+// after the rebound candle closes.
+export const LC_CASCADE_WINDOW_BEFORE = 3;
+export const LC_CASCADE_WINDOW_AFTER = 1;
+export const LC_MIN_REBOUND_BODY_PCT = -1;
 
 const M15 = 15 * 60 * 1000;
 
@@ -46,36 +54,61 @@ export interface LcDetectionCandle {
 }
 
 export type LcDetectionCandleDecision =
-  | { pass: true; rangePct: number; lowerWickPct: number; bodyPct: number }
+  | {
+      pass: true;
+      rangePct: number;
+      lowerWickPct: number;
+      bodyPct: number;
+      cascadeCandleTime: number;
+      reboundBodyPct: number;
+    }
   | {
       pass: false;
       reason:
         | "detection_candle_unavailable"
         | "detection_candle_too_small"
         | "detection_candle_not_capitulation"
+        | "detection_candle_no_rebound"
         | "detection_candle_entry_window_passed"
         | "detection_candle_pending";
       rangePct: number | null;
       lowerWickPct: number | null;
       bodyPct: number | null;
+      cascadeCandleTime?: number | null;
+      reboundBodyPct?: number | null;
     };
+
+function validCandle(c: LcDetectionCandle | undefined): c is LcDetectionCandle {
+  return (
+    c !== undefined &&
+    [c.open, c.high, c.low, c.close].every(Number.isFinite) &&
+    c.open > 0 &&
+    c.low > 0 &&
+    c.high >= c.low
+  );
+}
+
+/** Time by which every candle the gate may need is closed (window end). */
+export function lcCascadeWindowClosesAt(detectedAt: number): number {
+  const start = Math.floor(detectedAt / M15) * M15;
+  return start + (LC_CASCADE_WINDOW_AFTER + 1) * M15;
+}
 
 export function evaluateLcDetectionCandleGate(
   candles: readonly LcDetectionCandle[] | null,
   detectedAt: number,
   now: number,
 ): LcDetectionCandleDecision {
+  const pending = {
+    pass: false as const,
+    reason: "detection_candle_pending" as const,
+    rangePct: null,
+    lowerWickPct: null,
+    bodyPct: null,
+  };
   const start = Math.floor(detectedAt / M15) * M15;
-  if (start + M15 > now) {
-    return {
-      pass: false,
-      reason: "detection_candle_pending",
-      rangePct: null,
-      lowerWickPct: null,
-      bodyPct: null,
-    };
-  }
-  const c = (candles ?? []).find((k) => k.time === start);
+  const windowClose = lcCascadeWindowClosesAt(detectedAt);
+  if (windowClose > now) return pending;
   const unavailable = {
     pass: false as const,
     reason: "detection_candle_unavailable" as const,
@@ -83,51 +116,50 @@ export function evaluateLcDetectionCandleGate(
     lowerWickPct: null,
     bodyPct: null,
   };
-  if (
-    !c ||
-    c.time + M15 > now ||
-    ![c.open, c.high, c.low, c.close].every(Number.isFinite) ||
-    !(c.open > 0) ||
-    !(c.low > 0) ||
-    c.high < c.low
-  ) {
+  const byTime = new Map<number, LcDetectionCandle>();
+  for (const k of candles ?? []) byTime.set(k.time, k);
+  // The detection candle itself and the one after it are required; earlier ones may be missing on a
+  // freshly listed coin.
+  if (!validCandle(byTime.get(start)) || !validCandle(byTime.get(start + M15))) {
     return unavailable;
   }
-  const rangePct = ((c.high - c.low) / c.open) * 100;
-  const lowerWickPct = ((Math.min(c.open, c.close) - c.low) / c.open) * 100;
-  const bodyPct = ((c.close - c.open) / c.open) * 100;
-  // Owner 2026-11-12: the minimum range blocks again (range < 5.6% on the detection candle: ~200 watches,
-  // −2.62% avg at the entry; reports/lc-watch). Shadow mode of 2026-11-02 ended.
+  let cascade: LcDetectionCandle | null = null;
+  let cascadeRange = -Infinity;
+  for (let i = -LC_CASCADE_WINDOW_BEFORE; i <= LC_CASCADE_WINDOW_AFTER; i++) {
+    const c = byTime.get(start + i * M15);
+    if (!validCandle(c) || c.time + M15 > now) continue;
+    const r = ((c.high - c.low) / c.open) * 100;
+    if (r > cascadeRange) {
+      cascadeRange = r;
+      cascade = c;
+    }
+  }
+  if (!cascade) return unavailable;
+  const rangePct = cascadeRange;
+  const lowerWickPct =
+    ((Math.min(cascade.open, cascade.close) - cascade.low) / cascade.open) * 100;
+  const bodyPct = ((cascade.close - cascade.open) / cascade.open) * 100;
+  const base = { rangePct, lowerWickPct, bodyPct, cascadeCandleTime: cascade.time };
   if (rangePct < LC_MIN_DETECTION_CANDLE_RANGE_PCT) {
-    return {
-      pass: false,
-      reason: "detection_candle_too_small",
-      rangePct,
-      lowerWickPct,
-      bodyPct,
-    };
+    return { pass: false, reason: "detection_candle_too_small", ...base, reboundBodyPct: null };
   }
-  if (bodyPct > LC_MAX_DETECTION_CANDLE_BODY_PCT) {
-    return {
-      pass: false,
-      reason: "detection_candle_not_capitulation",
-      rangePct,
-      lowerWickPct,
-      bodyPct,
-    };
+  const reboundTime = cascade.time + M15;
+  if (reboundTime + M15 > now) return { ...pending, ...base, reboundBodyPct: null };
+  const rebound = byTime.get(reboundTime);
+  if (!validCandle(rebound)) {
+    return { ...unavailable, ...base, reboundBodyPct: null };
   }
-  // The edge is the entry at the detection candle close; a late fire is a
-  // different trade, so the window is terminal.
-  if (now > c.time + M15 + LC_DETECTION_ENTRY_WINDOW_MS) {
-    return {
-      pass: false,
-      reason: "detection_candle_entry_window_passed",
-      rangePct,
-      lowerWickPct,
-      bodyPct,
-    };
+  const reboundBodyPct = ((rebound.close - rebound.open) / rebound.open) * 100;
+  if (reboundBodyPct < LC_MIN_REBOUND_BODY_PCT) {
+    return { pass: false, reason: "detection_candle_no_rebound", ...base, reboundBodyPct };
   }
-  return { pass: true, rangePct, lowerWickPct, bodyPct };
+  // The edge is the entry right after the rebound (or the window end, whichever is later); a late fire
+  // is a different trade, so the window is terminal.
+  const readyAt = Math.max(windowClose, reboundTime + M15);
+  if (now > readyAt + LC_DETECTION_ENTRY_WINDOW_MS) {
+    return { pass: false, reason: "detection_candle_entry_window_passed", ...base, reboundBodyPct };
+  }
+  return { pass: true, ...base, reboundBodyPct };
 }
 
 const cache = new Map<string, LcDetectionCandle[] | null>();
@@ -137,10 +169,13 @@ export async function loadLcDetectionCandle(
   detectedAt: number,
 ): Promise<LcDetectionCandle[] | null> {
   const start = Math.floor(detectedAt / M15) * M15;
+  // Window −3..+1 plus the rebound of the last window candle (+2).
+  const from = start - LC_CASCADE_WINDOW_BEFORE * M15;
+  const to = start + (LC_CASCADE_WINDOW_AFTER + 2) * M15;
   const key = `${symbol}:${start}`;
   if (cache.has(key)) return cache.get(key) ?? null;
   const rows = await Promise.race([
-    getKlinesRange(symbol, "15m", start, start + M15),
+    getKlinesRange(symbol, "15m", from, to),
     new Promise<null>((resolve) => setTimeout(() => resolve(null), 5_000)),
   ]).catch(() => null);
   const candles = rows
@@ -152,12 +187,12 @@ export async function loadLcDetectionCandle(
         close: Number(k.close),
       }))
     : null;
-  // Cache only a closed detection candle that was actually returned; an empty
-  // or still-open result must be retried next cycle.
+  // Cache only once every candle the gate may read is closed and returned; otherwise retry next cycle.
   if (
     candles &&
     candles.some((k) => k.time === start) &&
-    start + M15 <= Date.now()
+    candles.some((k) => k.time === to - M15) &&
+    to <= Date.now()
   ) {
     if (cache.size > 2000) cache.clear();
     cache.set(key, candles);

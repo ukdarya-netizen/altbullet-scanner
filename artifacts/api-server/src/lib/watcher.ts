@@ -22,6 +22,8 @@ import {
 import { maybeRecordStealthHourlySnapshot } from "./stealth-hourly-snapshots.js";
 import {
   evaluateLcDetectionCandleGate,
+  lcCascadeWindowClosesAt,
+  LC_MIN_REBOUND_BODY_PCT,
   loadLcDetectionCandle,
   LC_MIN_DETECTION_CANDLE_RANGE_PCT,
 } from "./lc-detection-candle-gate.js";
@@ -15708,7 +15710,7 @@ export function startWatcher(): void {
 
   // Owner 2026-11-11: the LC fire cycle has its own 1-minute timer. Before, it ran only right after the
   // watcher job, so every deferred watcher run (289 of 586 in 48h) also skipped the fire check, and the
-  // capitulation entry window is only 15 minutes after the detection candle closes.
+  // capitulation entry window is short (30 minutes since 2026-11-27).
   const LIQ_CASCADE_FIRE_INTERVAL_MS = 60_000;
   let liqCascadeFireRunning = false;
   const runLiqCascadeFire = async () => {
@@ -17361,14 +17363,14 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
           continue;
         }
       }
-      // Speed filter (owner rule 2026-10-07): the detection 15m candle must be a
-      // large reaction candle (range >= 6%, closed candle only; an open candle waits
-      // as non-terminal detection_candle_pending). No data blocks.
+      // Cascade candle gate (owner 2026-11-27, lc-detection-candle-gate.ts): the largest 15m candle from
+      // 3 before to 1 after the detection must be ≥ 5.6% (any body), and the next candle must not keep
+      // falling (body ≥ −1%); entry after that rebound candle closes. Waits (non-terminal
+      // detection_candle_pending) until those candles are closed. No data blocks.
       const lcCandleGate = lcIsBtc
         ? null
         : evaluateLcDetectionCandleGate(
-            Math.floor(detectedAt / (15 * 60_000)) * 15 * 60_000 + 15 * 60_000 >
-              Date.now()
+            lcCascadeWindowClosesAt(detectedAt) > Date.now()
               ? null
               : await loadLcDetectionCandle(symbol, detectedAt),
             detectedAt,
@@ -17381,7 +17383,10 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
           detectionCandleRangePct: lcCandleGate.rangePct,
           detectionCandleLowerWickPct: lcCandleGate.lowerWickPct,
           detectionCandleBodyPct: lcCandleGate.bodyPct,
+          cascadeCandleTime: lcCandleGate.cascadeCandleTime ?? null,
+          reboundCandleBodyPct: lcCandleGate.reboundBodyPct ?? null,
           minRangePct: LC_MIN_DETECTION_CANDLE_RANGE_PCT,
+          minReboundBodyPct: LC_MIN_REBOUND_BODY_PCT,
         });
         continue;
       }
@@ -17696,7 +17701,7 @@ async function _runLiqCascadeFireCycle(): Promise<void> {
         sentiment: "Liquidation Cascade",
         sentimentKey: "liquidation_cascade",
         traderAction: lcCapitulationEntry
-          ? `LONG (капитуляция после каскада лонг-ликвидаций, обнаружено ${ageStr} назад, источник: ${reasonStr}, стоп -10%, Б/У с +8%, трейлинг с +15% на 10 п.п.)`
+          ? `LONG (отскок после каскада лонг-ликвидаций: свеча каскада ${lcCandleGate?.rangePct != null ? lcCandleGate.rangePct.toFixed(1) : "?"}%, следующая свеча ${lcCandleGate?.reboundBodyPct != null ? (lcCandleGate.reboundBodyPct >= 0 ? "+" : "") + lcCandleGate.reboundBodyPct.toFixed(1) : "?"}%, обнаружено ${ageStr} назад, источник: ${reasonStr}, стоп -10%, Б/У с +8%, трейлинг с +15% на 10 п.п.)`
           : `LONG (каскад лонг-ликвидаций исчерпан ${ageStr} назад, источник: ${reasonStr}, liqExhausted: ${exhausted}, стоп -10%, Б/У с +8%, трейлинг с +15% на 10 п.п.)`,
         alphaScore,
         isContinuing: false,

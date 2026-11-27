@@ -2,64 +2,48 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { evaluateLcDetectionCandleGate } from "../src/lib/lc-detection-candle-gate.js";
 
+// Owner 2026-11-27: largest candle from 3 before to 1 after the detection ≥ 5.6% (any body), next candle
+// body ≥ −1%, entry within 30 minutes after the rebound candle / window close.
 const M = 15 * 60 * 1000;
 const T = 1_000_000 * M;
-const c = (o: number, h: number, l: number, cl: number) => [
-  { time: T, open: o, high: h, low: l, close: cl },
-];
-const now = T + 2 * M;
-
-test("passes only a capitulation candle: range >= 5.6% and red body >= 3.5%", () => {
-  // range 6%, body -4%
-  assert.equal(
-    evaluateLcDetectionCandleGate(c(100, 100.5, 94.5, 96), T + 60_000, now).pass,
-    true,
-  );
-  // range 5.61%, body -3.5%
-  assert.equal(
-    evaluateLcDetectionCandleGate(c(100, 100, 94.39, 96.5), T + 60_000, now).pass,
-    true,
-  );
-  // green candle with a big range: not a capitulation
-  const green = evaluateLcDetectionCandleGate(c(100, 107, 100, 105), T + 60_000, now);
-  assert.equal(!green.pass && green.reason, "detection_candle_not_capitulation");
-  // red body -3% only
-  const weak = evaluateLcDetectionCandleGate(c(100, 101, 94, 97), T + 60_000, now);
-  assert.equal(!weak.pass && weak.reason, "detection_candle_not_capitulation");
-  // range 5.5%
-  const small = evaluateLcDetectionCandleGate(c(100, 100, 94.5, 95), T + 60_000, now);
-  assert.equal(!small.pass && small.reason, "detection_candle_too_small");
+const k = (i: number, o: number, h: number, l: number, cl: number) => ({
+  time: T + i * M,
+  open: o,
+  high: h,
+  low: l,
+  close: cl,
 });
-test("entry only within 15 minutes after the detection candle close", () => {
-  const late = evaluateLcDetectionCandleGate(c(100, 100.5, 94.5, 96), T + 60_000, T + 2 * M + 1);
+const flat = (i: number) => k(i, 100, 100.5, 99.5, 100);
+const det = T + 60_000;
+const ready = T + 3 * M; // window −3..+1 closed and the rebound of +1 too
+
+test("big candle before the detection + non-falling next candle passes", () => {
+  const candles = [flat(-3), k(-2, 100, 100, 88, 89), k(-1, 89, 92, 88.5, 91), flat(0), flat(1), flat(2)];
+  const d = evaluateLcDetectionCandleGate(candles, det, ready);
+  assert.equal(d.pass, true);
+  assert.equal(d.cascadeCandleTime, T - 2 * M);
+});
+test("a big candle with a buy-back (no red body) passes", () => {
+  const candles = [flat(-3), flat(-2), flat(-1), k(0, 100, 101, 93, 100), k(1, 100, 101, 99.5, 100.4), flat(2)];
+  assert.equal(evaluateLcDetectionCandleGate(candles, det, ready).pass, true);
+});
+test("next candle keeps falling: rejected as no rebound", () => {
+  const candles = [flat(-3), flat(-2), flat(-1), k(0, 100, 100, 92, 93), k(1, 93, 93.2, 91, 91.5), flat(2)];
+  const d = evaluateLcDetectionCandleGate(candles, det, ready);
+  assert.equal(!d.pass && d.reason, "detection_candle_no_rebound");
+});
+test("no candle ≥ 5.6% in the window: too small", () => {
+  const candles = [flat(-3), flat(-2), flat(-1), k(0, 100, 101, 96, 97), flat(1), flat(2)];
+  const d = evaluateLcDetectionCandleGate(candles, det, ready);
+  assert.equal(!d.pass && d.reason, "detection_candle_too_small");
+});
+test("waits while the window is open; missing data blocks; late entry is terminal", () => {
+  assert.equal(
+    (evaluateLcDetectionCandleGate(null, det, T + M + 60_000) as { reason?: string }).reason,
+    "detection_candle_pending",
+  );
+  assert.equal(evaluateLcDetectionCandleGate(null, det, ready).pass, false);
+  const candles = [flat(-3), flat(-2), flat(-1), k(0, 100, 101, 93, 100), k(1, 100, 101, 99.5, 100.4), flat(2)];
+  const late = evaluateLcDetectionCandleGate(candles, det, T + 2 * M + 30 * 60_000 + 1);
   assert.equal(!late.pass && late.reason, "detection_candle_entry_window_passed");
-  assert.equal(
-    evaluateLcDetectionCandleGate(c(100, 100.5, 94.5, 96), T + 60_000, T + 2 * M).pass,
-    true,
-  );
-});
-test("small candle is rejected; missing or unclosed candle blocks", () => {
-  const small = evaluateLcDetectionCandleGate(
-    c(100, 102, 98, 99),
-    T + 60_000,
-    now,
-  );
-  assert.equal(small.pass, false);
-  assert.equal(!small.pass && small.reason, "detection_candle_too_small");
-  assert.equal(
-    evaluateLcDetectionCandleGate(null, T, now).pass === false,
-    true,
-  );
-  const open = evaluateLcDetectionCandleGate(
-    c(100, 110, 90, 100),
-    T,
-    T + 60_000,
-  );
-  assert.equal(!open.pass && open.reason, "detection_candle_pending");
-});
-
-test("a red body deeper than 5.5% is rejected as continuation", () => {
-  const deep = evaluateLcDetectionCandleGate(c(100, 100, 93, 94), T + 60_000, now);
-  assert.equal(!deep.pass && deep.reason, "detection_candle_not_capitulation");
-  assert.equal(evaluateLcDetectionCandleGate(c(100, 100, 94, 94.5), T + 60_000, now).pass, true);
 });
