@@ -184,6 +184,19 @@ XPL-USDT@2026-11-01T04:51:22.308Z#watch-8562, ZKP-USDT@2026-11-01T10:23:31.076Z#
 | cg_obv_120_pct_mcap | cg_obv_120_pct_mcap>=39.25566813158707 | 6.62/-232.99 · 14.46/-17.85 | 11.95/-218.12 · 17.53/-20.92 |
 | funding_before_cascade_pct | funding_before_cascade_pct>=0.021988 | -7.91/-245.73 · 3.76/-49.75 | 29.60/-252.94 · -0.20/-15.39 |
 | funding_after_entry_pct | funding_after_entry_pct>=0.024544 | 1.83/-255.46 · 3.86/-49.85 | 20.49/-243.83 · -0.10/-15.49 |
+## Williams indicators supplement
+
+- Events: 171; outcome labels retained unchanged. Counts: champion=57, bad=74, open=39, ambiguous=1.
+- All calculated values use BingX candles only and only bars closed at or before `entry_at`. Timeframes: 15m, 1h, 4h, 1d. Williams fractals use strict 2-left/2-right pivots and are counted only after both right bars close. Cascade reference is the latest closed candle at/before `gate_cascade_at` that was closed by entry. Alligator uses SMMA of median price with 13/8/5 lengths and 8/5/3 plotted shifts; AO is SMA(5)-SMA(34); Williams %R is 14.
+- Additional indicators: Wilder RSI/ADX/DI/ATR; bullish RSI divergence compares the two latest confirmed lower fractals; Stoch(14,3,3), StochRSI(14,14,3,3); MACD(12,26,9); Bollinger(20,2) with population standard deviation; EMA uses SMA seed and 1-bar EMA50 percent slope; CCI(20); Supertrend(10,3). Ichimoku (9,26,52) is only 4h/1d; cloud spans are read 26 bars back to respect plotting displacement without lookahead. Price changes are from the last closed 15m candle before cascade to exact 24h/7d/30d prior closes.
+- Full named distributions for champion/bad/open and event-level metric missing reasons are in `thresholds.csv` and `events.csv`. Thresholds use Nov 1–11 champion/bad rows for selection (numeric 10–90% quantile cuts; categorical/boolean exact state; at least 3 champions and 3 bad outcomes retained), then the same rule is reported for Nov 12–26 with passed/removed `bot_policy_4d_pnl_pct` sums and removed names. Of 167 metrics, 166 had a qualifying rule; `1d_williams_fractal_entry_recovered_above_broken_lower` had no state meeting the 3-champion/3-bad minimum. Actual-signal filter exclusions and production status/PnL are also in `thresholds.csv`.
+- Production SELECT matched eight actual signals: #3712 BR-USDT reclassified pnl_percent=NULL, #3848 BTW-USDT profit pnl_percent=18.532349, #3970 NAORIS-USDT profit pnl_percent=30.550533, #3977 MANTRA-USDT stop_loss pnl_percent=-6.187291, #3980 BR-USDT profit pnl_percent=12.684122, #4011 ARIA-USDT in_run pnl_percent=NULL, #4039 LISTA-USDT stop_loss pnl_percent=-10, #4042 KAVA-USDT bu_stop pnl_percent=0.
+- Populated metric cells: 15m: 6744/6840 metric cells; 1h: 6709/6840 metric cells; 4h: 6968/7182 metric cells; 1d: 6543/7182 metric cells. Missing per-indicator values carry a `*_missing_reason` column.
+- BingX: 15 HTTP attempts for three missing 1D tails; all three symbols were rejected with API code 109418 (five retries each). CoinGlass requests: 0. Refused symbols:
+- 4STOCK-USDT: 109418, symbol offline
+- KIMCHI-USDT: 109418, symbol offline
+- SI-USDT: 109418, symbol offline
+- Metrics for any timeframe with a missing expected close or a gap in the latest cached window stay blank; no stale candle was substituted. DCTY-USDT has no cached 1D series and was not queried because only cached tails could be extended. No production writes or schema changes; production access was SELECT-only.
 ## Errors
 - BingX gate candles AGENCY-USDT: Error: code 109418 AGENCY-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
 - BingX gate candles CATE-USDT: Error: code 109418 CATE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it

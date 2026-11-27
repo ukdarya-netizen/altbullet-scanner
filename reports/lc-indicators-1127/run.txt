@@ -569,3 +569,12 @@ SUPPLEMENT_CAP_MISSING DCTY-USDT: в CoinGlass futures coins-markets нет по
 SUPPLEMENT_CAP_MISSING HAJIMI-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price
 SUPPLEMENT_CAP_MISSING MIHAO-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price
 SUPPLEMENT_CAP_MISSING NULLMASK-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price
+LC_WILLIAMS_SUPPLEMENT completed
+events=171; new_metric_count=167; actual_signals=8
+BINGX_HTTP_ATTEMPTS=15; terminal_error_symbols=3; errors=15; API code 109418 (5 attempts each); COINGLASS_REQUESTS=0
+ERROR BingX 1d 4STOCK-USDT: code 109418 offline
+ERROR BingX 1d KIMCHI-USDT: code 109418 offline
+ERROR BingX 1d SI-USDT: code 109418 offline
+production_readonly=true; query=SELECT id,status,pnl_percent FROM tracked_signals WHERE id = ANY($1::int[]) ORDER BY id; rows=8; writes=0; schema_changes=0
+closed_candles_only=true; no_stale_daily_candles=true
+thresholds=2026-11-01..11 training; 2026-11-12..26 validation; numeric quantiles or categorical states; minimum 3 champions and 3 bads retained
