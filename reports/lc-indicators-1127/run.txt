@@ -542,3 +542,30 @@ ERROR CoinGecko SENT-USDT: ambiguous ticker (3 matches)
 ERROR CoinGecko FLUX-USDT: ambiguous ticker (2 matches)
 ERROR CoinGecko DNA-USDT: ambiguous ticker (5 matches)
 ERROR CoinGecko XVG-USDT: ambiguous ticker (2 matches)
+LC_CAP_FUNDING_SUPPLEMENT started_utc=2026-11-27T17:03:08.640Z events=171 unique_symbols=112 caps_batches_planned=2
+LC_FUNDING_SUPPLEMENT symbols=10/112 queried=7 cache_covered=3 requests=10 errors=1
+LC_FUNDING_SUPPLEMENT symbols=20/112 queried=11 cache_covered=9 requests=14 errors=1
+LC_FUNDING_SUPPLEMENT symbols=30/112 queried=15 cache_covered=15 requests=18 errors=1
+LC_FUNDING_SUPPLEMENT symbols=40/112 queried=20 cache_covered=20 requests=24 errors=2
+LC_FUNDING_SUPPLEMENT symbols=50/112 queried=28 cache_covered=22 requests=32 errors=2
+LC_FUNDING_SUPPLEMENT symbols=60/112 queried=37 cache_covered=23 requests=41 errors=2
+LC_FUNDING_SUPPLEMENT symbols=70/112 queried=46 cache_covered=24 requests=50 errors=2
+LC_FUNDING_SUPPLEMENT symbols=80/112 queried=54 cache_covered=26 requests=58 errors=2
+LC_FUNDING_SUPPLEMENT symbols=90/112 queried=59 cache_covered=31 requests=63 errors=2
+LC_FUNDING_SUPPLEMENT symbols=100/112 queried=65 cache_covered=35 requests=69 errors=2
+LC_FUNDING_SUPPLEMENT symbols=110/112 queried=71 cache_covered=39 requests=75 errors=2
+LC_FUNDING_SUPPLEMENT symbols=112/112 queried=72 cache_covered=40 requests=76 errors=2
+LC_CAP_FUNDING_SUPPLEMENT completed_utc=2026-11-27T17:25:35.771Z
+events=171; unique_symbols=112; cap_events=162; cap_missing_symbols=6
+coins_markets_batches_requested=2; funding_symbols_queried=72; funding_full_cache_reused=40; funding_terminal_errors=0
+funding_before_coverage=171/171; funding_after_coverage=171/171
+coinglass_attempts=76; coinglass_errors=2; coinglass_429=2; successful=74; empty=0
+threshold_rows_added=100; missing_metric_rows_replaced=4196; missing_metric_rows_added=158
+SUPPLEMENT_ERROR CoinGlass coins-markets batch 1/2 [EVAA,XPL,4,ZKP,US,UAI,4STOCK,JCT,ON,ARIA,SOPH,IDOL,XPIN,AKE,NULLMASK,BMT,AGT,Q,CLANKER,PARTI,AIO,AIN,MARSCOIN,STAR,TAC,VELVET,BLUAI,GRASS,HAJIMI,TRADOOR,CLAUDIA,CYBER,BLESS,ZIL,ONE,ACT,MUBARAK,LYN,TRUST,HOT,TA,STONK,SI,AIOT,10000SATS,1INCH,A,AEVO,AIA,APEX,AWE,COAI,CP,DEXE,FIL,FOLKS]: CoinGlass API 429; пауза 5 минут и повтор
+SUPPLEMENT_ERROR CoinGlass OI-weighted funding LYN-USDT: CoinGlass API 429; пауза 5 минут и повтор
+SUPPLEMENT_CAP_MISSING AGRIPPA-USDT: монета отсутствует в ответе CoinGlass futures coins-markets
+SUPPLEMENT_CAP_MISSING CLAUDIA-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price
+SUPPLEMENT_CAP_MISSING DCTY-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price
+SUPPLEMENT_CAP_MISSING HAJIMI-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price
+SUPPLEMENT_CAP_MISSING MIHAO-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price
+SUPPLEMENT_CAP_MISSING NULLMASK-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price

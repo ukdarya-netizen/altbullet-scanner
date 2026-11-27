@@ -150,6 +150,40 @@ XPL-USDT@2026-11-01T04:51:22.308Z#watch-8562, ZKP-USDT@2026-11-01T10:23:31.076Z#
 - CoinGlass top-ratio requests stopped after unsupported pair 4STOCK-USDT returned API 400; ratios were read from six cached symbol responses where available (13/171 events populated, 158 missing). The production heatmap table has 0 rows, and funding, historical sector composition/candles, and token-unlock sources were unavailable; missing cells carry per-metric reasons in `missing_metrics.csv`.
 - CoinGecko categories are present for 9 events; 49 symbols had ambiguous tickers and 52 unique-detail requests returned HTTP 429. Historical full-sector candles were unavailable; category/sector gaps are listed per event.
 
+## Capitalization and OI-weighted funding supplement
+
+- Snapshot time: 2026-11-27T17:25:35.771Z. Market cap at event = CoinGlass futures coins-markets current `market_cap_usd / current_price` × cached BingX 15m close at `gate_cascade_at` (fallback: `detected_at`). Coverage: 162/171 events.
+- Funding uses the CoinGlass OI-weighted OHLC endpoint, 1h candle close, already expressed in percent. Funding before cascade coverage: 171/171; after entry: 171/171.
+- Supplement CoinGlass calls: 76 attempts; 2 HTTP/API/network errors; 2 429 responses; 74 successful responses; 0 successful empty responses. coins-markets batches: 2; funding symbols requested: 72; full-range funding cache reused: 40.
+- CoinGlass markets rows missing or unusable: AGRIPPA-USDT: монета отсутствует в ответе CoinGlass futures coins-markets, CLAUDIA-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price, DCTY-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price, HAJIMI-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price, MIHAO-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price, NULLMASK-USDT: в CoinGlass futures coins-markets нет положительных market_cap_usd и/или current_price. Funding symbols with terminal request failure: нет. Request errors by name (429 retry responses included): CoinGlass coins-markets batch 1/2 [EVAA,XPL,4,ZKP,US,UAI,4STOCK,JCT,ON,ARIA,SOPH,IDOL,XPIN,AKE,NULLMASK,BMT,AGT,Q,CLANKER,PARTI,AIO,AIN,MARSCOIN,STAR,TAC,VELVET,BLUAI,GRASS,HAJIMI,TRADOOR,CLAUDIA,CYBER,BLESS,ZIL,ONE,ACT,MUBARAK,LYN,TRUST,HOT,TA,STONK,SI,AIOT,10000SATS,1INCH,A,AEVO,AIA,APEX,AWE,COAI,CP,DEXE,FIL,FOLKS]: CoinGlass API 429; пауза 5 минут и повтор; CoinGlass OI-weighted funding LYN-USDT: CoinGlass API 429; пауза 5 минут и повтор.
+- Recalculated from existing `reports/.cache` only: liquidation USD (1h/4h before entry and the prior report's 24h-at-cascade metric), 15m aggregated futures/spot volume, 1h/4h spot CVD deltas and 120-bar aggregated OBV. No BingX or other OHLC/history requests were made.
+- New percentage metrics left blank:
+- long_liq_1h_pct_mcap: пусто 13/171
+- long_liq_4h_pct_mcap: пусто 13/171
+- cg_liq_long_mcap_pct_24h: пусто 13/171
+- cg_futures_volume_mcap_pct_15m: пусто 13/171
+- cg_spot_volume_mcap_pct_15m: пусто 24/171
+- cg_spot_cvd_delta_1h_pct_mcap: пусто 24/171
+- cg_spot_cvd_delta_4h_pct_mcap: пусто 24/171
+- cg_obv_120_pct_mcap: пусто 25/171
+- funding_before_cascade_pct: пусто 0/171
+- funding_after_entry_pct: пусто 0/171. Event-level reasons are in the added `*_missing_reason` fields and `missing_metrics.csv`.
+- `thresholds.csv` now has named champion/bad/open distributions for these metrics and single thresholds trained on 2026-11-01..11, then applied unchanged to 2026-11-12..26.
+- Threshold selection maximizes champion-share uplift on the training period over 10th–90th percentile cuts in both directions; candidates need at least 3 retained champions and 3 retained bad outcomes. A negative best uplift is still reported; ties prefer more retained outcomes.
+- Each threshold is also tested with all three fixed regime filters: `1d_rsi14>=45 AND 4h_adx14>=35 AND 1d_di_plus14>=30`. PnL columns are sums of `bot_policy_4d_pnl_pct` for passed and removed rows; missing metric/regime rows are listed separately and excluded from those sums.
+
+| metric | threshold trained Nov 1–11 | single: pass/cut PnL sum (train · validate) | plus all 3 regime filters: pass/cut PnL sum (train · validate) |
+|---|---|---|---|
+| long_liq_1h_pct_mcap | long_liq_1h_pct_mcap>=0.13381430975668004 | 44.97/-269.17 · -22.85/17.36 | 8.54/-222.64 · 17.63/-23.11 |
+| long_liq_4h_pct_mcap | long_liq_4h_pct_mcap>=0.17724454746950422 | 13.30/-237.50 · 22.96/-28.44 | 33.07/-247.18 · 53.53/-59.02 |
+| cg_liq_long_mcap_pct_24h | cg_liq_long_mcap_pct_24h>=0.1253337712962117 | -63.23/-160.97 · 43.92/-49.41 | 3.24/-217.34 · 60.35/-65.83 |
+| cg_futures_volume_mcap_pct_15m | cg_futures_volume_mcap_pct_15m>=13.877341854270146 | -19.67/-214.64 · 53.46/-58.18 | 13.44/-227.54 · 53.43/-58.15 |
+| cg_spot_volume_mcap_pct_15m | cg_spot_volume_mcap_pct_15m>=0.3628577033411691 | -86.36/-101.70 · -44.29/34.45 | 13.44/-191.40 · 53.53/-63.37 |
+| cg_spot_cvd_delta_1h_pct_mcap | cg_spot_cvd_delta_1h_pct_mcap<=-0.06932546055342625 | -21.99/-166.08 · 1.41/-11.25 | 18.91/-196.87 · 53.83/-63.67 |
+| cg_spot_cvd_delta_4h_pct_mcap | cg_spot_cvd_delta_4h_pct_mcap>=0.608614099811739 | 21.10/-209.16 · -20.50/10.67 | 24.53/-202.50 · -0.10/-9.73 |
+| cg_obv_120_pct_mcap | cg_obv_120_pct_mcap>=39.25566813158707 | 6.62/-232.99 · 14.46/-17.85 | 11.95/-218.12 · 17.53/-20.92 |
+| funding_before_cascade_pct | funding_before_cascade_pct>=0.021988 | -7.91/-245.73 · 3.76/-49.75 | 29.60/-252.94 · -0.20/-15.39 |
+| funding_after_entry_pct | funding_after_entry_pct>=0.024544 | 1.83/-255.46 · 3.86/-49.85 | 20.49/-243.83 · -0.10/-15.49 |
 ## Errors
 - BingX gate candles AGENCY-USDT: Error: code 109418 AGENCY-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
 - BingX gate candles CATE-USDT: Error: code 109418 CATE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it
