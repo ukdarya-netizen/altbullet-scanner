@@ -72,6 +72,7 @@ import { neutralizeReviewedBalancedGrindDashboardSignals } from "./lib/balanced-
 import { neutralizeReviewedImpulseBuySignals } from "./lib/impulse-buy-filter-neutral-close.js";
 import { neutralizeIbWyckoffSignals } from "./lib/ib-wyckoff-neutral-close.js";
 import { neutralizeIbPrice24hRejects } from "./lib/ib-p24h-neutral-close.js";
+import { neutralizeStealthRise12Rejects } from "./lib/stealth-rise12-neutral-close.js";
 import { retireOldStealthSignals } from "./lib/stealth-retirement-neutral-close.js";
 import { closeOpenStealthLevelV1 } from "./lib/stealth-level-v1-neutral-close.js";
 import { restoreWrongStealthVsaClose } from "./lib/stealth-vsa-wrong-close-restore.js";
@@ -5962,6 +5963,13 @@ app.listen(port, async (err) => {
         { err },
         "Stealth November tracker neutralization failed",
       );
+    }
+    try {
+      // Owner 2026-11-27: November Stealth below the new +12% rise from the 24 h low leave the statistics.
+      const stealthRise12 = await neutralizeStealthRise12Rejects();
+      logger.info(stealthRise12, "Stealth rise-from-24h-low filter rejects removed from statistics neutrally");
+    } catch (err) {
+      logger.error({ err }, "Stealth rise-from-24h-low neutral close failed");
     }
     // Runs after the November Stealth neutralization (which keeps its own snapshot).
     // Owner 2026-11-11: new Stealth (4H zone breakout on M/W volume) → open Stealth closed neutrally and
