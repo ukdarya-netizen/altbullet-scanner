@@ -64,3 +64,4 @@ reports/.cache/
 reports/.cache-gatecheck/
 reports/.cache-ib/
 reports/.cache-lc/
+/reports/stealth-final-1127/metrics_compare.csv
