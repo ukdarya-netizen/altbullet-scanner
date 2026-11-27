@@ -113,6 +113,15 @@ const NEON_SUPPORT_EXIT_PROFILE: ExitProfile = {
   trailingGap: 20,
 };
 
+// Owner 2026-11-27 (reports/stealth-final-1127): Stealth gets the ABNeon exit — B.U. at +10%, trailing from +20%
+// at 20 p.p. under the peak. On M/W breakouts: −44% vs −125% for B.U. +8 / trailing +15 / 10; all four live B.U.
+// closes at +8 ran on (AGT +50%, EVAA +134%, LISTA +62%, BIGTIME +24%).
+const STEALTH_EXIT_PROFILE: ExitProfile = {
+  firstTarget: 10,
+  trailingActivation: 20,
+  trailingGap: 20,
+};
+
 const BITCOIN_EXIT_PROFILE: ExitProfile = {
   firstTarget: 1,
   trailingActivation: 2,
@@ -127,6 +136,7 @@ export function getExitProfile(
     return BITCOIN_EXIT_PROFILE;
   if (sentimentKey === "whale_watch") return WHALE_WATCH_EXIT_PROFILE;
   if (sentimentKey === "neon_support_bounce") return NEON_SUPPORT_EXIT_PROFILE;
+  if (sentimentKey === "stealth_breakout") return STEALTH_EXIT_PROFILE;
   return DEFAULT_EXIT_PROFILE;
 }
 
@@ -237,13 +247,11 @@ export function getBuStopMilestone(
   // ordinary trailing from +15% at 10 pp, no +10% → +5% promotion
   // (174 signals on the live candle rule: +844% vs +795% current).
   // Owner 2026-11-11 / 2026-11-13: Neon Support B.U. only at +10% (a +8% B.U. was hit by wicks before INIT +154%).
-  if (sentimentKey === "neon_support_bounce") {
+  // Owner 2026-11-27: Stealth B.U. only at +10% too (same as ABNeon).
+  if (sentimentKey === "neon_support_bounce" || sentimentKey === "stealth_breakout") {
     return 10;
   }
-  if (
-    sentimentKey === "stealth_breakout" ||
-    sentimentKey === "liquidation_cascade"
-  ) {
+  if (sentimentKey === "liquidation_cascade") {
     return 8;
   }
   return PARTIAL_TARGET;

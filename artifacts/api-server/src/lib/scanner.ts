@@ -353,6 +353,8 @@ import {
   NEON_VSA_VERSION,
   neonBreakoutColour,
   neonLevelCrossing4h,
+  neonLevelRiseFrom24hLowPct,
+  NEON_LEVEL_MIN_RISE_FROM_24H_LOW_PCT,
   neonLevelTfLabel,
   NEON_LEVEL_1D_METHOD,
   NEON_LEVEL_4H_METHOD,
@@ -1111,7 +1113,12 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
             if (!cross && prevDayClose != null && neonLevelCrossing4h(candles, h4Start, dayZones)) {
               await recordNeonLevelReject(symbol, "stealth_neon_level_zone_was_support");
             }
-            if (cross) {
+            // Owner 2026-11-27: no Stealth on a sluggish breakout — the close must be ≥ 12% above the 24 h low.
+            const riseFrom24hLow = cross ? neonLevelRiseFrom24hLowPct(candles, h4Start) : null;
+            if (cross && (riseFrom24hLow == null || riseFrom24hLow < NEON_LEVEL_MIN_RISE_FROM_24H_LOW_PCT)) {
+              await recordNeonLevelReject(symbol, "stealth_neon_level_weak_move_24h");
+            }
+            if (cross && riseFrom24hLow != null && riseFrom24hLow >= NEON_LEVEL_MIN_RISE_FROM_24H_LOW_PCT) {
               const event: StealthNeonLevelQueueEvent = {
                 ...cross,
                 symbol,

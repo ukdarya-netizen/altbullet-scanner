@@ -212,6 +212,25 @@ const VSA_BRIGHT = new Set(["M", "W"]);
  * Price-only: the 4H crossing of the candle that opened at `h4Start` (last bar of `h4`, closed), or null.
  * Owner 2026-11-14: `zones` = the DAILY ABNeon zones (live); without it the zones come from the 4H candles.
  */
+// Owner 2026-11-27 (reports/stealth-final-1127): the breakout must be part of a move already under way — the
+// 4H breakout close at least 12% above the lowest low of the last 24 h (6 × 4H candles up to and including the
+// breakout candle). On breakouts that passed «zone was resistance» + M/W volume: 34 champions / 44 bad →
+// 30 / 30 kept, 4 / 14 cut; held in both halves of November.
+export const NEON_LEVEL_MIN_RISE_FROM_24H_LOW_PCT = 12;
+
+export function neonLevelRiseFrom24hLowPct(
+  h4: readonly NlCandle[],
+  h4Start: number,
+): number | null {
+  const last = h4.at(-1);
+  if (!last || last.time !== h4Start) return null;
+  const window = h4.filter((c) => c.time > h4Start - 6 * H4_MS && c.time <= h4Start);
+  if (window.length < 6) return null;
+  const low = Math.min(...window.map((c) => c.low));
+  if (!Number.isFinite(low) || low <= 0) return null;
+  return (last.close / low - 1) * 100;
+}
+
 export function neonLevelCrossing4h(
   h4: readonly NlCandle[],
   h4Start: number,
