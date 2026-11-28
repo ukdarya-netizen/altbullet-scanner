@@ -57,6 +57,7 @@ export const REJECT_LABELS: Record<string, string> = {
   abneon_touch_from_below: "Касание зоны пришло снизу — это пробой, не отскок",
   stealth_neon_level_zone_was_support: "Зона была поддержкой (дневная свеча закрылась выше) — это возврат, не пробой",
   stealth_neon_level_weak_move_24h: "Слабый пробой: закрытие меньше чем на 12% выше минимума за 24 ч",
+  stealth_neon_level_atr_contracting: "Пробой на затухающей волатильности: ATR14 на 4H ниже ATR50",
   rule_arm_window_over: "14-дневный срок от арма истёк",
   rule_closed_4h_under_zone: "4H-свеча закрылась под зоной",
   awaiting_later_1h_reaction: "Ждёт 1H-реакции у поддержки",

@@ -231,6 +231,38 @@ export function neonLevelRiseFrom24hLowPct(
   return (last.close / low - 1) * 100;
 }
 
+/** Owner 2026-11-28 (Stealth indicator study): the breakout must come with EXPANDING volatility — Wilder ATR14
+ * on 4H at the breakout candle ≥ 100% of Wilder ATR50 (a breakout on a fading market rarely follows through). */
+export const NEON_LEVEL_MIN_ATR_EXPANSION_PCT = 100;
+
+function wilderAtr(tr: readonly number[], n: number): number | null {
+  if (tr.length < n) return null;
+  let atr = tr.slice(0, n).reduce((a, b) => a + b, 0) / n;
+  for (let i = n; i < tr.length; i++) atr = (atr * (n - 1) + tr[i]) / n;
+  return atr;
+}
+
+/** ATR14 / ATR50 × 100 on contiguous closed 4H candles up to and including the breakout candle; null when short. */
+export function neonLevelAtrExpansionPct(h4: readonly NlCandle[], h4Start: number): number | null {
+  const bars = h4.filter((c) => c.time <= h4Start);
+  const last = bars.at(-1);
+  if (!last || last.time !== h4Start) return null;
+  let from = bars.length - 1;
+  while (from > 0 && bars[from].time - bars[from - 1].time === H4_MS) from--;
+  const seg = bars.slice(from);
+  if (seg.length < 101) return null;
+  const tr: number[] = [];
+  for (let i = 1; i < seg.length; i++) {
+    const c = seg[i];
+    const pc = seg[i - 1].close;
+    tr.push(Math.max(c.high - c.low, Math.abs(c.high - pc), Math.abs(c.low - pc)));
+  }
+  const a14 = wilderAtr(tr, 14);
+  const a50 = wilderAtr(tr, 50);
+  if (a14 == null || a50 == null || !(a50 > 0)) return null;
+  return (a14 / a50) * 100;
+}
+
 export function neonLevelCrossing4h(
   h4: readonly NlCandle[],
   h4Start: number,

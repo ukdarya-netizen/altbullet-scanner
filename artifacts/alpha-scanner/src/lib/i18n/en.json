@@ -2021,5 +2021,6 @@
   "На +10% основная часть (80% позиции) фиксируется": "At +10% the main part (80% of the position) is taken",
   "«Хвост» (20%) остаётся открытым: его стоп в безубытке, а с +30% он идёт за ценой на 30 п.п. ниже пика": "The “tail” (20%) stays open: its stop is at breakeven, and from +30% it trails the price 30 p.p. below the peak",
   "вход после свечи, которая уже не продолжает падение": "entry after a candle that no longer keeps falling",
-  "пробой — часть уже начавшегося движения: закрытие свечи пробоя минимум на 12% выше минимума за последние 24 часа": "the breakout is part of a move already under way: the breakout candle closes at least 12% above the low of the last 24 hours"
+  "пробой — часть уже начавшегося движения: закрытие свечи пробоя минимум на 12% выше минимума за последние 24 часа": "the breakout is part of a move already under way: the breakout candle closes at least 12% above the low of the last 24 hours",
+  "волатильность разгоняется: средний размах 4H-свечи за 14 свечей (ATR) не ниже среднего за 50 свечей": "volatility is expanding: the average 4H candle range over 14 candles (ATR) is not below its 50-candle average"
 }

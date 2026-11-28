@@ -354,6 +354,8 @@ import {
   neonBreakoutColour,
   neonLevelCrossing4h,
   neonLevelRiseFrom24hLowPct,
+  neonLevelAtrExpansionPct,
+  NEON_LEVEL_MIN_ATR_EXPANSION_PCT,
   NEON_LEVEL_MIN_RISE_FROM_24H_LOW_PCT,
   neonLevelTfLabel,
   NEON_LEVEL_1D_METHOD,
@@ -1118,7 +1120,13 @@ async function runStealthNeonLevel(now = Date.now()): Promise<void> {
             if (cross && (riseFrom24hLow == null || riseFrom24hLow < NEON_LEVEL_MIN_RISE_FROM_24H_LOW_PCT)) {
               await recordNeonLevelReject(symbol, "stealth_neon_level_weak_move_24h");
             }
-            if (cross && riseFrom24hLow != null && riseFrom24hLow >= NEON_LEVEL_MIN_RISE_FROM_24H_LOW_PCT) {
+            const risePass = cross != null && riseFrom24hLow != null && riseFrom24hLow >= NEON_LEVEL_MIN_RISE_FROM_24H_LOW_PCT;
+            // Owner 2026-11-28: only a breakout with expanding volatility — 4H ATR14 ≥ 100% of ATR50.
+            const atrExpansion = risePass ? neonLevelAtrExpansionPct(candles, h4Start) : null;
+            if (risePass && (atrExpansion == null || atrExpansion < NEON_LEVEL_MIN_ATR_EXPANSION_PCT)) {
+              await recordNeonLevelReject(symbol, "stealth_neon_level_atr_contracting");
+            }
+            if (cross && risePass && atrExpansion != null && atrExpansion >= NEON_LEVEL_MIN_ATR_EXPANSION_PCT) {
               const event: StealthNeonLevelQueueEvent = {
                 ...cross,
                 symbol,
